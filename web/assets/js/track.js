@@ -106,12 +106,16 @@
       if (rope.grab >= 0) { px[rope.grab] = rope.gx; py[rope.grab] = rope.gy; }
     }
 
-    // rigidez de cinta: cada punto tira suavemente al punto medio de sus vecinos
+    // rigidez de cinta: cada punto tira al punto medio de sus vecinos.
+    // El ajuste también se aplica a la posición previa: cambia la forma
+    // sin inyectar velocidad (si no, la cadena se autoexcita y tiembla)
     for (var s = 0; s < n; s++) {
       var p0 = (s + n - 1) % n, p1 = (s + 1) % n;
       if (s === rope.grab) continue;
-      px[s] += ((px[p0] + px[p1]) / 2 - px[s]) * 0.14;
-      py[s] += ((py[p0] + py[p1]) / 2 - py[s]) * 0.14;
+      var sx = ((px[p0] + px[p1]) / 2 - px[s]) * 0.10;
+      var sy = ((py[p0] + py[p1]) / 2 - py[s]) * 0.10;
+      px[s] += sx; ox[s] += sx;
+      py[s] += sy; oy[s] += sy;
     }
 
     // muros invisibles
