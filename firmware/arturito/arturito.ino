@@ -28,6 +28,9 @@
 #define IN2 6  // Motor Izquierdo Atrás
 #define IN3 9  // Motor Derecho Adelante
 #define IN4 10 // Motor Derecho Atrás
+// EEP (sleep) del modulo a D4: HIGH = driver habilitado.
+// Sin este cable el chip duerme y las salidas no conducen.
+#define SLEEP_DRV 4
 
 // --- PARÁMETROS DE VELOCIDAD Y CALIBRACIÓN ---
 const int VEL_RAPIDA = 180; 
@@ -46,7 +49,11 @@ void setup() {
   pinMode(IN2, OUTPUT);
   pinMode(IN3, OUTPUT);
   pinMode(IN4, OUTPUT);
-  
+
+  // Despertar el DRV8833 (EEP en HIGH) antes de tocar motores
+  pinMode(SLEEP_DRV, OUTPUT);
+  digitalWrite(SLEEP_DRV, HIGH);
+
   // Iniciar comunicación serial para depurar
   Serial.begin(9600);
   

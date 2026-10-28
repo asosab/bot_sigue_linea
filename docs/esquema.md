@@ -5,8 +5,9 @@ created: 2026-10-28
 ---
 # Esquema de cableado
 
-Extraído de `firmware/arturito/arturito.ino`. Falta confirmar la alimentación
-(VCC de sensores, VMOT del driver, masa común) sobre el montaje físico.
+Extraído de `firmware/arturito/arturito.ino` y verificado sobre el montaje
+físico el 2026-10-28. Falta documentar la alimentación (VCC de sensores,
+VMOT del driver, masa común).
 
 ## Sensores → UNO
 
@@ -26,11 +27,17 @@ Extraído de `firmware/arturito/arturito.ino`. Falta confirmar la alimentación
 | IN2 (motor izq. atrás) | D6 |
 | IN3 (motor der. adelante) | D9 |
 | IN4 (motor der. atrás) | D10 |
+| EEP (nSLEEP, HIGH = despierto) | D4 |
+| ULT (nFAULT, opcional) | D2 |
 
 ## DRV8833 → motores
 
 - OUT1/OUT2 → [[componente-hc02-48|motor izquierdo]]
 - OUT3/OUT4 → motor derecho
+
+Motor izquierdo: los cables llegaron invertidos y se corrigieron en el
+conector (2026-10-28). Si un motor rueda al revés, se intercambian sus dos
+cables en OUT o sus dos entradas IN; da igual por dónde.
 
 ## Relacionado
 

@@ -9,11 +9,15 @@ Sketch actual: `firmware/arturito/arturito.ino` — registrado verbatim del
 código que corre el robot.
 
 - Placa: `arduino:avr:uno`
-- Tamaño: 2692 B flash (8 %), 186 B RAM (9 %)
-- `setup`: prueba de motores (800 ms adelante, 800 ms atrás) antes de seguir
-  la línea — sirve de check en la salida
+- Tamaño: 2706 B flash (8 %), 186 B RAM (9 %)
+- `setup`: despierta el DRV8833 (`SLEEP_DRV` = D4 en HIGH, ver
+  [[componente-drv8833]]) y luego corre la prueba de motores (800 ms
+  adelante, 800 ms atrás) antes de seguir la línea — sirve de check en la
+  salida
 - `loop`: lee 5 sensores y aplica la tabla de casos de [[algoritmo]]
 - Serie: 9600 baudios
+- Diagnóstico del driver: `firmware/prueba_drv8833/` — barrido de pines
+  con toggle de sleep por serie
 
 ## Parámetros en código
 

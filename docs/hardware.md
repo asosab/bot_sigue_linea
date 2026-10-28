@@ -24,6 +24,8 @@ Configuración registrada desde `firmware/arturito/arturito.ino`.
 | A2 | sensor centro (S2) |
 | A3 | sensor centro derecho (S3) |
 | A4 | sensor extremo derecho (S4) |
+| D2 | ULT — nFAULT del driver (opcional) |
+| D4 | EEP — nSLEEP del driver (HIGH = habilitado) |
 | D5 | IN1 — motor izquierdo adelante |
 | D6 | IN2 — motor izquierdo atrás |
 | D9 | IN3 — motor derecho adelante |
