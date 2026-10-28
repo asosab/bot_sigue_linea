@@ -1,8 +1,9 @@
 /* Arturito — simulador del firmware real (firmware/arturito/arturito.ino).
-   La pista es un circuito cerrado que se regenera evitando el texto; el
-   carrito la sigue leyendo sus 5 sensores sobre un raster de la página,
-   igual que el robot de verdad: no conoce la geometría, solo ve negro o
-   blanco bajo cada sensor. Se puede arrastrar a cualquier punto. */
+   La pista de la página es un circuito cerrado que evade el texto y se
+   recalcula al redimensionar; el probador dibuja la figura de la pista de
+   práctica. El carrito lee sus 5 sensores sobre un raster del mundo
+   activo, igual que el robot de verdad. El arrastre simula sujetarlo por
+   un punto: se eleva, cuelga del agarre y cae suave al soltar. */
 (function () {
   var svg = document.getElementById('track');
   var path = document.getElementById('trackPath');
@@ -10,8 +11,6 @@
   var senDots = bot.querySelectorAll('.sen');
 
   // --- Mundos y raster de sensores --------------------------------------
-  // La página y el probador (lab) tienen cada uno su raster y sus límites;
-  // los sensores leen siempre del mundo activo.
   var SCALE = 0.35;
   var raster = document.createElement('canvas');
   var rctx = raster.getContext('2d', { willReadFrequently: true });
@@ -21,22 +20,19 @@
   var world = null;                       // mundo activo
 
   // --- Estado del robot -------------------------------------------------
-  // Velocidades máximas traducidas del PWM del firmware a px/s.
   var VMAX = 115, K = VMAX / 255;
   var VEL_RAPIDA = 180, VEL_MEDIA = 150, VEL_LENTA = 120;
-  var WHEEL_BASE = 60;                    // distancia entre ruedas, px
+  var WHEEL_BASE = 60;
 
-  var bot_ = { x: 0, y: 0, th: 0 };       // th: radianes, 0 = hacia abajo +Y? no: ángulo del eje X
-  var pwmL = 0, pwmR = 0;                 // salidas del "driver" (-255..255)
+  var bot_ = { x: 0, y: 0, th: 0 };
+  var botScale = 1;                       // se agranda un poco al levantarlo
+  var pwmL = 0, pwmR = 0;
   var running = false;
-  var dragging = false;
   var ultimoGiro = 0;                     // 0 recto, 1 izquierda, 2 derecha
-  var bootPhase = -1, bootT = 0;          // secuencia de prueba de motores del setup()
+  var bootPhase = -1, bootT = 0;
 
-  // Sensores en coords locales (px); el robot mira hacia su -Y.
   // Cableado real: vistos desde arriba con el frente arriba, de izquierda
-  // a derecha van S4, S3, S2, S1, S0 — o sea, el canal 0 queda a la
-  // derecha del robot.
+  // a derecha van S4, S3, S2, S1, S0 — el canal 0 queda a la derecha.
   var SENS = [
     { x: 17.7,  y: -16.0 },   // S0 — extremo derecho
     { x: 8.8,   y: -24.8 },   // S1 — centro derecho
@@ -46,7 +42,7 @@
   ];
 
   // =====================================================================
-  // Generación de la pista: circuito cerrado que evade el contenido
+  // Pista de la página: circuito cerrado sin cruces ni paralelas pegadas
   // =====================================================================
   function contentBoxes() {
     var els = document.querySelectorAll('main > header, main > section, main > footer');
@@ -70,84 +66,51 @@
     boxes.forEach(function (b) { minL = Math.min(minL, b.left); maxR = Math.max(maxR, b.right); });
     if (!isFinite(minL)) { minL = W * 0.2; maxR = W * 0.8; }
 
-    var L = Math.max(18, minL - 30), R = Math.min(W - 18, maxR + 30);
-    if (R - L < 120) { L = Math.max(14, W / 2 - 60); R = Math.min(W - 14, W / 2 + 60); }
+    var L = Math.max(24, minL - 30), R = Math.min(W - 24, maxR + 30);
+    if (R - L < 120) { L = Math.max(16, W / 2 - 60); R = Math.min(W - 16, W / 2 + 60); }
+    var EDGE = 12;
 
-    // Huecos verticales entre bloques: ahí van los cruces horizontales.
+    // Huecos verticales entre bloques: ahí cruza la línea de lado a lado.
     var gaps = [];
-    var PAD = 34;
-    gaps.push({ y: Math.max(46, boxes[0].top - PAD * 2) });              // sobre el hero
+    gaps.push(Math.max(70, boxes[0].top - 80));
     for (var i = 0; i < boxes.length - 1; i++) {
-      var mid = (boxes[i].bottom + boxes[i + 1].top) / 2;
-      gaps.push({ y: mid });
+      gaps.push((boxes[i].bottom + boxes[i + 1].top) / 2);
     }
-    gaps.push({ y: Math.min(docH - 46, boxes[boxes.length - 1].bottom + PAD * 2) });
+    gaps.push(Math.min(docH - 70, boxes[boxes.length - 1].bottom + 80));
 
-    // Dos "cabos" del lazo: la ida alterna carril L/R en cada hueco; la
-    // vuelta usa el otro carril y cruza en X dentro de cada hueco.
     var n = gaps.length;
-    var lane = function (i) { return i % 2 === 0 ? L : R; };             // carril de ida
-    var other = function (i) { return i % 2 === 0 ? R : L; };            // carril de vuelta
+    var lane = function (i) { return i % 2 === 0 ? L : R; };   // carril de cada tramo
 
-    var d = '';
-    var px, py, i, g, a, b;
+    // Una sola hebra: baja zigzagueando entre bloques y el circuito se
+    // cierra por los bordes de la página (derecha y arriba).
+    var d = 'M ' + L + ' ' + EDGE;
+    var rung = function (a, b, y, stairs) {
+      if (stairs) {
+        var mx = (a + b) / 2;
+        return ' L ' + a + ' ' + y + ' L ' + mx + ' ' + y +
+               ' L ' + mx + ' ' + (y + 16) + ' L ' + b + ' ' + (y + 16);
+      }
+      return ' C ' + a + ' ' + (y - 24) + ', ' + b + ' ' + (y + 24) + ', ' + b + ' ' + y;
+    };
 
-    // ---- tramo de ida: baja serpenteando
-    px = lane(0); py = gaps[0].y - 46;
-    d += 'M ' + px + ' ' + py;
-    for (i = 0; i < n; i++) {
-      g = gaps[i].y; a = lane(i); b = lane(i + 1 >= n ? n - 1 : i + 1);
-      if (i === n - 1) b = a;                                          // último hueco: sin cruce
-      // bajada vertical por el carril de este tramo
-      d += ' L ' + a + ' ' + (g - 16);
-      if (i < n - 1) {
-        if (i % 2 === 0) {
-          // cruce en curva: diagonal suave al otro carril
-          d += ' C ' + a + ' ' + (g + 22) + ', ' + b + ' ' + (g - 6) + ', ' + b + ' ' + (g + 16);
-        } else {
-          // cruce con esquinas a 90°: escalera
-          var mx = (a + b) / 2;
-          d += ' L ' + a + ' ' + g + ' L ' + mx + ' ' + g +
-               ' L ' + mx + ' ' + (g + 14) + ' L ' + b + ' ' + (g + 14) +
-               ' L ' + b + ' ' + (g + 16);
-        }
+    for (var g = 0; g < n; g++) {
+      var a = lane(g), b = lane(g + 1);
+      var y = gaps[g];
+      d += ' L ' + a + ' ' + (y - 18);
+      d += rung(a, b, y, g % 2 === 1);          // alterna curva y escalera 90°
+      if (g === n - 1) {
+        d += ' L ' + b + ' ' + (docH - EDGE);
       }
     }
-    // ---- horquilla inferior: media vuelta del carril de ida al de vuelta
-    var yBot = gaps[n - 1].y + 60;
-    var aLast = lane(n - 1), bLast = other(n - 1);
-    d += ' L ' + aLast + ' ' + (yBot - 40);
-    d += ' C ' + aLast + ' ' + yBot + ', ' + bLast + ' ' + yBot + ', ' + bLast + ' ' + (yBot - 40);
-
-    // ---- tramo de vuelta: sube por el otro carril, cruzando en X cada hueco
-    for (i = n - 1; i >= 0; i--) {
-      g = gaps[i].y;
-      var cur = other(i), next = other(i - 1 < 0 ? 0 : i - 1);
-      if (i === 0) next = cur;
-      d += ' L ' + cur + ' ' + (g + 16);
-      if (i > 0) {
-        if (i % 2 === 0) {
-          d += ' C ' + cur + ' ' + (g - 22) + ', ' + next + ' ' + (g + 6) + ', ' + next + ' ' + (g - 16);
-        } else {
-          var mx2 = (cur + next) / 2;
-          d += ' L ' + cur + ' ' + g + ' L ' + mx2 + ' ' + g +
-               ' L ' + mx2 + ' ' + (g - 14) + ' L ' + next + ' ' + (g - 14) +
-               ' L ' + next + ' ' + (g - 16);
-        }
-      }
-    }
-    // ---- horquilla superior que cierra el circuito
-    var yTop = gaps[0].y - 46;
-    d += ' L ' + other(0) + ' ' + (yTop + 40);
-    d += ' C ' + other(0) + ' ' + (yTop - 14) + ', ' + lane(0) + ' ' + (yTop - 14) + ', ' + lane(0) + ' ' + (yTop + 40);
+    d += ' L ' + (W - EDGE) + ' ' + (docH - EDGE);
+    d += ' L ' + (W - EDGE) + ' ' + EDGE;
     d += ' Z';
 
     svg.setAttribute('width', W);
     svg.setAttribute('height', docH);
     path.setAttribute('d', d);
 
-    // pose inicial: primera vertical tras el primer cruce, tramo recto por delante
-    startPose = { x: lane(1), y: gaps[0].y + 40, th: Math.PI / 2 };
+    startPose = { x: lane(1), y: gaps[0] + 60, th: Math.PI / 2 };
 
     rasterize(boxes);
     pageWorld = { ctx: rctx, w: docW, h: docH };
@@ -163,7 +126,6 @@
     rctx.fillStyle = '#fff';
     rctx.fillRect(0, 0, raster.width, raster.height);
 
-    // texto como franjas (simula renglones impresos)
     rctx.fillStyle = '#000';
     document.querySelectorAll('h1, h2, p, li, figcaption').forEach(function (el) {
       var r = el.getBoundingClientRect();
@@ -179,14 +141,13 @@
     rctx.save();
     rctx.scale(SCALE, SCALE);
     rctx.strokeStyle = '#000';
-    rctx.lineWidth = 18;
+    rctx.lineWidth = 18;                        // 2 cm ≈ separación S1–S3
     rctx.lineJoin = 'miter';
     rctx.lineCap = 'round';
     rctx.stroke(new Path2D(path.getAttribute('d')));
     rctx.restore();
   }
 
-  // proyección local→mundo: el dibujo mira hacia -Y; th es el rumbo mundo
   function toWorld(lx, ly) {
     var c = Math.cos(bot_.th), s = Math.sin(bot_.th);
     return { x: bot_.x - lx * s - ly * c, y: bot_.y + lx * c - ly * s };
@@ -198,7 +159,7 @@
     if (cx < 1 || cy < 1 || cx >= world.ctx.canvas.width - 1 || cy >= world.ctx.canvas.height - 1) return false;
     var px = world.ctx.getImageData(cx - 1, cy - 1, 3, 3).data;
     for (var i = 0; i < px.length; i += 4) {
-      if (px[i] + px[i + 1] + px[i + 2] < 384) return true;   // algo oscuro cerca
+      if (px[i] + px[i + 1] + px[i + 2] < 384) return true;
     }
     return false;
   }
@@ -217,11 +178,9 @@
   }
 
   function control() {
-    var v0, v1, v2, v3, v4;
     var s = readSensors();
-    v0 = s[0]; v1 = s[1]; v2 = s[2]; v3 = s[3]; v4 = s[4];
+    var v0 = s[0], v1 = s[1], v2 = s[2], v3 = s[3], v4 = s[4];
 
-    // mismo orden de casos que arturito.ino
     if (v2 && !v0 && !v1 && !v3 && !v4)      { pwmL = VEL_RAPIDA; pwmR = VEL_RAPIDA; ultimoGiro = 0; }
     else if (v3 || (v2 && v3))               { pwmL = VEL_RAPIDA; pwmR = VEL_LENTA;  ultimoGiro = 2; }
     else if (v1 || (v2 && v1))               { pwmL = VEL_LENTA;  pwmR = VEL_RAPIDA; ultimoGiro = 1; }
@@ -238,7 +197,6 @@
     else { pwmL = VEL_MEDIA; pwmR = VEL_MEDIA; }
   }
 
-  // Prueba de motores del setup(): adelante, pausa, atrás, pausa.
   var BOOT = [
     { t: 800, l: VEL_MEDIA, r: VEL_MEDIA },
     { t: 300, l: 0, r: 0 },
@@ -254,73 +212,157 @@
     bot_.th += omega * dt;
     bot_.x += Math.cos(bot_.th) * v * dt;
     bot_.y += Math.sin(bot_.th) * v * dt;
-    if (world) {
-      bot_.x = Math.min(Math.max(bot_.x, 8), world.w - 8);
-      bot_.y = Math.min(Math.max(bot_.y, 8), world.h - 8);
-    }
+    clampWalls();
   }
+
+  function clampWalls() {
+    if (!world) return;
+    bot_.x = Math.min(Math.max(bot_.x, 8), world.w - 8);
+    bot_.y = Math.min(Math.max(bot_.y, 8), world.h - 8);
+  }
+
+  // =====================================================================
+  // Bucle principal: física del drag, caída y motores
+  // =====================================================================
+  var drag = {
+    held: false, moved: false, g: null,
+    px: 0, py: 0, vx: 0, vy: 0,
+    fallT: 0, fallV: { x: 0, y: 0 },
+    downT: 0, sx: 0, sy: 0
+  };
 
   var lastT = null;
   function tick(t) {
-    if (!running || dragging) { lastT = t; requestAnimationFrame(tick); return; }
-    if (lastT === null) lastT = t;
+    if (!lastT) lastT = t;
     var dt = Math.min(0.05, (t - lastT) / 1000);
     lastT = t;
 
-    if (bootPhase >= 0) {                       // todavía en setup()
-      bootT += dt * 1000;
-      var ph = BOOT[bootPhase];
-      if (bootT >= ph.t) {
-        bootT = 0; bootPhase++;
-        if (bootPhase >= BOOT.length) bootPhase = -1;
-      } else { pwmL = ph.l; pwmR = ph.r; }
-    } else {
-      control();
+    if (drag.held) {
+      dragStep(dt);
+    } else if (drag.fallT > 0) {
+      fallStep(dt);
+    } else if (running) {
+      if (bootPhase >= 0) {
+        bootT += dt * 1000;
+        var ph = BOOT[bootPhase];
+        if (bootT >= ph.t) { bootT = 0; if (++bootPhase >= BOOT.length) bootPhase = -1; }
+        else { pwmL = ph.l; pwmR = ph.r; }
+      } else {
+        control();
+      }
+      physics(dt);
     }
-    physics(dt);
+
+    // escala: sube al levantarlo, baja al caer
+    var target = drag.held ? 1.12 : 1;
+    botScale += (target - botScale) * Math.min(1, dt * 10);
     place();
     requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+
+  // El punto de agarre sigue el puntero; el cuerpo cuelga detrás, como un
+  // carrito real tomado de una esquina.
+  function dragStep(dt) {
+    var grab = drag.g;
+    // vector local agarre→centro
+    var armAng = Math.atan2(-grab.y, -grab.x);
+    var armLen = Math.hypot(grab.x, grab.y);
+    // orientación deseada: el centro se queda atrás del movimiento
+    var desired;
+    if (Math.hypot(drag.vx, drag.vy) > 20) {
+      desired = Math.atan2(-drag.vy, -drag.vx) - armAng - Math.PI / 2;
+    } else {
+      desired = Math.atan2(1, 0) - armAng - Math.PI / 2;   // cuelga hacia abajo
+    }
+    var dth = desired - bot_.th;
+    while (dth > Math.PI) dth -= 2 * Math.PI;
+    while (dth < -Math.PI) dth += 2 * Math.PI;
+    bot_.th += dth * Math.min(1, dt * 8);
+
+    // posición: el agarre va en el puntero
+    var phi = bot_.th + Math.PI / 2;
+    var gx = Math.cos(phi) * grab.x - Math.sin(phi) * grab.y;
+    var gy = Math.sin(phi) * grab.x + Math.cos(phi) * grab.y;
+    bot_.x = drag.px - gx;
+    bot_.y = drag.py - gy;
+    clampWalls();
+  }
+
+  // Al soltar: cae despacito (poca gravedad) y conserva el impulso un rato.
+  function fallStep(dt) {
+    drag.fallT -= dt;
+    bot_.x += drag.fallV.x * dt;
+    bot_.y += drag.fallV.y * dt;
+    drag.fallV.x *= 0.90;
+    drag.fallV.y *= 0.90;
+    clampWalls();
+    if (drag.fallT <= 0) {
+      drag.fallT = 0;
+      bot.classList.remove('lift');
+    }
   }
 
   function place() {
     var deg = bot_.th * 180 / Math.PI + 90;
-    var wob = running && bootPhase < 0 ? Math.sin(performance.now() * 0.02) * 1.5 : 0;
     bot.setAttribute('transform',
-      'translate(' + bot_.x + ' ' + bot_.y + ') rotate(' + (deg + wob) + ')');
+      'translate(' + bot_.x + ' ' + bot_.y + ') rotate(' + deg + ') scale(' + botScale + ')');
   }
 
   // =====================================================================
-  // Interacción: click = encender/apagar, drag = reubicar
+  // Interacción: click = encender/apagar, drag físico = reubicar
   // =====================================================================
-  var dragStart = null, moved = false;
+  function localPoint(clientX, clientY) {
+    // punto del carrito (coords locales, dibujo centrado en 0,0)
+    var r = bot.getBoundingClientRect();
+    var cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    var dx = clientX - cx, dy = clientY - cy;
+    var phi = (bot_.th + Math.PI / 2);
+    var c = Math.cos(-phi), s = Math.sin(-phi);
+    return { x: (dx * c - dy * s) / botScale, y: (dx * s + dy * c) / botScale };
+  }
 
   bot.addEventListener('pointerdown', function (e) {
     e.preventDefault();
     bot.setPointerCapture(e.pointerId);
-    dragStart = { x: e.clientX, y: e.clientY, t: performance.now() };
-    moved = false;
+    drag.held = true; drag.moved = false;
+    drag.downT = performance.now();
+    drag.g = localPoint(e.clientX, e.clientY);
+    drag.px = e.clientX; drag.py = e.clientY;
+    drag.sx = e.clientX; drag.sy = e.clientY;
+    drag.vx = 0; drag.vy = 0;
   });
+
   bot.addEventListener('pointermove', function (e) {
-    if (!dragStart) return;
-    var dx = e.clientX - dragStart.x, dy = e.clientY - dragStart.y;
-    if (!moved && Math.hypot(dx, dy) > 6) { moved = true; dragging = true; bot.classList.add('drag'); }
-    if (dragging) {
-      var nx = bot_.x + dx, ny = bot_.y + dy;
-      if (Math.hypot(nx - bot_.x, ny - bot_.y) > 2) {
-        bot_.th = Math.atan2(ny - bot_.y, nx - bot_.x);
-        bot_.x = nx; bot_.y = ny;
-      }
-      dragStart.x = e.clientX; dragStart.y = e.clientY;
-      place();
+    if (!drag.held) return;
+    var dx = e.clientX - drag.px, dy = e.clientY - drag.py;
+    var now = performance.now();
+    // velocidad suavizada para el péndulo y el lanzamiento
+    drag.vx = drag.vx * 0.7 + dx * 0.3 * 60;
+    drag.vy = drag.vy * 0.7 + dy * 0.3 * 60;
+    if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 6) {
+      drag.moved = true;
+      bot.classList.add('drag', 'lift');
     }
+    drag.px = e.clientX; drag.py = e.clientY;
   });
+
   bot.addEventListener('pointerup', function (e) {
-    if (!dragStart) return;
-    var quick = performance.now() - dragStart.t < 400;
-    if (!moved && quick) toggle();
-    dragging = false; dragStart = null;
+    if (!drag.held) return;
+    var quick = performance.now() - drag.downT < 400;
+    if (!drag.moved && quick) {
+      toggle();
+      drag.held = false;
+      return;
+    }
+    // suelta: impulso residual + caída lenta
+    drag.fallV.x = drag.vx * 60 * 0.012;
+    drag.fallV.y = drag.vy * 60 * 0.012;
+    drag.fallT = 0.55;
+    drag.held = false;
     bot.classList.remove('drag');
   });
+
   bot.addEventListener('keydown', function (e) {
     if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
   });
@@ -328,7 +370,7 @@
   function toggle() {
     running = !running;
     bot.classList.toggle('on', running);
-    if (running) { bootPhase = 0; bootT = 0; lastT = null; requestAnimationFrame(tick); }
+    if (running) { bootPhase = 0; bootT = 0; }
     else { pwmL = pwmR = 0; }
   }
 
@@ -342,19 +384,16 @@
   var labCtx = labRaster.getContext('2d', { willReadFrequently: true });
   var inLab = false;
   var savedPose = null;
+  var labStart = null;
 
   function buildLab() {
     var W = window.innerWidth, H = window.innerHeight;
-    var m = Math.min(80, Math.min(W, H) * 0.12);   // margen a los muros
+    var m = Math.min(80, Math.min(W, H) * 0.12);
     var cx = W / 2, cy = H / 2;
     var d;
 
-    // Figura como la pista de práctica: un circuito cerrado tipo ocho con
-    // un cruce en el medio. Apaisada si la pantalla es ancha, vertical si
-    // es alta.
     var rx = (W - 2 * m) / 2, ry = (H - 2 * m) / 2;
     if (H > W) {
-      // vertical: dos lobos apilados, cruce en el centro
       var a = ry * 0.52;
       d = 'M ' + cx + ' ' + cy +
           ' C ' + (cx - rx * 1.25) + ' ' + (cy - a * 0.55) + ', ' + (cx - rx) + ' ' + (cy - 2 * a) + ', ' + cx + ' ' + (cy - 2 * a) +
@@ -363,7 +402,6 @@
           ' C ' + (cx - rx) + ' ' + (cy + 2 * a) + ', ' + (cx - rx * 1.25) + ' ' + (cy + a * 0.55) + ', ' + cx + ' ' + cy + ' Z';
       labStart = { x: cx, y: cy - 2 * a, th: 0 };
     } else {
-      // horizontal: dos lobos lado a lado
       var b = rx * 0.52;
       d = 'M ' + cx + ' ' + cy +
           ' C ' + (cx - b * 0.55) + ' ' + (cy - ry * 1.25) + ', ' + (cx - 2 * b) + ' ' + (cy - ry) + ', ' + (cx - 2 * b) + ' ' + cy +
@@ -391,14 +429,13 @@
     labWorld = { ctx: labCtx, w: W, h: H };
     if (inLab) world = labWorld;
   }
-  var labStart = null;
 
   function openLab() {
     buildLab();
     savedPose = { x: bot_.x, y: bot_.y, th: bot_.th };
     lab.hidden = false;
     document.body.style.overflow = 'hidden';
-    labSvg.appendChild(bot);                    // el carrito pasa al lab
+    labSvg.appendChild(bot);
     world = labWorld; inLab = true;
     bot_.x = labStart.x; bot_.y = labStart.y; bot_.th = labStart.th;
     place();
@@ -406,7 +443,7 @@
 
   function closeLab() {
     inLab = false; world = pageWorld;
-    svg.appendChild(bot);                       // vuelve a la página
+    svg.appendChild(bot);
     if (savedPose) { bot_.x = savedPose.x; bot_.y = savedPose.y; bot_.th = savedPose.th; }
     lab.hidden = true;
     document.body.style.overflow = '';
@@ -436,8 +473,9 @@
 
   // handle de depuración
   window.__art = { bot_, SENS, toWorld, darkAt, readSensors, raster,
-                   path: path, build: build };
+                   path: path, build: build, drag: drag };
 
   build();
+  world = pageWorld;
   place();
 })();

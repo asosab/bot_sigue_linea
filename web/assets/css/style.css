@@ -27,8 +27,15 @@ body {
   stroke-linejoin: miter;
 }
 
-#bot { pointer-events: auto; cursor: grab; touch-action: none; }
+#bot {
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  filter: drop-shadow(0 5px 5px rgba(0,0,0,.22));
+  transition: filter .3s;
+}
 #bot.drag { cursor: grabbing; }
+#bot.lift { filter: drop-shadow(0 22px 16px rgba(0,0,0,.30)); }
 
 #bot .sen { fill: #222; }
 #bot.on .sen.hit { fill: #ff3b30; }
