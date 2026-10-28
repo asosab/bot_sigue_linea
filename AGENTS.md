@@ -28,7 +28,10 @@ Configurados a nivel de proyecto en `.devin/mcp_config.json`:
 - `arduino` — `npx -y arduino-mcp-server`: detecta placas, compila, sube y
   monitoriza el puerto serie envolviendo `arduino-cli`
   (`C:\Program Files\Arduino CLI\arduino-cli.exe`, instalado con winget
-  `ArduinoSA.CLI`; core `arduino:avr` preinstalado). Los sketches viven en
+  `ArduinoSA.CLI`; core `arduino:avr` preinstalado). El Arduino IDE 2.3.10
+  está en `C:\Users\asosa\AppData\Local\Programs\arduino-ide\` (lleva su
+  propio cli interno; comparten cores/librerías vía
+  `%LOCALAPPDATA%\Arduino15`). Los sketches viven en
   `ARDUINO_SKETCH_ROOT=firmware/`. **Subir firmware a la placa pide
   confirmación del usuario** (`upload_sketch`, `upload_and_wait_ready` en
   `ask`): la placa es hardware real.
