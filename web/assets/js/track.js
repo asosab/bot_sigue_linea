@@ -44,6 +44,8 @@
   // La cinta: cadena cerrada de puntos con física Verlet
   // =====================================================================
   var rope = { px: [], py: [], ox: [], oy: [], segLen: [], n: 0, grab: -1 };
+  var BEND_RADIUS = 130;               // radio mínimo de curvatura de la cinta, px
+  var BEND_SPAN = 6;                   // segmentos por lado que revisa el límite
 
   function ropeInit() {
     var W = docW, H = docH;
@@ -103,17 +105,53 @@
         px[j] += dx; py[j] += dy;
         px[k] -= dx; py[k] -= dy;
       }
-      // límite de curvatura: la cinta no se dobla más de 120°, los pliegues
-      // se abren para que siempre queden curvas suaves
-      for (var c = 0; c < n; c++) {
-        var i0 = (c + n - 1) % n, i2 = (c + 1) % n;
-        var cx0 = px[i2] - px[i0], cy0 = py[i2] - py[i0];
-        var cd = Math.hypot(cx0, cy0) || 1e-6;
-        var minD = 0.85 * (rope.segLen[i0] + rope.segLen[c]) * 0.5;
-        if (cd < minD) {
-          var push = (minD - cd) / cd * 0.5;
-          px[i0] -= cx0 * push; py[i0] -= cy0 * push;
-          px[i2] += cx0 * push; py[i2] += cy0 * push;
+      if (rope.grab >= 0) {
+        // radio mínimo de curvatura mientras se arrastra: la cinta no se
+        // dobla más cerrada que un arco de BEND_RADIUS. Se revisa en varias
+        // escalas (spans de k segmentos) para que el doblez se reparta en
+        // una curva amplia en vez de concentrarse en un pico. Solo durante
+        // el arrastre: en reposo deformaría sola la figura guardada
+        var kmax = Math.min(BEND_SPAN, (n >> 1) - 1);
+        for (var c = 0; c < n; c++) {
+          var arc = 0;
+          for (var k = 1; k <= kmax; k++) {
+            arc += rope.segLen[(c + n - k) % n] + rope.segLen[(c + k - 1) % n];
+            // un arco más largo que media circunferencia puede cerrarse
+            // legítimamente: ahí la cuerda corta ya no delata un pliegue
+            if (arc >= Math.PI * BEND_RADIUS) break;
+            var i0 = (c + n - k) % n, i2 = (c + k) % n;
+            var cx0 = px[i2] - px[i0], cy0 = py[i2] - py[i0];
+            var cd = Math.hypot(cx0, cy0) || 1e-6;
+            var minD = 2 * BEND_RADIUS * Math.sin(arc / (2 * BEND_RADIUS));
+            if (cd < minD) {
+              var push = (minD - cd) / cd;
+              // si un extremo es el punto agarrado, empuja solo el libre:
+              // el agarrado vuelve al puntero al final de la iteración
+              if (i0 === rope.grab) {
+                px[i2] += cx0 * push; py[i2] += cy0 * push;
+              } else if (i2 === rope.grab) {
+                px[i0] -= cx0 * push; py[i0] -= cy0 * push;
+              } else {
+                push *= 0.5;
+                px[i0] -= cx0 * push; py[i0] -= cy0 * push;
+                px[i2] += cx0 * push; py[i2] += cy0 * push;
+              }
+            }
+          }
+        }
+      } else {
+        // en reposo solo se evita el pliegue degenerado (doblez de más de
+        // ~130° en un solo punto); la figura guardada no se toca
+        for (var c = 0; c < n; c++) {
+          var i0 = (c + n - 1) % n, i2 = (c + 1) % n;
+          var cx0 = px[i2] - px[i0], cy0 = py[i2] - py[i0];
+          var cd = Math.hypot(cx0, cy0) || 1e-6;
+          var minD = 0.85 * (rope.segLen[i0] + rope.segLen[c]) * 0.5;
+          if (cd < minD) {
+            var push = (minD - cd) / cd * 0.5;
+            px[i0] -= cx0 * push; py[i0] -= cy0 * push;
+            px[i2] += cx0 * push; py[i2] += cy0 * push;
+          }
         }
       }
       if (rope.grab >= 0) { px[rope.grab] = rope.gx; py[rope.grab] = rope.gy; }
@@ -127,8 +165,8 @@
       for (var s = 0; s < n; s++) {
         var p0 = (s + n - 1) % n, p1 = (s + 1) % n;
         if (s === rope.grab) continue;
-        var sx = ((px[p0] + px[p1]) / 2 - px[s]) * 0.10;
-        var sy = ((py[p0] + py[p1]) / 2 - py[s]) * 0.10;
+        var sx = ((px[p0] + px[p1]) / 2 - px[s]) * 0.16;
+        var sy = ((py[p0] + py[p1]) / 2 - py[s]) * 0.16;
         px[s] += sx; ox[s] += sx;
         py[s] += sy; oy[s] += sy;
       }
