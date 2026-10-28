@@ -23,9 +23,13 @@ y el fondo para que [[algoritmo]] decida hacia dónde corregir.
 
 ## Datos clave del datasheet
 
-- Lectura analógica con `analogRead` (0–1023)
-- En este montaje: blanco da 30–40, negro da 970–990 → ver [[calibracion]]
+- Lectura analógica con `analogRead` (0–1023); el cable de señal va al pin
+  **AO** del módulo, no al DO
+- En este montaje: blanco da ~28, negro da ~900 → ver [[calibracion]]
 - Lógica: valor > umbral = negro
+- Orden físico verificado el 2026-10-28: de izquierda a derecha del bot van
+  S0, S1, S2, S3, S4 (coincide con la tabla de arriba)
+- Módulo sin VCC: sus LEDs apagan y el canal lee ~1015 fijo = "negro"
 
 ## Librería y código
 
