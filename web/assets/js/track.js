@@ -106,16 +106,19 @@
       if (rope.grab >= 0) { px[rope.grab] = rope.gx; py[rope.grab] = rope.gy; }
     }
 
-    // rigidez de cinta: cada punto tira al punto medio de sus vecinos.
-    // El ajuste también se aplica a la posición previa: cambia la forma
-    // sin inyectar velocidad (si no, la cadena se autoexcita y tiembla)
-    for (var s = 0; s < n; s++) {
-      var p0 = (s + n - 1) % n, p1 = (s + 1) % n;
-      if (s === rope.grab) continue;
-      var sx = ((px[p0] + px[p1]) / 2 - px[s]) * 0.10;
-      var sy = ((py[p0] + py[p1]) / 2 - py[s]) * 0.10;
-      px[s] += sx; ox[s] += sx;
-      py[s] += sy; oy[s] += sy;
+    // rigidez de cinta solo mientras se arrastra: suaviza la forma que se
+    // está creando sin volver al óvalo (si actuara en reposo parecería un
+    // elástico que tira para atrás). También mueve la posición previa
+    // para no inyectar velocidad.
+    if (rope.grab >= 0) {
+      for (var s = 0; s < n; s++) {
+        var p0 = (s + n - 1) % n, p1 = (s + 1) % n;
+        if (s === rope.grab) continue;
+        var sx = ((px[p0] + px[p1]) / 2 - px[s]) * 0.10;
+        var sy = ((py[p0] + py[p1]) / 2 - py[s]) * 0.10;
+        px[s] += sx; ox[s] += sx;
+        py[s] += sy; oy[s] += sy;
+      }
     }
 
     // muros invisibles
@@ -451,7 +454,13 @@
   });
 
   function ropeRelease() {
-    if (rope.grab >= 0) retarget();   // conserva la figura nueva
+    if (rope.grab >= 0) {
+      retarget();                      // la figura nueva se queda
+      for (var i = 0; i < rope.n; i++) {   // y parada en seco, sin rebote
+        rope.ox[i] = rope.px[i];
+        rope.oy[i] = rope.py[i];
+      }
+    }
     rope.grab = -1;
     hitPath.classList.remove('rope-drag');
   }
