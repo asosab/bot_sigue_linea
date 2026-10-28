@@ -68,7 +68,7 @@
 
     var L = Math.max(24, minL - 30), R = Math.min(W - 24, maxR + 30);
     if (R - L < 120) { L = Math.max(16, W / 2 - 60); R = Math.min(W - 16, W / 2 + 60); }
-    var EDGE = 12;
+    var EDGE = 44;
 
     // Huecos verticales entre bloques: ahí cruza la línea de lado a lado.
     var gaps = [];
