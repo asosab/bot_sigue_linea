@@ -20,6 +20,9 @@ firmware, documentación en un vault Obsidian y manuales exportados a PDF.
 - `node`/`npm` are Windows binaries on PATH (Node v24).
 - Devin CLI (no está en PATH):
   `C:\Users\asosa\AppData\Local\Programs\Devin\resources\app\extensions\windsurf\devin\bin\devin.exe`
+- Remote git: `origin` → `github.com/asosab/bot_sigue_linea` (público,
+  rama `master`). `gh` autenticado como `asosab`; commit + push al cerrar
+  cada trabajo.
 
 ## MCP servers
 
