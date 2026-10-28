@@ -43,7 +43,7 @@
   // =====================================================================
   // La cinta: cadena cerrada de puntos con física Verlet
   // =====================================================================
-  var rope = { px: [], py: [], ox: [], oy: [], n: 0, seg: 0, grab: -1 };
+  var rope = { px: [], py: [], ox: [], oy: [], segLen: [], n: 0, grab: -1 };
 
   function ropeInit() {
     var W = docW, H = docH;
@@ -52,22 +52,36 @@
     var rx = Math.max(60, W / 2 - m), ry = Math.max(60, H / 2 - m);
     var len = 2 * Math.PI * Math.sqrt((rx * rx + ry * ry) / 2);
     var n = Math.max(64, Math.min(180, Math.round(len / 42)));
-    rope.n = n; rope.seg = len / n;
+    rope.n = n;
     rope.px = new Float64Array(n); rope.py = new Float64Array(n);
     rope.ox = new Float64Array(n); rope.oy = new Float64Array(n);
+    rope.segLen = new Float64Array(n);
     for (var i = 0; i < n; i++) {
       var a = i / n * 2 * Math.PI;
       rope.px[i] = rope.ox[i] = cx + rx * Math.cos(a);
       rope.py[i] = rope.oy[i] = cy + ry * Math.sin(a);
+    }
+    retarget();
+  }
+
+  // longitudes de reposo = distancias actuales: la figura queda plástica,
+  // no elástica — sin holgura, la cinta se queda quieta donde la dejes
+  function retarget() {
+    var n = rope.n;
+    for (var i = 0; i < n; i++) {
+      var j = (i + 1) % n;
+      rope.segLen[i] = Math.hypot(rope.px[j] - rope.px[i], rope.py[j] - rope.py[i]);
     }
   }
 
   function ropeStep() {
     var n = rope.n, px = rope.px, py = rope.py, ox = rope.ox, oy = rope.oy;
 
-    // integración Verlet
+    // integración Verlet con amortiguación fuerte y umbral de sueño:
+    // la cinta quiere estar quieta, no un columpio eterno
     for (var i = 0; i < n; i++) {
-      var vx = (px[i] - ox[i]) * 0.985, vy = (py[i] - oy[i]) * 0.985;
+      var vx = (px[i] - ox[i]) * 0.90, vy = (py[i] - oy[i]) * 0.90;
+      if (vx * vx + vy * vy < 0.0009) { vx = 0; vy = 0; }
       ox[i] = px[i]; oy[i] = py[i];
       px[i] += vx; py[i] += vy;
     }
@@ -84,7 +98,7 @@
         var k = (j + 1) % n;
         var dx = px[k] - px[j], dy = py[k] - py[j];
         var d = Math.hypot(dx, dy) || 1e-6;
-        var diff = (d - rope.seg) / d * 0.5;
+        var diff = (d - rope.segLen[j]) / d * 0.5;
         dx *= diff; dy *= diff;
         px[j] += dx; py[j] += dy;
         px[k] -= dx; py[k] -= dy;
@@ -433,6 +447,7 @@
   });
 
   function ropeRelease() {
+    if (rope.grab >= 0) retarget();   // conserva la figura nueva
     rope.grab = -1;
     hitPath.classList.remove('rope-drag');
   }
@@ -531,14 +546,12 @@
   });
 
   // =====================================================================
-  // Arranque: posición y dirección aleatorias sobre la cinta
+  // Arranque: el carrito espera quieto sobre el hero, fuera de la cinta
   // =====================================================================
   function spawn() {
-    var i = Math.floor(Math.random() * rope.n);
-    var j = (i + 1) % rope.n, k = (i + rope.n - 1) % rope.n;
-    bot_.x = rope.px[i]; bot_.y = rope.py[i];
-    var tx = rope.px[j] - rope.px[k], ty = rope.py[j] - rope.py[k];
-    bot_.th = Math.atan2(ty, tx) + (Math.random() < 0.5 ? 0 : Math.PI);
+    bot_.x = docW / 2;
+    bot_.y = Math.min(120, docH * 0.06);
+    bot_.th = Math.PI / 2 + (Math.random() - 0.5) * 0.7;
   }
 
   window.addEventListener('load', function () {
