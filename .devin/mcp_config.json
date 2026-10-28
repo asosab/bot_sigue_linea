@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "pdf-it": {
+      "command": "cmd.exe",
+      "args": ["/c", "npx", "-y", "pdf-it-mcp"]
+    },
+    "context7": {
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "arduino": {
+      "command": "cmd.exe",
+      "args": ["/c", "npx", "-y", "arduino-mcp-server"],
+      "env": {
+        "ARDUINO_CLI_PATH": "C:\\Program Files\\Arduino CLI\\arduino-cli.exe",
+        "ARDUINO_SKETCH_ROOT": "D:\\proyectos\\arduino\\bot_sigue_linea\\firmware"
+      }
+    },
+    "playwright": {
+      "command": "cmd.exe",
+      "args": ["/c", "npx", "-y", "@playwright/mcp@latest"]
+    },
+    "shadcn": {
+      "command": "cmd.exe",
+      "args": ["/c", "npx", "-y", "shadcn@latest", "mcp"]
+    }
+  }
+}

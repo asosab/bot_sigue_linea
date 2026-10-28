@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "mcp__pdf-it__*",
+      "mcp__context7__*",
+      "mcp__context-mode__*",
+      "mcp__playwright__*",
+      "mcp__shadcn__*",
+      "Exec(node)",
+      "Exec(npm)",
+      "Exec(npx)",
+      "Exec(git)",
+      "Exec(ls)",
+      "Exec(dir)",
+      "Exec(cat)",
+      "Exec(find)",
+      "Exec(mkdir)",
+      "Exec(arduino-cli)",
+      "Exec(arduino-cli.exe)"
+    ],
+    "ask": [
+      "mcp__arduino__upload_sketch",
+      "mcp__arduino__upload_and_wait_ready",
+      "Exec(winget.exe *)"
+    ],
+    "deny": [
+      "Exec(git push --force*)",
+      "Exec(git reset --hard*)",
+      "Exec(rm -rf*)"
+    ]
+  }
+}

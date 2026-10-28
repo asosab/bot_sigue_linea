@@ -1,0 +1,24 @@
+# Obsidian — shared vault config is committed; personal state is not
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/workspaces.json
+.obsidian/graph.json
+.obsidian/bookmarks.json
+.obsidian/plugins/
+.obsidian/snippets/
+.obsidian/themes/
+
+# Devin local config (personal env / keys)
+.devin/config.local.json
+.devin/mcp_config.local.json
+
+# Arduino / build output
+build/
+*.hex
+*.elf
+*.bin
+*.eep
+
+# OS
+Thumbs.db
+Desktop.ini

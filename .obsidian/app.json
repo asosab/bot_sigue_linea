@@ -1,0 +1,12 @@
+{
+  "alwaysUpdateLinks": true,
+  "newFileLocation": "folder",
+  "newFileFolderPath": "docs",
+  "attachmentFolderPath": "docs/attachments",
+  "useMarkdownLinks": false,
+  "newLinkFormat": "shortest",
+  "trashOption": "system",
+  "promptDelete": false,
+  "showUnsupportedFiles": true,
+  "spellcheck": false
+}

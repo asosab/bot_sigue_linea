@@ -1,0 +1,5 @@
+{
+  "folder": "docs/log",
+  "format": "YYYY-MM-DD",
+  "template": "docs/templates/session-log"
+}
