@@ -60,17 +60,18 @@
   <path id="trackPath" d=""/>
   <g id="bot" role="button" tabindex="0" aria-label="Encender o apagar a Arturito" style="cursor:pointer">
     <use href="#arturito-shape" transform="scale(0.34) translate(-110 -130)"/>
-    <circle class="sen" cx="17.7" cy="-16" r="2.4"/>
-    <circle class="sen" cx="8.8" cy="-24.8" r="2.4"/>
-    <circle class="sen" cx="0" cy="-33.7" r="2.4"/>
-    <circle class="sen" cx="-8.8" cy="-24.8" r="2.4"/>
     <circle class="sen" cx="-17.7" cy="-16" r="2.4"/>
+    <circle class="sen" cx="-8.8" cy="-24.8" r="2.4"/>
+    <circle class="sen" cx="0" cy="-33.7" r="2.4"/>
+    <circle class="sen" cx="8.8" cy="-24.8" r="2.4"/>
+    <circle class="sen" cx="17.7" cy="-16" r="2.4"/>
   </g>
 </svg>
 
 <nav id="menu">
   <a href="#equipo">Equipo</a>
   <a href="#robot">Robot</a>
+  <a href="#diagnostico">Puesta a punto</a>
   <a href="#concurso">Concurso</a>
   <a href="#premios">Premios</a>
   <a href="#descargas">Descargas</a>
@@ -135,6 +136,64 @@
     </figure>
   </section>
 
+  <div class="track-anchor" id="t2b"></div>
+
+  <section id="diagnostico">
+    <h2>Cuando no quiso andar</h2>
+    <p>La primera vez que lo encendimos con todo conectado, Arturito prendió
+    todas sus luces y no movió una rueda. Estos fueron los fallos que
+    aparecieron, en el orden en que salieron, y cómo se resolvió cada uno.</p>
+
+    <h3>Las ruedas no giraban</h3>
+    <p>Encendían las luces del Arduino, las de los cinco sensores y la del
+    driver de motores, y los motores andaban bien conectados directo a las
+    pilas. El faltante estaba en el driver: tiene una pata llamada EEP que
+    funciona como un interruptor de reposo y venía sin conectar. Dormido, el
+    chip recibe las órdenes pero nunca las ejecuta.</p>
+    <p>Para comprobarlo armamos un programa de prueba que enciende un solo
+    cable de motor por vez, tres segundos cada uno, y avisa por el monitor
+    serie qué rueda debería girar. Con un cable nuevo en EEP el mismo
+    programa podía dormir y despertar al driver en plena marcha: el motor
+    se frenaba al instante y volvía a girar al repetir la orden. El chip
+    estaba sano; solo había que despertarlo. Solución: el cable D4→EEP
+    quedó fijo y el código del robot lo pone en alto apenas arranca.</p>
+
+    <h3>Cada rueda giraba para su lado</h3>
+    <p>Ya despierto el driver, en la prueba de avance una rueda iba al frente
+    y la otra para atrás: el motor izquierdo venía con los cables
+    invertidos. Estos motores no traen marca de polaridad, así que se
+    corrige en el conector intercambiando sus dos cables. Al repetir la
+    prueba las dos giraron juntas.</p>
+
+    <h3>Se movía sin parar sobre el blanco</h3>
+    <p>Con las ruedas en el aire y una hoja blanca debajo, el robot no
+    paraba de moverse. Sospechamos de los sensores leídos al revés, pero el
+    monitor contaba otra historia: tres canales clavados en el valor
+    máximo, como si vieran línea negra todo el tiempo. La causa era más
+    simple: esos tres módulos estaban sin corriente porque la protoboard
+    repartía mal la alimentación. Y un sensor apagado manda justo la
+    lectura que el código entiende como «negro»: el robot se movía porque
+    creía ver línea en todas partes. Un segundo programa de prueba, que
+    solo lee los sensores sin tocar motores, mostró qué canales estaban
+    muertos; alimentando un módulo directo desde la placa confirmamos que
+    los sensores estaban sanos y el problema era la corriente.</p>
+
+    <h3>¿Los sensores quedaron al revés?</h3>
+    <p>Con los cinco encendidos llegó la prueba definitiva: pasar una cinta
+    negra por debajo de cada sensor, de izquierda a derecha mirando el
+    robot de frente, y anotar qué canal respondía. El orden salió
+    S4, S3, S2, S1, S0: visto desde arriba, el S0 queda a la izquierda del
+    robot y el S4 a la derecha, igual que en el código. No había
+    inversión.</p>
+
+    <p>La moraleja: antes de tocar el código grande, probar cada parte por
+    separado con programas chicos. Los dos de diagnóstico
+    (<code>prueba_drv8833</code> y <code>prueba_sensores</code>) quedaron
+    guardados en el repositorio. Y una nota práctica: los cables dupont se
+    aflojan solos — dos de los fallos de esa tarde fueron cables que se
+    habían salido al mover otros.</p>
+  </section>
+
   <div class="track-anchor" id="t3"></div>
 
   <section id="concurso">
@@ -182,7 +241,7 @@
       <img src="assets/img/bola_trasera.jpg" alt="La rueda loca trasera: una bola de plástico que apoya el chasis" loading="lazy">
       <img src="assets/img/sensores.jpg" alt="Uno de los sensores TCRT5000 de cerca" loading="lazy">
       <img src="assets/img/sensores_instalados.jpg" alt="Los cinco sensores instalados en la placa delantera" loading="lazy">
-      <img src="assets/img/tb451a3.jpg" alt="El driver de motores TB6612" loading="lazy">
+      <img src="assets/img/tb451a3.jpg" alt="El driver de motores DRV8833" loading="lazy">
       <img src="assets/img/bot_linea_prueba.jpg" alt="Arturito con el cableado montado, sobre la pista de pruebas" loading="lazy">
       <img src="assets/img/linea_de_prueba.jpg" alt="La pista de pruebas completa: un circuito cerrado de cinta negra con un cruce" loading="lazy">
     </div>

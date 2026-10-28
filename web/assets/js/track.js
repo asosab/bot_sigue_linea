@@ -31,14 +31,14 @@
   var ultimoGiro = 0;                     // 0 recto, 1 izquierda, 2 derecha
   var bootPhase = -1, bootT = 0;
 
-  // Cableado real: vistos desde arriba con el frente arriba, de izquierda
-  // a derecha van S4, S3, S2, S1, S0 — el canal 0 queda a la derecha.
+  // Cableado real verificado con la prueba de la cinta (2026-10-28):
+  // vistos desde arriba, de izquierda a derecha van S0, S1, S2, S3, S4.
   var SENS = [
-    { x: 17.7,  y: -16.0 },   // S0 — extremo derecho
-    { x: 8.8,   y: -24.8 },   // S1 — centro derecho
-    { x: 0,     y: -33.7 },   // S2 — centro
-    { x: -8.8,  y: -24.8 },   // S3 — centro izquierdo
-    { x: -17.7, y: -16.0 }    // S4 — extremo izquierdo
+    { x: -17.7, y: -16.0 },   // S0 — extremo izquierdo
+    { x: -8.8,  y: -24.8 },   // S1 — centro izquierdo
+    { x: 0,     y: -33.7 },   // S2 — centro (punta adelantada)
+    { x: 8.8,   y: -24.8 },   // S3 — centro derecho
+    { x: 17.7,  y: -16.0 }    // S4 — extremo derecho
   ];
 
   // =====================================================================

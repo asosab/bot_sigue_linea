@@ -18,6 +18,10 @@ código que corre el robot.
 - Serie: 9600 baudios
 - Diagnóstico del driver: `firmware/prueba_drv8833/` — barrido de pines
   con toggle de sleep por serie
+- Diagnóstico de sensores: `firmware/prueba_sensores/` — solo lectura,
+  driver dormido por EEP en LOW
+- `firmware/arturito_v2/` — control continuo (posición ponderada + PD +
+  velocidad adaptativa), autocalibración y recuperación con rebobinado
 
 ## Parámetros en código
 
