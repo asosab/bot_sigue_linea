@@ -1,14 +1,21 @@
 ---
 type: contexto
-status: por-verificar
+status: parcial
 created: 2026-10-28
 ---
 # Pista y concurso
 
-- Evento: 1er Concurso Distrital de Robótica 2026, Santa Cruz
+- Evento: 1er Concurso Distrital de Robótica 2026, Santa Cruz — [[concurso]]
 - Categoría: seguidor de línea amateur
 - Robot: Arturito ([[hardware]])
 
-Por confirmar: material de la pista, color de línea y fondo, ancho de
-línea, curvas (¿90°?), cruces y si hay rampas o huecos. Esos datos fijan la
-calibración ([[calibracion]]) y la estrategia de [[algoritmo]].
+Datos de la convocatoria: línea negra de 20 mm ±5 % sobre fondo blanco,
+material banner/trovicel/madera lisa, recorrido de 10 a 30 m con curvas
+de 90° o más abiertas, cruces y bifurcaciones.
+
+La pista de práctica es un cartón/trovicel blanco con línea de cinta
+negra que incluye un cruce (foto en `imagen/photo_2026-10-28_13-01-38.jpg`).
+
+Por confirmar: material exacto de la pista del evento y si hay rampas o
+huecos. Esos datos fijan la calibración ([[calibracion]]) y la estrategia
+de [[algoritmo]].

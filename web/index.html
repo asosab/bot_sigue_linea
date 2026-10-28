@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arturito — robot seguidor de línea</title>
+<meta name="description" content="Arturito, el robot seguidor de línea de la U.E. Jaime Alfonso Escalante Gutierrez A para el 1.er Concurso Distrital de Robótica 2026 de Santa Cruz.">
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<!-- Dibujo de Arturito, reutilizado en el hero y en el sprite que recorre la pista -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="arturito-shape">
+      <path d="M110 8 L178 96 Q110 128 42 96 Z" fill="#e6cd9e" stroke="#a8845a" stroke-width="3" stroke-linejoin="round"/>
+      <rect x="30" y="86" width="160" height="164" rx="34" fill="#e6cd9e" stroke="#a8845a" stroke-width="3"/>
+      <circle cx="48" cy="102" r="3.4" fill="#8f8f8f"/>
+      <circle cx="172" cy="102" r="3.4" fill="#8f8f8f"/>
+      <circle cx="48" cy="234" r="3.4" fill="#8f8f8f"/>
+      <circle cx="172" cy="234" r="3.4" fill="#8f8f8f"/>
+      <rect x="6"  y="118" width="30" height="98" rx="15" fill="#222"/>
+      <rect x="184" y="118" width="30" height="98" rx="15" fill="#222"/>
+      <circle cx="21"  cy="167" r="11" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+      <circle cx="199" cy="167" r="11" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+      <rect x="38"  y="140" width="20" height="54" rx="6" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+      <rect x="162" y="140" width="20" height="54" rx="6" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+      <rect x="70" y="192" width="80" height="50" rx="6" fill="#1d1d1d"/>
+      <rect x="78" y="199" width="64" height="8" rx="4" fill="#333"/>
+      <rect x="78" y="213" width="64" height="8" rx="4" fill="#333"/>
+      <rect x="78" y="227" width="64" height="8" rx="4" fill="#333"/>
+      <rect x="64" y="96" width="92" height="66" rx="5" fill="#0f7fae" stroke="#0a5c80" stroke-width="2"/>
+      <rect x="66" y="108" width="18" height="20" rx="2" fill="#b8b8b8"/>
+      <rect x="92" y="104" width="16" height="10" rx="2" fill="#2b2b2b"/>
+      <rect x="120" y="120" width="26" height="30" rx="2" fill="#242424"/>
+      <circle cx="148" cy="150" r="4" fill="#e8e8e8"/>
+      <text x="110" y="146" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#fff" text-anchor="middle">UNO</text>
+      <rect x="70" y="166" width="80" height="20" rx="3" fill="#f5f5f5" stroke="#cccccc"/>
+      <g fill="#202020" stroke="#0a0a0a">
+        <rect x="102" y="26"  width="16" height="10" rx="2"/>
+        <rect x="76"  y="52"  width="16" height="10" rx="2"/>
+        <rect x="128" y="52"  width="16" height="10" rx="2"/>
+        <rect x="50"  y="78"  width="16" height="10" rx="2"/>
+        <rect x="154" y="78"  width="16" height="10" rx="2"/>
+      </g>
+      <circle cx="110" cy="31" r="2.6" fill="#7fb7d9"/>
+      <circle cx="84"  cy="57" r="2.6" fill="#7fb7d9"/>
+      <circle cx="136" cy="57" r="2.6" fill="#7fb7d9"/>
+      <circle cx="58"  cy="83" r="2.6" fill="#7fb7d9"/>
+      <circle cx="162" cy="83" r="2.6" fill="#7fb7d9"/>
+      <circle cx="110" cy="252" r="7" fill="#555"/>
+      <circle class="led" cx="110" cy="90" r="5" fill="#3f3f3f"/>
+    </g>
+  </defs>
+</svg>
+
+<!-- La pista: una línea negra que cruza toda la página; el sprite va encima -->
+<svg id="track" aria-hidden="false">
+  <path id="trackPath" d=""/>
+  <g id="bot" role="button" tabindex="0" aria-label="Encender o apagar a Arturito" style="cursor:pointer">
+    <use href="#arturito-shape" transform="scale(0.34) translate(-110 -130)"/>
+    <circle class="sen" cx="-17.7" cy="-16" r="2.4"/>
+    <circle class="sen" cx="-8.8" cy="-24.8" r="2.4"/>
+    <circle class="sen" cx="0" cy="-33.7" r="2.4"/>
+    <circle class="sen" cx="8.8" cy="-24.8" r="2.4"/>
+    <circle class="sen" cx="17.7" cy="-16" r="2.4"/>
+  </g>
+</svg>
+
+<main>
+  <header class="hero">
+    <svg class="hero-bot" viewBox="0 0 220 260" role="img" aria-label="Dibujo de Arturito">
+      <use href="#arturito-shape"/>
+    </svg>
+    <h1>Arturito</h1>
+    <p class="lede">Un carrito que sigue líneas negras, armado y programado por tres
+    estudiantes de primaria del colegio Jaime Alfonso Escalante Gutierrez A,
+    en Santa Cruz de la Sierra.</p>
+    <p class="hint">Haz click sobre el Arturito que anda por la página para
+    encenderlo: recorre la línea usando sus sensores, igual que el robot de
+    verdad. Si lo arrastras y lo sueltas fuera de la pista, verás cómo la
+    busca. Otro click y se apaga.</p>
+  </header>
+
+  <div class="track-anchor" id="t1"></div>
+
+  <section id="equipo">
+    <h2>El equipo</h2>
+    <p>Tres cursos distintos y un solo carrito.</p>
+    <div class="cards">
+      <figure class="card">
+        <img src="assets/img/Gaby_Leryn_Ayala_Chambi.jpg" alt="Gaby Leryn Ayala Chambi">
+        <figcaption>Gaby Leryn Ayala Chambi<span>2.º de primaria A</span></figcaption>
+      </figure>
+      <figure class="card">
+        <img src="assets/img/Christopher_Darius_Valero_Lima.jpg" alt="Christopher Darius Valero Lima">
+        <figcaption>Christopher Darius Valero Lima<span>1.º de primaria B</span></figcaption>
+      </figure>
+      <figure class="card">
+        <img src="assets/img/Maximiliano_Sosa_Useche.jpg" alt="Maximiliano Sosa Useche">
+        <figcaption>Maximiliano Sosa Useche<span>1.º de primaria A</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <div class="track-anchor" id="t2"></div>
+
+  <section id="robot">
+    <h2>El robot</h2>
+    <p>Arturito lee la línea con cinco sensores infrarrojos TCRT5000 en punta
+    en la parte delantera. Un Arduino UNO decide hacia dónde girar y dos
+    motores reductores amarillos lo empujan. Lo alimentan cuatro pilas AA y
+    el interruptor de encendido se ve a simple vista, como pide el reglamento.</p>
+    <ul class="specs">
+      <li>Arduino UNO</li>
+      <li>5 sensores TCRT5000</li>
+      <li>Driver dual de motores</li>
+      <li>2 motoreductores 1:48</li>
+      <li>4 pilas AA</li>
+      <li>Menos de 25 × 30 cm</li>
+    </ul>
+    <figure class="wide">
+      <img src="assets/img/diagrama-sensores.jpg" alt="Diagrama de la formación de los cinco sensores sobre el chasis">
+    </figure>
+  </section>
+
+  <div class="track-anchor" id="t3"></div>
+
+  <section id="concurso">
+    <h2>El concurso</h2>
+    <p>Arturito corre en la categoría <strong>seguidor de línea amateur</strong>
+    del 1.er Concurso Distrital de Robótica 2026, que organiza la Dirección
+    Distrital de Educación Santa Cruz 1.</p>
+    <ul>
+      <li>Sábado 31 de octubre de 2026, de 9:00 a 13:00 (acreditación de 7:30 a 8:30).</li>
+      <li>Colegio Internacional San Marcos, Santa Cruz de la Sierra.</li>
+      <li>Pista de línea negra de 2 cm sobre fondo blanco, de 10 a 30 metros,
+      con curvas de 90° o más abiertas, cruces y bifurcaciones.</li>
+      <li>Dos minutos para completar el recorrido. Cada robot corre dos o tres
+      rondas y cuenta el mejor tiempo.</li>
+      <li>Si el robot se sale de la línea, tiene que reingresar a menos de
+      30 cm de donde se perdió. Los atajos no valen.</li>
+    </ul>
+  </section>
+
+  <div class="track-anchor" id="t4"></div>
+
+  <section id="premios">
+    <h2>Premios</h2>
+    <p>La organización va actualizando la lista de premios en una hoja de
+    cálculo. Vale la pena mirarla cada tanto, porque todavía están sumando
+    cosas: <a href="https://docs.google.com/spreadsheets/d/1v668F8H_tW4PmcqcF7VmiRZiuO-SWr6V/edit?usp=sharing">premios del concurso</a>.</p>
+  </section>
+
+  <div class="track-anchor" id="t5"></div>
+
+  <section id="galeria">
+    <h2>Así lo armamos</h2>
+    <div class="gallery">
+      <img src="assets/img/robot-cenital.jpg" alt="Arturito visto desde arriba, con el Arduino encima" loading="lazy">
+      <img src="assets/img/robot-frente.jpg" alt="Arturito de frente sobre la mesa" loading="lazy">
+      <img src="assets/img/armado-mesa.jpg" alt="El robot a medio armar, con el Arduino y los cables sueltos" loading="lazy">
+      <img src="assets/img/sensores.jpg" alt="Los cinco sensores instalados en la placa delantera" loading="lazy">
+      <img src="assets/img/armado-detalle.jpg" alt="Detalle del armado del chasis" loading="lazy">
+      <img src="assets/img/sensor-tcrt5000.jpg" alt="Uno de los sensores TCRT5000 de cerca" loading="lazy">
+      <img src="assets/img/robot-lateral.jpg" alt="Arturito de costado" loading="lazy">
+      <img src="assets/img/pista-pruebas.jpg" alt="La pista de pruebas: línea negra con curvas y un cruce sobre cartón blanco" loading="lazy">
+    </div>
+  </section>
+
+  <div class="track-anchor" id="t6"></div>
+
+  <footer>
+    <p>Gaby, Darius y Max — U.E. Jaime Alfonso Escalante Gutierrez A<br>
+    Distrito Santa Cruz 1, Bolivia · 2026</p>
+  </footer>
+</main>
+
+<script src="assets/js/track.js"></script>
+</body>
+</html>

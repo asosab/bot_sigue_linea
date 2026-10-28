@@ -13,6 +13,9 @@ Punto de entrada a la documentación del proyecto. Navegación por enlaces, no p
 - [[firmware]] — estructura del sketch, parámetros y versión en curso
 - [[algoritmo]] — estrategia de control (lectura de sensores → consigna de motores)
 - [[pista]] — características de la línea y la pista de pruebas
+- [[concurso]] — 1.er Concurso Distrital de Robótica 2026: fechas, reglas y homologación
+- [[premios]] — premios del concurso y la hoja que los actualiza
+- [Sitio web](https://asosab.github.io/bot_sigue_linea/) — landing del proyecto (`web/`, GitHub Pages)
 
 ## Puesta en marcha
 

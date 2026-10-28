@@ -1,0 +1,6 @@
+title: Arturito
+description: Robot seguidor de línea de la U.E. Jaime Alfonso Escalante Gutierrez A para el 1.er Concurso Distrital de Robótica 2026.
+lang: es
+baseurl: /bot_sigue_linea
+exclude:
+  - README.md

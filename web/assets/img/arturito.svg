@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 260">
+  <defs>
+    <radialGradient id="acrylic" cx="50%" cy="42%" r="75%">
+      <stop offset="0%" stop-color="#f2e3c4"/>
+      <stop offset="100%" stop-color="#d9b98a"/>
+    </radialGradient>
+    <linearGradient id="tire" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#111"/>
+      <stop offset="50%" stop-color="#3a3a3a"/>
+      <stop offset="100%" stop-color="#111"/>
+    </linearGradient>
+  </defs>
+
+  <!-- placa delantera de sensores (forma de lágrima) -->
+  <path d="M110 8 L178 96 Q110 128 42 96 Z" fill="url(#acrylic)" stroke="#a8845a" stroke-width="3" stroke-linejoin="round"/>
+
+  <!-- chasis principal redondeado -->
+  <rect x="30" y="86" width="160" height="164" rx="34" fill="url(#acrylic)" stroke="#a8845a" stroke-width="3"/>
+
+  <!-- tornillos -->
+  <circle cx="48" cy="102" r="3.4" fill="#8f8f8f"/>
+  <circle cx="172" cy="102" r="3.4" fill="#8f8f8f"/>
+  <circle cx="48" cy="234" r="3.4" fill="#8f8f8f"/>
+  <circle cx="172" cy="234" r="3.4" fill="#8f8f8f"/>
+
+  <!-- ruedas -->
+  <rect x="6"  y="118" width="30" height="98" rx="15" fill="url(#tire)"/>
+  <rect x="184" y="118" width="30" height="98" rx="15" fill="url(#tire)"/>
+  <circle cx="21"  cy="167" r="11" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+  <circle cx="199" cy="167" r="11" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+
+  <!-- motores reductores amarillos -->
+  <rect x="38"  y="140" width="20" height="54" rx="6" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+  <rect x="162" y="140" width="20" height="54" rx="6" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+
+  <!-- portapilas 4xAA -->
+  <rect x="70" y="192" width="80" height="50" rx="6" fill="#1d1d1d"/>
+  <rect x="78" y="199" width="64" height="8" rx="4" fill="#333"/>
+  <rect x="78" y="213" width="64" height="8" rx="4" fill="#333"/>
+  <rect x="78" y="227" width="64" height="8" rx="4" fill="#333"/>
+
+  <!-- Arduino UNO -->
+  <rect x="64" y="96" width="92" height="66" rx="5" fill="#0f7fae" stroke="#0a5c80" stroke-width="2"/>
+  <rect x="66" y="108" width="18" height="20" rx="2" fill="#b8b8b8"/>
+  <rect x="92" y="104" width="16" height="10" rx="2" fill="#2b2b2b"/>
+  <rect x="120" y="120" width="26" height="30" rx="2" fill="#242424"/>
+  <circle cx="148" cy="150" r="4" fill="#e8e8e8"/>
+  <text x="110" y="146" font-family="Arial, sans-serif" font-size="13" font-weight="bold" fill="#fff" text-anchor="middle">UNO</text>
+
+  <!-- protoboard -->
+  <rect x="70" y="166" width="80" height="20" rx="3" fill="#f5f5f5" stroke="#cccccc"/>
+
+  <!-- sensores TCRT5000 (formación triangular) -->
+  <g fill="#202020" stroke="#0a0a0a">
+    <rect x="102" y="26"  width="16" height="10" rx="2"/>
+    <rect x="76"  y="52"  width="16" height="10" rx="2"/>
+    <rect x="128" y="52"  width="16" height="10" rx="2"/>
+    <rect x="50"  y="78"  width="16" height="10" rx="2"/>
+    <rect x="154" y="78"  width="16" height="10" rx="2"/>
+  </g>
+  <circle cx="110" cy="31" r="2.6" fill="#7fb7d9"/>
+  <circle cx="84"  cy="57" r="2.6" fill="#7fb7d9"/>
+  <circle cx="136" cy="57" r="2.6" fill="#7fb7d9"/>
+  <circle cx="58"  cy="83" r="2.6" fill="#7fb7d9"/>
+  <circle cx="162" cy="83" r="2.6" fill="#7fb7d9"/>
+
+  <!-- rueda loca trasera -->
+  <circle cx="110" cy="252" r="7" fill="#555"/>
+
+  <!-- LED de encendido -->
+  <circle class="led" cx="110" cy="90" r="5" fill="#3f3f3f"/>
+</svg>
