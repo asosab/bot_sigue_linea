@@ -14,7 +14,7 @@ material banner/trovicel/madera lisa, recorrido de 10 a 30 m con curvas
 de 90° o más abiertas, cruces y bifurcaciones.
 
 La pista de práctica es un cartón/trovicel blanco con línea de cinta
-negra que incluye un cruce (foto en `imagen/photo_2026-10-28_13-01-38.jpg`).
+negra que incluye un cruce (foto en `imagen/linea_de_prueba.jpg`).
 
 Por confirmar: material exacto de la pista del evento y si hay rampas o
 huecos. Esos datos fijan la calibración ([[calibracion]]) y la estrategia
