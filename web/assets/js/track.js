@@ -103,6 +103,19 @@
         px[j] += dx; py[j] += dy;
         px[k] -= dx; py[k] -= dy;
       }
+      // límite de curvatura: la cinta no se dobla más de 120°, los pliegues
+      // se abren para que siempre queden curvas suaves
+      for (var c = 0; c < n; c++) {
+        var i0 = (c + n - 1) % n, i2 = (c + 1) % n;
+        var cx0 = px[i2] - px[i0], cy0 = py[i2] - py[i0];
+        var cd = Math.hypot(cx0, cy0) || 1e-6;
+        var minD = 0.85 * (rope.segLen[i0] + rope.segLen[c]) * 0.5;
+        if (cd < minD) {
+          var push = (minD - cd) / cd * 0.5;
+          px[i0] -= cx0 * push; py[i0] -= cy0 * push;
+          px[i2] += cx0 * push; py[i2] += cy0 * push;
+        }
+      }
       if (rope.grab >= 0) { px[rope.grab] = rope.gx; py[rope.grab] = rope.gy; }
     }
 
@@ -430,7 +443,7 @@
   // =====================================================================
   function svgPoint(e) {
     var r = svg.getBoundingClientRect();
-    return { x: e.clientX - r.left + (inLab ? 0 : scrollX - 0), y: e.clientY - r.top + (inLab ? 0 : scrollY - 0) };
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
   }
 
   hitPath.addEventListener('pointerdown', function (e) {
