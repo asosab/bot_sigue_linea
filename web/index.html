@@ -60,13 +60,23 @@
   <path id="trackPath" d=""/>
   <g id="bot" role="button" tabindex="0" aria-label="Encender o apagar a Arturito" style="cursor:pointer">
     <use href="#arturito-shape" transform="scale(0.34) translate(-110 -130)"/>
-    <circle class="sen" cx="-17.7" cy="-16" r="2.4"/>
-    <circle class="sen" cx="-8.8" cy="-24.8" r="2.4"/>
-    <circle class="sen" cx="0" cy="-33.7" r="2.4"/>
-    <circle class="sen" cx="8.8" cy="-24.8" r="2.4"/>
     <circle class="sen" cx="17.7" cy="-16" r="2.4"/>
+    <circle class="sen" cx="8.8" cy="-24.8" r="2.4"/>
+    <circle class="sen" cx="0" cy="-33.7" r="2.4"/>
+    <circle class="sen" cx="-8.8" cy="-24.8" r="2.4"/>
+    <circle class="sen" cx="-17.7" cy="-16" r="2.4"/>
   </g>
 </svg>
+
+<nav id="menu">
+  <a href="#equipo">Equipo</a>
+  <a href="#robot">Robot</a>
+  <a href="#concurso">Concurso</a>
+  <a href="#premios">Premios</a>
+  <a href="#descargas">Descargas</a>
+  <a href="#galeria">Galería</a>
+  <button id="openLab" type="button">Testear código</button>
+</nav>
 
 <main>
   <header class="hero">
@@ -155,6 +165,15 @@
 
   <div class="track-anchor" id="t5"></div>
 
+  <section id="descargas">
+    <h2>Descargas</h2>
+    <p>El esquema de conexión de las partes y el código que se le pasa al
+    Arduino, juntos en un PDF para imprimir o tener a mano el día del
+    concurso: <a href="assets/pdf/arturito-esquema-y-codigo.pdf">arturito-esquema-y-codigo.pdf</a>.</p>
+  </section>
+
+  <div class="track-anchor" id="t5b"></div>
+
   <section id="galeria">
     <h2>Así lo armamos</h2>
     <div class="gallery">
@@ -176,6 +195,15 @@
     Distrito Santa Cruz 1, Bolivia · 2026</p>
   </footer>
 </main>
+
+<div id="lab" hidden>
+  <svg id="labTrack"><path id="labPath" d=""/></svg>
+  <div class="lab-bar">
+    <span class="lab-title">Testear código</span>
+    <span class="lab-hint">Pista de práctica: circuito cerrado con un cruce. Click en el carrito para encenderlo, arrástralo para probar situaciones. Los bordes son muros.</span>
+    <button id="closeLab" type="button" aria-label="Cerrar el probador">Cerrar ✕</button>
+  </div>
+</div>
 
 <script src="assets/js/track.js"></script>
 </body>

@@ -9,11 +9,16 @@
   var bot = document.getElementById('bot');
   var senDots = bot.querySelectorAll('.sen');
 
-  // --- Mundo y raster de sensores --------------------------------------
-  var SCALE = 0.35;                       // escala del canvas de sensores
+  // --- Mundos y raster de sensores --------------------------------------
+  // La página y el probador (lab) tienen cada uno su raster y sus límites;
+  // los sensores leen siempre del mundo activo.
+  var SCALE = 0.35;
   var raster = document.createElement('canvas');
   var rctx = raster.getContext('2d', { willReadFrequently: true });
   var docW = 0, docH = 0;
+  var pageWorld = null;                   // {ctx, w, h}
+  var labWorld = null;
+  var world = null;                       // mundo activo
 
   // --- Estado del robot -------------------------------------------------
   // Velocidades máximas traducidas del PWM del firmware a px/s.
@@ -28,14 +33,16 @@
   var ultimoGiro = 0;                     // 0 recto, 1 izquierda, 2 derecha
   var bootPhase = -1, bootT = 0;          // secuencia de prueba de motores del setup()
 
-  // Sensores en coords locales (px); el robot mira hacia su -Y (arriba del dibujo).
-  // Orden como el firmware: S0 extremo izquierdo … S4 extremo derecho.
+  // Sensores en coords locales (px); el robot mira hacia su -Y.
+  // Cableado real: vistos desde arriba con el frente arriba, de izquierda
+  // a derecha van S4, S3, S2, S1, S0 — o sea, el canal 0 queda a la
+  // derecha del robot.
   var SENS = [
-    { x: -17.7, y: -16.0 },
-    { x: -8.8,  y: -24.8 },
-    { x: 0,     y: -33.7 },
-    { x: 8.8,   y: -24.8 },
-    { x: 17.7,  y: -16.0 }
+    { x: 17.7,  y: -16.0 },   // S0 — extremo derecho
+    { x: 8.8,   y: -24.8 },   // S1 — centro derecho
+    { x: 0,     y: -33.7 },   // S2 — centro
+    { x: -8.8,  y: -24.8 },   // S3 — centro izquierdo
+    { x: -17.7, y: -16.0 }    // S4 — extremo izquierdo
   ];
 
   // =====================================================================
@@ -143,6 +150,8 @@
     startPose = { x: lane(1), y: gaps[0].y + 40, th: Math.PI / 2 };
 
     rasterize(boxes);
+    pageWorld = { ctx: rctx, w: docW, h: docH };
+    if (!inLab) world = pageWorld;
   }
   var startPose = null;
 
@@ -170,7 +179,7 @@
     rctx.save();
     rctx.scale(SCALE, SCALE);
     rctx.strokeStyle = '#000';
-    rctx.lineWidth = 15;
+    rctx.lineWidth = 18;
     rctx.lineJoin = 'miter';
     rctx.lineCap = 'round';
     rctx.stroke(new Path2D(path.getAttribute('d')));
@@ -184,9 +193,10 @@
   }
 
   function darkAt(wx, wy) {
+    if (!world) return false;
     var cx = Math.round(wx * SCALE), cy = Math.round(wy * SCALE);
-    if (cx < 0 || cy < 0 || cx >= raster.width || cy >= raster.height) return false;
-    var px = rctx.getImageData(cx - 2, cy - 2, 5, 5).data;
+    if (cx < 1 || cy < 1 || cx >= world.ctx.canvas.width - 1 || cy >= world.ctx.canvas.height - 1) return false;
+    var px = world.ctx.getImageData(cx - 1, cy - 1, 3, 3).data;
     for (var i = 0; i < px.length; i += 4) {
       if (px[i] + px[i + 1] + px[i + 2] < 384) return true;   // algo oscuro cerca
     }
@@ -244,8 +254,10 @@
     bot_.th += omega * dt;
     bot_.x += Math.cos(bot_.th) * v * dt;
     bot_.y += Math.sin(bot_.th) * v * dt;
-    bot_.x = Math.min(Math.max(bot_.x, 8), docW - 8);
-    bot_.y = Math.min(Math.max(bot_.y, 8), docH - 8);
+    if (world) {
+      bot_.x = Math.min(Math.max(bot_.x, 8), world.w - 8);
+      bot_.y = Math.min(Math.max(bot_.y, 8), world.h - 8);
+    }
   }
 
   var lastT = null;
@@ -320,10 +332,100 @@
     else { pwmL = pwmR = 0; }
   }
 
+  // =====================================================================
+  // Probador (lab): pantalla completa con la pista de práctica
+  // =====================================================================
+  var lab = document.getElementById('lab');
+  var labSvg = document.getElementById('labTrack');
+  var labPath = document.getElementById('labPath');
+  var labRaster = document.createElement('canvas');
+  var labCtx = labRaster.getContext('2d', { willReadFrequently: true });
+  var inLab = false;
+  var savedPose = null;
+
+  function buildLab() {
+    var W = window.innerWidth, H = window.innerHeight;
+    var m = Math.min(80, Math.min(W, H) * 0.12);   // margen a los muros
+    var cx = W / 2, cy = H / 2;
+    var d;
+
+    // Figura como la pista de práctica: un circuito cerrado tipo ocho con
+    // un cruce en el medio. Apaisada si la pantalla es ancha, vertical si
+    // es alta.
+    var rx = (W - 2 * m) / 2, ry = (H - 2 * m) / 2;
+    if (H > W) {
+      // vertical: dos lobos apilados, cruce en el centro
+      var a = ry * 0.52;
+      d = 'M ' + cx + ' ' + cy +
+          ' C ' + (cx - rx * 1.25) + ' ' + (cy - a * 0.55) + ', ' + (cx - rx) + ' ' + (cy - 2 * a) + ', ' + cx + ' ' + (cy - 2 * a) +
+          ' C ' + (cx + rx) + ' ' + (cy - 2 * a) + ', ' + (cx + rx * 1.25) + ' ' + (cy - a * 0.55) + ', ' + cx + ' ' + cy +
+          ' C ' + (cx + rx * 1.25) + ' ' + (cy + a * 0.55) + ', ' + (cx + rx) + ' ' + (cy + 2 * a) + ', ' + cx + ' ' + (cy + 2 * a) +
+          ' C ' + (cx - rx) + ' ' + (cy + 2 * a) + ', ' + (cx - rx * 1.25) + ' ' + (cy + a * 0.55) + ', ' + cx + ' ' + cy + ' Z';
+      labStart = { x: cx, y: cy - 2 * a, th: 0 };
+    } else {
+      // horizontal: dos lobos lado a lado
+      var b = rx * 0.52;
+      d = 'M ' + cx + ' ' + cy +
+          ' C ' + (cx - b * 0.55) + ' ' + (cy - ry * 1.25) + ', ' + (cx - 2 * b) + ' ' + (cy - ry) + ', ' + (cx - 2 * b) + ' ' + cy +
+          ' C ' + (cx - 2 * b) + ' ' + (cy + ry) + ', ' + (cx - b * 0.55) + ' ' + (cy + ry * 1.25) + ', ' + cx + ' ' + cy +
+          ' C ' + (cx + b * 0.55) + ' ' + (cy + ry * 1.25) + ', ' + (cx + 2 * b) + ' ' + (cy + ry) + ', ' + (cx + 2 * b) + ' ' + cy +
+          ' C ' + (cx + 2 * b) + ' ' + (cy - ry) + ', ' + (cx + b * 0.55) + ' ' + (cy - ry * 1.25) + ', ' + cx + ' ' + cy + ' Z';
+      labStart = { x: cx - 2 * b, y: cy, th: Math.PI / 2 };
+    }
+
+    labPath.setAttribute('d', d);
+
+    labRaster.width = Math.max(2, Math.round(W * SCALE));
+    labRaster.height = Math.max(2, Math.round(H * SCALE));
+    labCtx.fillStyle = '#fff';
+    labCtx.fillRect(0, 0, labRaster.width, labRaster.height);
+    labCtx.save();
+    labCtx.scale(SCALE, SCALE);
+    labCtx.strokeStyle = '#000';
+    labCtx.lineWidth = 18;
+    labCtx.lineJoin = 'miter';
+    labCtx.lineCap = 'round';
+    labCtx.stroke(new Path2D(d));
+    labCtx.restore();
+
+    labWorld = { ctx: labCtx, w: W, h: H };
+    if (inLab) world = labWorld;
+  }
+  var labStart = null;
+
+  function openLab() {
+    buildLab();
+    savedPose = { x: bot_.x, y: bot_.y, th: bot_.th };
+    lab.hidden = false;
+    document.body.style.overflow = 'hidden';
+    labSvg.appendChild(bot);                    // el carrito pasa al lab
+    world = labWorld; inLab = true;
+    bot_.x = labStart.x; bot_.y = labStart.y; bot_.th = labStart.th;
+    place();
+  }
+
+  function closeLab() {
+    inLab = false; world = pageWorld;
+    svg.appendChild(bot);                       // vuelve a la página
+    if (savedPose) { bot_.x = savedPose.x; bot_.y = savedPose.y; bot_.th = savedPose.th; }
+    lab.hidden = true;
+    document.body.style.overflow = '';
+    place();
+  }
+
+  document.getElementById('openLab').addEventListener('click', openLab);
+  document.getElementById('closeLab').addEventListener('click', closeLab);
+  window.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && inLab) closeLab();
+  });
+
   var resizeTimer;
   window.addEventListener('resize', function () {
     clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(build, 120);
+    resizeTimer = setTimeout(function () {
+      build();
+      if (inLab) buildLab();
+    }, 120);
   });
 
   window.addEventListener('load', function () {
