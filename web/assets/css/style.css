@@ -14,10 +14,19 @@ body {
   position: absolute;
   top: 0;
   left: 0;
-  z-index: 0;
+  z-index: 10;
   pointer-events: none;
   overflow: visible;
 }
+
+#trackHit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 40;
+  pointer-events: stroke;
+  cursor: grab;
+}
+#trackHit.rope-drag { cursor: grabbing; }
 
 #trackPath {
   fill: none;

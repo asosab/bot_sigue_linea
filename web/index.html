@@ -57,6 +57,7 @@
 
 <!-- La pista: una línea negra que cruza toda la página; el sprite va encima -->
 <svg id="track" aria-hidden="false">
+  <path id="trackHit" d=""/>
   <path id="trackPath" d=""/>
   <g id="bot" role="button" tabindex="0" aria-label="Encender o apagar a Arturito" style="cursor:pointer">
     <use href="#arturito-shape" transform="scale(0.34) translate(-110 -130)"/>
@@ -81,17 +82,14 @@
 
 <main>
   <header class="hero">
-    <svg class="hero-bot" viewBox="0 0 220 260" role="img" aria-label="Dibujo de Arturito">
-      <use href="#arturito-shape"/>
-    </svg>
     <h1>Arturito</h1>
     <p class="lede">Un carrito que sigue líneas negras, armado y programado por tres
     estudiantes de secundaria del colegio Jaime Alfonso Escalante Gutierrez A,
     en Santa Cruz de la Sierra.</p>
     <p class="hint">Haz click sobre el Arturito que anda por la página para
     encenderlo: recorre la línea usando sus sensores, igual que el robot de
-    verdad. Si lo arrastras y lo sueltas fuera de la pista, verás cómo la
-    busca. Otro click y se apaga.</p>
+    verdad. La cinta negra también se puede arrastrar — muévela para leer lo
+    que hay debajo o dibuja figuras nuevas y mira cómo la recorre.</p>
   </header>
 
   <div class="track-anchor" id="t1"></div>
