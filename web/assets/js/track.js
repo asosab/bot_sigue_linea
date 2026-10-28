@@ -174,47 +174,12 @@
     return Math.sqrt(best);
   }
 
-  // =====================================================================
-  // Raster de texto (lo que el carrito "ve" además de la cinta)
-  // =====================================================================
-  var raster = document.createElement('canvas');
-  var rctx = raster.getContext('2d', { willReadFrequently: true });
-
-  function rasterize() {
-    raster.width = Math.max(2, Math.round(docW * SCALE));
-    raster.height = Math.max(2, Math.round(docH * SCALE));
-    rctx.fillStyle = '#fff';
-    rctx.fillRect(0, 0, raster.width, raster.height);
-    rctx.fillStyle = '#000';
-    document.querySelectorAll('h1, h2, p, li, figcaption').forEach(function (el) {
-      var r = el.getBoundingClientRect();
-      if (r.width < 4 || r.height < 4) return;
-      var x = r.left * SCALE, y = (r.top + scrollY) * SCALE;
-      var w = r.width * SCALE, h = r.height * SCALE;
-      var rowH = Math.max(2.4, 9 * SCALE), gap = Math.max(2, 7 * SCALE);
-      for (var yy = y; yy < y + h; yy += rowH + gap) {
-        rctx.fillRect(x, yy, w, Math.min(rowH, y + h - yy));
-      }
-    });
-  }
-
-  function textDarkAt(wx, wy) {
-    var cx = Math.round(wx * SCALE), cy = Math.round(wy * SCALE);
-    if (cx < 1 || cy < 1 || cx >= raster.width - 1 || cy >= raster.height - 1) return false;
-    var px = rctx.getImageData(cx - 1, cy - 1, 3, 3).data;
-    for (var i = 0; i < px.length; i += 4) {
-      if (px[i] + px[i + 1] + px[i + 2] < 384) return true;
-    }
-    return false;
-  }
-
   function build() {
     docW = document.documentElement.clientWidth;
     docH = Math.max(document.body.scrollHeight, window.innerHeight);
     svg.setAttribute('width', docW);
     svg.setAttribute('height', docH);
     ropeInit();
-    rasterize();
     pageWorld = { kind: 'page', w: docW, h: docH };
     if (!inLab) world = pageWorld;
   }
@@ -227,7 +192,8 @@
   function darkAt(wx, wy) {
     if (!world) return false;
     if (world.kind === 'page') {
-      return distToRope(wx, wy) < LINE_HALF + 3 || textDarkAt(wx, wy);
+      // los sensores solo ven la cinta; texto y fotos son blanco
+      return distToRope(wx, wy) < LINE_HALF + 3;
     }
     // lab: raster estático con la figura dibujada
     var ctx = world.ctx;
@@ -587,7 +553,7 @@
   });
 
   window.__art = { bot_, SENS, toWorld, darkAt, readSensors, rope: rope,
-                   path: path, build: build, spawn: spawn, drag: drag };
+                   path: path, build: build, drag: drag };
 
   build();
   world = pageWorld;
