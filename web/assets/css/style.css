@@ -266,6 +266,9 @@ footer {
   margin-bottom: 80px;
 }
 
+.credit { font-size: .82rem; }
+.credit a { color: #666; }
+
 @media (max-width: 560px) {
   .cards { grid-template-columns: 1fr; }
   .card { max-width: 220px; margin: 0 auto; }
