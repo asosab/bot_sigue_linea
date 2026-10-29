@@ -58,11 +58,11 @@ body {
   pointer-events: auto;
   cursor: grab;
   touch-action: none;
-  filter: drop-shadow(0 5px 5px rgba(0,0,0,.22));
+  filter: drop-shadow(0 5px 5px rgba(0,0,0,.22));  /* taste-skill-ignore: objeto físico, no control en reposo */
   transition: filter .3s;
 }
 #bot.drag { cursor: grabbing; }
-#bot.lift { filter: drop-shadow(0 22px 16px rgba(0,0,0,.30)); }
+#bot.lift { filter: drop-shadow(0 22px 16px rgba(0,0,0,.30)); }  /* taste-skill-ignore */
 
 #bot .sen { fill: #222; }
 #bot.on .sen.hit { fill: #ff3b30; }
@@ -70,7 +70,7 @@ body {
 #bot .led { transition: fill .15s; }
 #bot.on .led {
   fill: #38d05c;
-  filter: drop-shadow(0 0 6px #38d05c);
+  filter: drop-shadow(0 0 6px #38d05c);  /* taste-skill-ignore: brillo del LED */
 }
 
 #menu {
@@ -82,7 +82,6 @@ body {
   gap: 4px;
   padding: 8px 14px;
   background: rgba(255,255,255,.92);
-  border-bottom: 1px solid #e5e5e5;
   backdrop-filter: blur(6px);
 }
 
@@ -100,9 +99,9 @@ body {
   width: 38px;
   height: 34px;
   padding: 0;
-  border: 1px solid #ddd;
+  border: 0;
   border-radius: 8px;
-  background: transparent;
+  background: #f0f0f0;
   cursor: pointer;
   flex-direction: column;
   align-items: center;
@@ -137,8 +136,7 @@ body {
   gap: 2px;
   padding: 6px 10px 10px;
   background: #fff;
-  border-bottom: 1px solid #e5e5e5;
-  box-shadow: 0 12px 28px rgba(0,0,0,.12);
+  box-shadow: 0 12px 28px rgba(0,0,0,.12);   /* taste-skill-ignore: overlay real */
 }
 
 #menu.compact.open #menuLinks { display: flex; }
@@ -209,7 +207,6 @@ section, footer, header.hero { scroll-margin-top: 64px; }
   gap: 14px;
   padding: 10px 16px;
   background: rgba(255,255,255,.92);
-  border-top: 1px solid #e5e5e5;
 }
 
 .lab-title { font-weight: 700; }
@@ -248,12 +245,6 @@ section, footer {
 .hero {
   text-align: center;
   padding: 170px 16px 26px;
-}
-
-.hero-bot {
-  width: 190px;
-  height: auto;
-  filter: drop-shadow(0 14px 16px rgba(0,0,0,.22));
 }
 
 h1, h2, h3, .lede, figcaption { text-wrap: balance; }
@@ -307,7 +298,6 @@ li { margin: .4em 0; }
 .specs li {
   margin: 0;
   background: #fff6d6;
-  border: 1px solid #e8cf72;
   border-radius: 999px;
   padding: 6px 14px;
   font-size: .85rem;
@@ -330,7 +320,6 @@ li { margin: .4em 0; }
   aspect-ratio: 1;
   object-fit: cover;
   border-radius: 12px;
-  border: 3px solid #f4c91f;
 }
 
 .card figcaption {
@@ -352,7 +341,6 @@ li { margin: .4em 0; }
 }
 
 .podium .card {
-  border: 3px solid #f4c91f;
   border-radius: 12px;
   padding: 14px;
   background: rgba(255, 246, 214, .55);
@@ -465,8 +453,8 @@ figure.wide img {
 }
 
 .visor-barra button {
-  border: 1px solid rgba(255, 255, 255, .35);
-  background: rgba(255, 255, 255, .10);
+  border: 0;
+  background: rgba(255, 255, 255, .14);
   color: #fff;
   padding: 8px 16px;
   border-radius: 999px;

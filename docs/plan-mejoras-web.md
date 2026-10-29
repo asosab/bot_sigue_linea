@@ -57,19 +57,19 @@ Implementado distinto a lo previsto, mejor:
 - Solo el hero centrado; captions, premios y footer a la izquierda.
 - Override móvil del h1 eliminado: el clamp lo resuelve solo.
 
-## Fase 3 — Color y acento
+## Fase 3 — Color y acento ✔ hecha (2026-10-29)
 
-- Un acento: el amarillo `#f4c91f` (es el color real de las ruedas).
-  Queda en el subrayado de h2 y, como mucho, un detalle más. Fuera el
-  borde amarillo de fotos de equipo, tarjetas de premio y pills: las
-  fotos respiran sin marco; las pills pasan a relleno `#fff6d6` sin
-  borde o a texto plano.
-- Enlaces: el azul `#0f7fae` pasa a tinta `#1a1a1a` con subrayado, o se
-  conserva como color funcional único documentado; decidir viendo el
-  render. `design-taste-frontend` (un suelo, una tinta, un acento).
-- Quitar `border-bottom` del `#menu` y `border-top` del `.lab-bar`:
-  separar por tono (fondo sólido `#fff` ya lo hace, sin línea).
-  `lint.mjs` hairline.
+- Amarillo `#f4c91f` solo en el subrayado de h2 (acento único). Fuera
+  los marcos amarillos de fotos de equipo, tarjetas de premio y pills
+  (estas quedan como relleno `#fff6d6` sin borde).
+- Azul `#0f7fae` queda como color funcional de enlaces — es además el
+  azul de la placa UNO del sprite; documentado, no es acento.
+- Hairlines fuera: `border-bottom` del `#menu` y del desplegable,
+  `border-top` del `.lab-bar`. Bordes 1px a relleno: hamburguesa
+  (`#f0f0f0`) y botones del visor (blanco al 14 %).
+- Sombra muerta `.hero-bot` fuera; las sombras justificadas (sprite,
+  LED, desplegable) llevan `taste-skill-ignore`. `Cerrar ✕` → `Cerrar`
+  (emoji fuera). Lint: **0 FAIL**.
 
 ## Fase 4 — Composición de secciones
 
