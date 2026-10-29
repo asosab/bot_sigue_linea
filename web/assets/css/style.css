@@ -31,7 +31,7 @@ body {
 #trackPath {
   fill: none;
   stroke: #141414;
-  stroke-width: 18;
+  stroke-width: 14.4;
   stroke-linecap: round;
   stroke-linejoin: miter;
 }
@@ -111,7 +111,7 @@ section, footer, header.hero { scroll-margin-top: 64px; }
 #labPath {
   fill: none;
   stroke: #141414;
-  stroke-width: 18;
+  stroke-width: 14.4;
   stroke-linecap: round;
   stroke-linejoin: miter;
 }

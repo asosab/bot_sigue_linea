@@ -21,7 +21,7 @@
   var VMAX = 115, K = VMAX / 255;
   var VEL_RAPIDA = 180, VEL_MEDIA = 150, VEL_LENTA = 120;
   var WHEEL_BASE = 60;
-  var LINE_HALF = 9;                   // 18 px de línea ≈ 2 cm
+  var LINE_HALF = 7.2;                 // 14.4 px de línea ≈ 1.6 cm
 
   var bot_ = { x: 0, y: 0, th: 0 };
   var botScale = 1;
@@ -559,7 +559,7 @@
     labCtx.save();
     labCtx.scale(SCALE, SCALE);
     labCtx.strokeStyle = '#000';
-    labCtx.lineWidth = 18;
+    labCtx.lineWidth = 14.4;
     labCtx.lineJoin = 'miter';
     labCtx.lineCap = 'round';
     labCtx.stroke(new Path2D(d));
