@@ -50,18 +50,47 @@
   function ropeInit() {
     var W = docW, H = docH;
     var m = WALL + 12;
-    var cx = W / 2, cy = H / 2;
-    var rx = Math.max(60, W / 2 - m), ry = Math.max(60, H / 2 - m);
-    var len = 2 * Math.PI * Math.sqrt((rx * rx + ry * ry) / 2);
-    var n = Math.max(64, Math.min(180, Math.round(len / 42)));
+    var L = m, R = W - m, B = H - m;
+
+    // el borde superior llega a media altura del hueco entre el párrafo
+    // del hero y el título de «El equipo»; la forma es un rectángulo de
+    // esquinas redondeadas, no un óvalo puntiagudo
+    var hint = document.querySelector('.hint');
+    var h2 = document.querySelector('#equipo h2');
+    var T = m;
+    if (hint && h2) {
+      T = (hint.getBoundingClientRect().bottom +
+           h2.getBoundingClientRect().top) / 2 + window.scrollY;
+    }
+    var rad = Math.min(150, (R - L) * 0.35, (B - T) * 0.2);
+    var sw = R - L - 2 * rad, sh = B - T - 2 * rad;
+    var arcLen = Math.PI * rad / 2;
+    var per = 2 * (sw + sh) + 4 * arcLen;
+    var n = Math.max(64, Math.min(180, Math.round(per / 42)));
     rope.n = n;
     rope.px = new Float64Array(n); rope.py = new Float64Array(n);
     rope.ox = new Float64Array(n); rope.oy = new Float64Array(n);
     rope.segLen = new Float64Array(n);
+
+    // recorrido horario del perímetro, tramo recto + esquina de 90°,
+    // empezando por el borde superior desde la izquierda
+    var segs = [
+      [sw,     function (t) { return [L + rad + t * sw, T]; }],
+      [arcLen, function (t) { var a = (t - 1) * Math.PI / 2; return [R - rad + rad * Math.cos(a), T + rad + rad * Math.sin(a)]; }],
+      [sh,     function (t) { return [R, T + rad + t * sh]; }],
+      [arcLen, function (t) { var a = t * Math.PI / 2;         return [R - rad + rad * Math.cos(a), B - rad + rad * Math.sin(a)]; }],
+      [sw,     function (t) { return [R - rad - t * sw, B]; }],
+      [arcLen, function (t) { var a = (t + 1) * Math.PI / 2;   return [L + rad + rad * Math.cos(a), B - rad + rad * Math.sin(a)]; }],
+      [sh,     function (t) { return [L, B - rad - t * sh]; }],
+      [arcLen, function (t) { var a = (t + 2) * Math.PI / 2;   return [L + rad + rad * Math.cos(a), T + rad + rad * Math.sin(a)]; }]
+    ];
+    var idx = 0, acc = segs[0][0];
     for (var i = 0; i < n; i++) {
-      var a = i / n * 2 * Math.PI;
-      rope.px[i] = rope.ox[i] = cx + rx * Math.cos(a);
-      rope.py[i] = rope.oy[i] = cy + ry * Math.sin(a);
+      var s = i * per / n;
+      while (s > acc && idx < segs.length - 1) { idx++; acc += segs[idx][0]; }
+      var p = segs[idx][1]((s - (acc - segs[idx][0])) / segs[idx][0]);
+      rope.px[i] = rope.ox[i] = p[0];
+      rope.py[i] = rope.oy[i] = p[1];
     }
     retarget();
   }
