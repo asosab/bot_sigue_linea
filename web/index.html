@@ -315,13 +315,13 @@
   <section id="galeria">
     <h2>Así lo armamos</h2>
     <div class="gallery">
-      <img src="assets/img/bola_trasera_construccion.jpg" alt="El chasis visto desde arriba con los dos motores y el hueco de la bola trasera" loading="lazy">
-      <img src="assets/img/bot_cableando.jpg" alt="Arturito sobre la mesa de trabajo, cableado en marcha" loading="lazy">
-      <img src="assets/img/bola_trasera.jpg" alt="La rueda loca trasera: una bola de plástico que apoya el chasis" loading="lazy">
-      <img src="assets/img/sensores.jpg" alt="Uno de los sensores TCRT5000 de cerca" loading="lazy">
-      <img src="assets/img/sensores_instalados.jpg" alt="Los cinco sensores instalados en la placa delantera" loading="lazy">
-      <img src="assets/img/bot_linea_prueba.jpg" alt="Arturito con el cableado montado, sobre la pista de pruebas" loading="lazy">
-      <img src="assets/img/linea_de_prueba.jpg" alt="La pista de pruebas completa: un circuito cerrado de cinta negra con un cruce" loading="lazy">
+      <a href="assets/img/bola_trasera_construccion.jpg"><img src="assets/img/bola_trasera_construccion.jpg" alt="El chasis visto desde arriba con los dos motores y el hueco de la bola trasera" loading="lazy"></a>
+      <a href="assets/img/bot_cableando.jpg"><img src="assets/img/bot_cableando.jpg" alt="Arturito sobre la mesa de trabajo, cableado en marcha" loading="lazy"></a>
+      <a href="assets/img/bola_trasera.jpg"><img src="assets/img/bola_trasera.jpg" alt="La rueda loca trasera: una bola de plástico que apoya el chasis" loading="lazy"></a>
+      <a href="assets/img/sensores.jpg"><img src="assets/img/sensores.jpg" alt="Uno de los sensores TCRT5000 de cerca" loading="lazy"></a>
+      <a href="assets/img/sensores_instalados.jpg"><img src="assets/img/sensores_instalados.jpg" alt="Los cinco sensores instalados en la placa delantera" loading="lazy"></a>
+      <a href="assets/img/bot_linea_prueba.jpg"><img src="assets/img/bot_linea_prueba.jpg" alt="Arturito con el cableado montado, sobre la pista de pruebas" loading="lazy"></a>
+      <a href="assets/img/linea_de_prueba.jpg"><img src="assets/img/linea_de_prueba.jpg" alt="La pista de pruebas completa: un circuito cerrado de cinta negra con un cruce" loading="lazy"></a>
     </div>
   </section>
 
@@ -335,6 +335,21 @@
   </footer>
 </main>
 
+<div id="visor" hidden role="dialog" aria-modal="true" aria-label="Visor de fotos">
+  <figure class="visor-fig">
+    <img id="visorImg" alt="">
+    <figcaption id="visorCap"></figcaption>
+  </figure>
+  <button id="visorPrev" class="visor-flecha izq" type="button" aria-label="Foto anterior">‹</button>
+  <button id="visorNext" class="visor-flecha der" type="button" aria-label="Foto siguiente">›</button>
+  <div class="visor-barra">
+    <button id="visorAnt" type="button">⏮ Anterior</button>
+    <button id="visorPlay" type="button" aria-pressed="false">▶ Pase automático</button>
+    <button id="visorSig" type="button">Siguiente ⏭</button>
+    <button id="visorCerrar" type="button">Cerrar ✕</button>
+  </div>
+</div>
+
 <div id="lab" hidden>
   <svg id="labTrack"><path id="labHit" d=""/><path id="labPath" d=""/></svg>
   <div class="lab-bar">
@@ -345,5 +360,6 @@
 </div>
 
 <script src="assets/js/track.js"></script>
+<script src="assets/js/lightbox.js"></script>
 </body>
 </html>
