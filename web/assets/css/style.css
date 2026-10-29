@@ -66,7 +66,73 @@ body {
   background: rgba(255,255,255,.92);
   border-bottom: 1px solid #e5e5e5;
   backdrop-filter: blur(6px);
+}
+
+#menuLinks {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
   overflow-x: auto;
+}
+
+#menuToggle {
+  display: none;
+  width: 38px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+#menuToggle span {
+  width: 18px;
+  height: 2px;
+  background: #141414;
+  border-radius: 1px;
+  transition: transform .18s ease, opacity .18s ease;
+}
+
+#menu.open #menuToggle span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+#menu.open #menuToggle span:nth-child(2) { opacity: 0; }
+#menu.open #menuToggle span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+/* menú compacto: las rallitas quedan en la barra y los enlaces bajan
+   como desplegable */
+#menu.compact #menuToggle { display: flex; }
+
+#menu.compact #menuLinks {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  padding: 6px 10px 10px;
+  background: #fff;
+  border-bottom: 1px solid #e5e5e5;
+  box-shadow: 0 12px 28px rgba(0,0,0,.12);
+}
+
+#menu.compact.open #menuLinks { display: flex; }
+
+#menu.compact #menuLinks a {
+  padding: 10px 12px;
+  font-size: 1rem;
+}
+
+#menu.compact #openLab {
+  margin: 6px 0 0;
+  align-self: flex-start;
 }
 
 #menu a {

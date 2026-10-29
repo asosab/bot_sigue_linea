@@ -624,6 +624,44 @@
   window.__art = { bot_, SENS, toWorld, darkAt, readSensors, rope: rope,
                    path: path, build: build, drag: drag };
 
+  // =====================================================================
+  // Menú hamburguesa: cuando los enlaces no caben en la barra se agrupan
+  // en un desplegable. No hay breakpoint fijo: se mide el desborde real
+  // =====================================================================
+  var menu = document.getElementById('menu');
+  var menuToggle = document.getElementById('menuToggle');
+  var menuLinks = document.getElementById('menuLinks');
+
+  function fitMenu() {
+    menu.classList.remove('compact', 'open');
+    menuToggle.setAttribute('aria-expanded', 'false');
+    menu.classList.toggle('compact',
+      menuLinks.scrollWidth > menuLinks.clientWidth + 2);
+  }
+
+  function closeMenu() {
+    menu.classList.remove('open');
+    menuToggle.setAttribute('aria-expanded', 'false');
+  }
+
+  menuToggle.addEventListener('click', function () {
+    menuToggle.setAttribute('aria-expanded',
+      menu.classList.toggle('open') ? 'true' : 'false');
+  });
+  menuLinks.addEventListener('click', function (e) {
+    if (e.target.closest('a, button')) closeMenu();
+  });
+  document.addEventListener('click', function (e) {
+    if (menu.classList.contains('open') && !e.target.closest('#menu')) closeMenu();
+  });
+  window.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && menu.classList.contains('open')) closeMenu();
+  });
+
+  fitMenu();
+  window.addEventListener('resize', fitMenu);
+  window.addEventListener('load', fitMenu);   // las fuentes cambian el ancho
+
   build();
   world = pageWorld;
   spawn();
