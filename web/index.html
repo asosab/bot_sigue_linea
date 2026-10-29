@@ -55,18 +55,9 @@
   </defs>
 </svg>
 
-<!-- La pista: una línea negra que cruza toda la página; el sprite va encima -->
-<svg id="track" aria-hidden="false">
-  <path id="trackHit" d=""/>
+<!-- La pista: la línea visible corre por debajo del contenido -->
+<svg id="track" aria-hidden="true">
   <path id="trackPath" d=""/>
-  <g id="bot" role="button" tabindex="0" aria-label="Encender o apagar a Arturito" style="cursor:pointer">
-    <use href="#arturito-shape" transform="scale(0.34) translate(-110 -130)"/>
-    <circle class="sen" cx="-17.7" cy="-16" r="2.4"/>
-    <circle class="sen" cx="-8.8" cy="-24.8" r="2.4"/>
-    <circle class="sen" cx="0" cy="-33.7" r="2.4"/>
-    <circle class="sen" cx="8.8" cy="-24.8" r="2.4"/>
-    <circle class="sen" cx="17.7" cy="-16" r="2.4"/>
-  </g>
 </svg>
 
 <nav id="menu">
@@ -228,6 +219,24 @@
     equivoque. Queda mejorar la velocidad y resolver las intersecciones,
     que todavía le cuestan: en los cruces no siempre toma el camino
     correcto.</p>
+
+    <h3>Un pulsador para largar</h3>
+    <p>Hablando con el jurado quedó acordado que el bot largue con un
+    interruptor visible: un pulsador propio, aparte del de encendido. El
+    robot se enciende antes de la ronda y espera quieto ya apoyado en la
+    pista; el botonazo es la largada, y como el cronómetro solo corre
+    cuando el robot avanza, no hay apuro ni arranques en falso. Antes de
+    pulsar da tiempo de confirmar que el LED del sensor central esté
+    prendido: es la señal de que está viendo la línea.</p>
+    <p>El pulsador va entre el pin D8 y masa, a pelo: el pin usa el
+    pull-up interno del Arduino y se entera del botonazo cuando lo bajan
+    a masa. Miramos las otras dos opciones — llevarlo a 5 V o al positivo
+    de la batería — y las dos obligaban a sumar resistencias; la de 5 V,
+    además, dejaba el pin flotando mientras el botón está suelto, y un
+    pin flotando puede leer largadas que nadie pidió. Lo que pesó fue una
+    regla simple: cada elemento que se suma a un sistema es un punto más
+    donde puede fallar. El botón y dos cables fue todo lo que hizo
+    falta.</p>
   </section>
 
   <div class="track-anchor" id="t3"></div>
@@ -341,6 +350,23 @@
     <a href="https://asosab.github.io">Alejandro Sosa Briceño</a></p>
   </footer>
 </main>
+
+<!-- Segunda cinta, invisible, sobre el texto: replica la geometría de
+     la visible y sirve de agarre donde la cinta pasa por debajo de las
+     secciones (solo su trazo captura el puntero; links y botones fuera
+     del trazo siguen recibiendo sus clicks). El carrito viaja en esta
+     capa, siguiendo la cinta invisible por encima del texto. -->
+<svg id="trackTop">
+  <path id="trackHit" d="" aria-hidden="true"/>
+  <g id="bot" role="button" tabindex="0" aria-label="Encender o apagar a Arturito" style="cursor:pointer">
+    <use href="#arturito-shape" transform="scale(0.34) translate(-110 -130)"/>
+    <circle class="sen" cx="-17.7" cy="-16" r="2.4"/>
+    <circle class="sen" cx="-8.8" cy="-24.8" r="2.4"/>
+    <circle class="sen" cx="0" cy="-33.7" r="2.4"/>
+    <circle class="sen" cx="8.8" cy="-24.8" r="2.4"/>
+    <circle class="sen" cx="17.7" cy="-16" r="2.4"/>
+  </g>
+</svg>
 
 <div id="visor" hidden role="dialog" aria-modal="true" aria-label="Visor de fotos">
   <figure class="visor-fig">
