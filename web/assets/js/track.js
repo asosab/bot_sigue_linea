@@ -61,12 +61,15 @@
   // =====================================================================
   // La cinta: cadena cerrada de puntos con física Verlet
   // =====================================================================
-  var rope = { px: [], py: [], ox: [], oy: [], segLen: [], n: 0, grab: -1 };
-  var labRope = { px: [], py: [], ox: [], oy: [], segLen: [], n: 0, grab: -1 };
-  var ROPE_KEY = 'arturito-rope-v2';   // v2: la figura por defecto cambió de lazo a escalera
-  var ROPE_LAB_KEY = 'arturito-rope-lab';
+  var rope = { px: [], py: [], ox: [], oy: [], segLen: [], n: 0, grab: -1, settle: 0 };
+  var labRope = { px: [], py: [], ox: [], oy: [], segLen: [], n: 0, grab: -1, settle: 0 };
+  var ROPE_KEY = 'arturito-rope-v3';   // v3: la figura por defecto ya no solapa el regreso
+  var ROPE_LAB_KEY = 'arturito-rope-lab-v2';
   var BEND_RADIUS = 100;               // radio mínimo de curvatura de la cinta, px
   var BEND_SPAN = 6;                   // segmentos por lado que revisa el límite
+  var TAPE_GAP = 22;                   // separación mínima entre tramos paralelos, px
+  var CROSS_COS = 0.7;                 // tangentes más alineadas que esto cuentan como paralelas
+  var SELF_SEP = 6;                    // vecinos en la cadena que no son «otro tramo»
 
   function ropeAlloc(r, n) {
     r.n = n;
@@ -76,7 +79,13 @@
   }
 
   function ropeInit() {
-    if (ropeRestore(rope, ROPE_KEY, docW, docH)) return;   // la figura guardada gana
+    if (ropeRestore(rope, ROPE_KEY, docW, docH)) {   // la figura guardada gana
+      // una figura guardada puede traer tramos montados — venir de una
+      // versión vieja o encogerse al escalarla a otra ventana — y se
+      // separan en caliente durante los primeros frames
+      askSettle(rope, ROPE_KEY, docW, docH);
+      return;
+    }
     var W = docW, H = docH;
     var m = WALL;
     var L = m, R = W - m, T = m, B = H - m;
@@ -91,8 +100,9 @@
 
     // la figura es una escalera que baja toda la página: cada peldaño
     // cruza la columna justo en el hueco entre secciones (los divs
-    // .track-anchor), la bajada serpentea entre los dos rieles y la
-    // subida de vuelta cierra por el riel izquierdo
+    // .track-anchor). La cinta nunca corre un tramo montada sobre otro:
+    // los verticales de la escalera bajan por un riel interior y el
+    // regreso cierra por el borde sin tocarla — ni cruces hacen falta
     var anchors = [];
     document.querySelectorAll('.track-anchor').forEach(function (a) {
       var r = a.getBoundingClientRect();
@@ -100,17 +110,19 @@
     });
     if (!anchors.length) for (var i = 1; i <= 6; i++) anchors.push(T + (B - T) * i / 7);
 
+    var LI = L + Math.min(90, (R - L) * 0.12);   // riel interior izquierdo
     var wps = [[L, T], [R, T]];
-    var side = 1;                    // 1 = riel derecho, -1 = izquierdo
+    var side = 1;                    // 1 = riel derecho, -1 = interior
     for (i = 0; i < anchors.length; i++) {
-      wps.push([side > 0 ? R : L, anchors[i]]);
-      wps.push([side > 0 ? L : R, anchors[i]]);
+      wps.push([side > 0 ? R : LI, anchors[i]]);
+      wps.push([side > 0 ? LI : R, anchors[i]]);
       side = -side;
     }
-    // tras el último peldaño bajamos por el riel en que quedamos y
-    // cerramos por el izquierdo: el tramo de cierre solapa los
-    // verticales ya usados y quedan dos rieles con peldaños
-    wps.push([side > 0 ? R : L, B]);
+    // tras el último peldaño baja por el riel en que quedó, el fondo
+    // llega al borde y la subida de vuelta cierra por ahí: el riel de
+    // regreso no toca ningún tramo de la escalera
+    var endX = side > 0 ? R : LI;
+    wps.push([endX, B]);
     wps.push([L, B]);
     wps.push([L, T]);
 
@@ -177,6 +189,121 @@
     }
     retarget(r);
     return true;
+  }
+
+  // muros invisibles: la cinta llega hasta WALL px del borde
+  function clampRope(r, bw, bh) {
+    var m = WALL;
+    for (var i = 0; i < r.n; i++) {
+      if (r.px[i] < m) r.px[i] = m; else if (r.px[i] > bw - m) r.px[i] = bw - m;
+      if (r.py[i] < m) r.py[i] = m; else if (r.py[i] > bh - m) r.py[i] = bh - m;
+    }
+  }
+
+  // La cinta no puede correr un tramo montada sobre otro: dos
+  // segmentos casi paralelos cuyas rectas quedan a menos de TAPE_GAP
+  // de costado y se solapan en longitud se empujan lateralmente hasta
+  // separarse. Un cruce de verdad — direcciones que difieren más de
+  // ~45° — no se toca, porque cruzarse sí vale. La fuerza se reparte
+  // en los extremos según caigan dentro del tramo solapado, así solo
+  // se mueve la parte montada. Devuelve cuántos pares separó.
+  var tanX = null, tanY = null;               // dir unitaria por segmento, scratch
+  var boxX0 = null, boxX1 = null, boxY0 = null, boxY1 = null;
+  function repelOverlap(r) {
+    var n = r.n, px = r.px, py = r.py, ox = r.ox, oy = r.oy;
+    if (!tanX || tanX.length < n) {
+      tanX = new Float64Array(n); tanY = new Float64Array(n);
+      boxX0 = new Float64Array(n); boxX1 = new Float64Array(n);
+      boxY0 = new Float64Array(n); boxY1 = new Float64Array(n);
+    }
+    for (var i = 0; i < n; i++) {
+      var k = (i + 1) % n;
+      var vx = px[k] - px[i], vy = py[k] - py[i];
+      var l = Math.hypot(vx, vy) || 1e-6;
+      tanX[i] = vx / l; tanY[i] = vy / l;
+      boxX0[i] = Math.min(px[i], px[k]) - TAPE_GAP;
+      boxX1[i] = Math.max(px[i], px[k]) + TAPE_GAP;
+      boxY0[i] = Math.min(py[i], py[k]) - TAPE_GAP;
+      boxY1[i] = Math.max(py[i], py[k]) + TAPE_GAP;
+    }
+    // barrido por X: cada segmento solo se compara con los que su caja
+    // envolvente toca — con la cinta extendida son unos pocos pares
+    var order = new Array(n);
+    for (i = 0; i < n; i++) order[i] = i;
+    order.sort(function (a, b) { return boxX0[a] - boxX0[b]; });
+    var moved = 0;
+    for (var oi = 0; oi < n; oi++) {
+      i = order[oi];
+      var i2 = (i + 1) % n;
+      for (var oj = oi + 1; oj < n; oj++) {
+        var j = order[oj];
+        if (boxX0[j] > boxX1[i]) break;
+        var d = i - j; if (d < 0) d = -d;
+        if (Math.min(d, n - d) <= SELF_SEP) continue;  // vecinos de la cadena
+        if (boxY0[j] > boxY1[i] || boxY0[i] > boxY1[j]) continue;
+        var j2 = (j + 1) % n;
+        var s = tanX[i] * tanX[j] + tanY[i] * tanY[j];
+        if (s < CROSS_COS && s > -CROSS_COS) continue;   // cruce abierto: legal
+        var f = s < 0 ? -1 : 1;
+        var mx = tanX[i] + f * tanX[j], my = tanY[i] + f * tanY[j];
+        var ml = Math.hypot(mx, my) || 1e-6;
+        mx /= ml; my /= ml;
+        // intervalos de los dos segmentos proyectados en la dirección
+        // media: si no se solapan en longitud no hay tramo montado
+        var bi = (px[i2] - px[i]) * mx + (py[i2] - py[i]) * my;
+        var aj = (px[j] - px[i]) * mx + (py[j] - py[i]) * my;
+        var bj = (px[j2] - px[i]) * mx + (py[j2] - py[i]) * my;
+        var lo = Math.max(Math.min(0, bi), Math.min(aj, bj));
+        var hi = Math.min(Math.max(0, bi), Math.max(aj, bj));
+        var ov = hi - lo;
+        if (ov <= 0) continue;
+        // separación lateral en los dos bordes del tramo solapado; si
+        // cambia de signo ahí dentro los tramos se cruzan, no se montan
+        var ti = bi === 0 ? 0 : lo / bi;
+        var tj = (bj - aj) === 0 ? 0 : (lo - aj) / (bj - aj);
+        var ex = (px[j] + (px[j2] - px[j]) * tj) - (px[i] + (px[i2] - px[i]) * ti);
+        var ey = (py[j] + (py[j2] - py[j]) * tj) - (py[i] + (py[i2] - py[i]) * ti);
+        var sLo = ex * -my + ey * mx;
+        ti = bi === 0 ? 0 : hi / bi;
+        tj = (bj - aj) === 0 ? 0 : (hi - aj) / (bj - aj);
+        ex = (px[j] + (px[j2] - px[j]) * tj) - (px[i] + (px[i2] - px[i]) * ti);
+        ey = (py[j] + (py[j2] - py[j]) * tj) - (py[i] + (py[i2] - py[i]) * ti);
+        var sHi = ex * -my + ey * mx;
+        if (sLo * sHi < 0) continue;            // cruce dentro del solape
+        var ld = Math.min(Math.abs(sLo), Math.abs(sHi));
+        if (ld >= TAPE_GAP) continue;
+        var side = sLo + sHi < 0 ? -1 : 1;      // de qué lado queda j
+        var ux = -my * side, uy = mx * side;
+        var push = (TAPE_GAP - ld) * 0.5;
+        moved++;
+        // cada extremo se mueve en proporción a cuánto cae dentro del
+        // tramo solapado: fuera del montado no se empuja
+        var edge = Math.min(ov, TAPE_GAP) || 1;
+        var ends = [
+          [i,  -1, 0], [i2, -1, bi],
+          [j,   1, aj], [j2,  1, bj]
+        ];
+        for (var q = 0; q < 4; q++) {
+          var idx = ends[q][0], sgn = ends[q][1], c = ends[q][2];
+          var w = c < lo ? Math.max(0, 1 - (lo - c) / edge)
+                : c > hi ? Math.max(0, 1 - (c - hi) / edge) : 1;
+          if (w <= 0 || idx === r.grab) continue;
+          var dxq = ux * push * w * sgn, dyq = uy * push * w * sgn;
+          px[idx] += dxq; py[idx] += dyq;
+          ox[idx] += dxq; oy[idx] += dyq;
+        }
+      }
+    }
+    return moved;
+  }
+
+  // al soltar la cinta o al restaurar una figura guardada, los tramos
+  // montados se separan en caliente: una pasada por frame hasta que no
+  // quede nada que separar — así el desmontado se ve y no congela el
+  // hilo como lo haría un bucle de cientos de iteraciones
+  function askSettle(r, key, w, h) {
+    r.settle = 240;                       // presupuesto de frames
+    r.settleKey = key; r.settleW = w; r.settleH = h;
   }
 
   function ropeStep(r, bw, bh) {
@@ -275,12 +402,24 @@
       }
     }
 
-    // muros invisibles
-    var m = WALL;
-    for (var w = 0; w < n; w++) {
-      if (px[w] < m) px[w] = m; else if (px[w] > bw - m) px[w] = bw - m;
-      if (py[w] < m) py[w] = m; else if (py[w] > bh - m) py[w] = bh - m;
+    // solo mientras se deforma la cinta puede plegarse un tramo sobre
+    // otro: la repulsión lateral los separa en caliente. Tras soltarla
+    // o restaurarla el desmontado sigue unos frames hasta converger
+    if (r.grab >= 0) {
+      repelOverlap(r);
+    } else if (r.settle > 0) {
+      if (--r.settle === 0 || !repelOverlap(r)) {
+        r.settle = 0;
+        retarget(r);                        // la figura asentada queda plástica
+        for (var i = 0; i < n; i++) { ox[i] = px[i]; oy[i] = py[i]; }
+        if (r.settleKey) ropeSave(r, r.settleKey, r.settleW, r.settleH);
+      } else {
+        clampRope(r, r.settleW, r.settleH);
+      }
     }
+
+    // muros invisibles
+    clampRope(r, bw, bh);
   }
 
   // Catmull-Rom cerrado → curvas suaves de río
@@ -639,12 +778,10 @@
 
   function ropeDrop(r, hit, key, w, h) {
     if (r.grab >= 0) {
-      retarget(r);                    // la figura nueva se queda
-      for (var i = 0; i < r.n; i++) {    // y parada en seco, sin rebote
-        r.ox[i] = r.px[i];
-        r.oy[i] = r.py[i];
-      }
-      ropeSave(r, key, w, h);
+      r.grab = -1;
+      // si quedó algún tramo montado se separa en caliente y la figura
+      // se guarda cuando converge — nunca se persiste solapada
+      askSettle(r, key, w, h);
     }
     r.grab = -1;
     if (hit) hit.classList.remove('rope-drag');
@@ -769,6 +906,8 @@
         labRope.py[i] = labRope.oy[i] = p.y;
       }
       retarget(labRope);
+    } else {
+      askSettle(labRope, ROPE_LAB_KEY, W, H);   // una figura vieja puede traer montados
     }
 
     // el carrito arranca sobre el primer nodo de la cinta, mirando hacia
@@ -857,7 +996,8 @@
   });
 
   window.__art = { bot_, SENS, toWorld, oscuridad, leerSensores, rope: rope,
-                   labRope: labRope, path: path, build: build, drag: drag };
+                   labRope: labRope, path: path, build: build, drag: drag,
+                   repelOverlap: repelOverlap };
 
   // =====================================================================
   // Menú hamburguesa: cuando los enlaces no caben en la barra se agrupan
