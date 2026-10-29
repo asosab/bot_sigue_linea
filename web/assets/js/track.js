@@ -52,14 +52,16 @@
     var m = WALL;
     var L = m, R = W - m;
 
-    // la cinta rodea el bloque inicial: el borde superior subraya
-    // «Arturito» sin tapar el párrafo de abajo y el inferior queda
-    // arriba del título de «El equipo»
-    var lede = document.querySelector('.lede');
+    // la cinta rodea el bloque inicial: el borde superior pasa justo
+    // entre el carrito aparcado sobre el hero y el título «Arturito»,
+    // y el inferior queda arriba del título de «El equipo»
+    var h1 = document.querySelector('.hero h1');
     var h2 = document.querySelector('#equipo h2');
     var T = m, B = H - m;
-    if (lede && h2) {
-      T = lede.getBoundingClientRect().top + window.scrollY - 11;
+    if (h1 && h2) {
+      var botBottom = Math.min(120, docH * 0.06) + 44; // borde bajo del carrito aparcado
+      var h1Top = h1.getBoundingClientRect().top + window.scrollY;
+      T = botBottom + (h1Top - botBottom) / 2;
       B = h2.getBoundingClientRect().top + window.scrollY - 18;
     }
     var rad = Math.min(150, (R - L) * 0.35, (B - T) * 0.2);
