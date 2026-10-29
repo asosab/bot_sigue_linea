@@ -32,6 +32,9 @@
   var GIRO_BUSQUEDA_MS = 1500, VEL_BUSQUEDA = 130, VEL_REBOBINADO = 90;
   var PESO = [-2, -1, 0, 1, 2];
   var CAL_MIN_INI = 0.03, CAL_MAX_INI = 0.93;
+  // el firmware larga con un pulsador; acá equivale a sostener el
+  // carrito quieto sobre la línea este tiempo antes de arrancar
+  var LARGADA_MS = 300;
 
   var bot_ = { x: 0, y: 0, th: 0 };
   var botScale = 1;

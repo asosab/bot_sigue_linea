@@ -17,6 +17,8 @@ Punto de entrada a la documentación del proyecto. Navegación por enlaces, no p
 - [[premios]] — premios del concurso y la hoja que los actualiza
 - [[precios]] — compras del robot (factura ECROBOTICS)
 - [Sitio web](https://asosab.github.io/bot_sigue_linea/) — landing del proyecto (`web/`, GitHub Pages)
+- [[estudio-diseno-web]] — auditoría del sitio con los skills de diseño (2026-10-29)
+- [[plan-mejoras-web]] — plan de mejoras del sitio, por fases y con verificación
 
 ## Puesta en marcha
 

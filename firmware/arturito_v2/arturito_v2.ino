@@ -4,10 +4,13 @@
  * CONCURSO: 1er Concurso Distrital de Robotica 2026 (Santa Cruz)
  * ==========================================================
  * Arranque de competencia: se enciende en la mano, con motores
- * parados, y arranca solo al apoyarlo sobre la linea (S2 ve
- * negro y los extremos S0/S4 no). Sin prueba de motores ni
- * ventana de calibracion: el reglamento no permite tocarlo
- * una vez en el suelo.
+ * parados, se apoya sobre la linea y larga al pulsar el boton
+ * de largada (D8). La largada exige S2 sobre negro y los
+ * extremos S0/S4 libres: si esta mal apoyado no arranca y da
+ * tiempo de reacomodarlo. Sin prueba de motores ni ventana de
+ * calibracion: el reglamento no permite tocarlo una vez en
+ * carrera. Antes de pulsar se puede verificar el LED del
+ * modulo S2 encendido = esta viendo la linea.
  *
  * - Posicion continua (media ponderada de los 5 canales
  *   analogicos) filtrada con EMA: corta el bamboleo.
@@ -41,6 +44,8 @@
 #define IN4 10  // motor derecho atras (PWM)
 #define SLEEP_DRV 4 // EEP del DRV8833: HIGH = despierto
 #define FAULT_PIN 2 // ULT del DRV8833 (opcional)
+#define BTN 8       // pulsador de largada: a +BAT con serie ~4.7k
+                    // y pull-down 100k a GND (o al pin 5V, da igual)
 
 // --- PARAMETROS DE CONTROL ---
 const int VEL_MAX = 180;   // velocidad en recta
@@ -156,22 +161,26 @@ void setup() {
   pinMode(SLEEP_DRV, OUTPUT);
   digitalWrite(SLEEP_DRV, HIGH);
   pinMode(FAULT_PIN, INPUT_PULLUP);
+  pinMode(BTN, INPUT); // pull-down externo
 
   Serial.begin(9600);
   Serial.println("===== ARTURITO v2 =====");
-  Serial.println("Motores parados: esperando la linea de salida.");
+  Serial.println("Esperando: apoyar sobre la linea y pulsar largada.");
 }
 
 void loop() {
   leerSensores();
 
-  // 1. Compuerta de arranque: quieto hasta apoyarlo sobre la linea
+  // 1. Compuerta de arranque: quieto hasta pulsar largada estando
+  //    bien apoyado (S2 sobre la linea, extremos libres). Si no se
+  //    cumple no pasa nada: senal de reacomodar y volver a pulsar.
   if (!arrancado) {
-    if (negrura(2) > N_ON && negrura(0) < N_OFF && negrura(4) < N_OFF) {
+    if (digitalRead(BTN) == HIGH &&
+        negrura(2) > N_ON && negrura(0) < N_OFF && negrura(4) < N_OFF) {
       sembrarPista();
       arrancado = true;
       posF = posPrev = 0;
-      Serial.println("LINEA VISTA: arrancando.");
+      Serial.println("LARGADA: arrancando.");
     } else {
       detener();
       delay(5);

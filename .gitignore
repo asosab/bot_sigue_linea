@@ -25,3 +25,6 @@ pdfs/
 # OS
 Thumbs.db
 Desktop.ini
+
+# Artefactos de auditoría de diseño (screenshots del inspector)
+.taste-skill/
