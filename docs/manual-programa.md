@@ -21,6 +21,7 @@ la línea la busca girando hacia el último lado donde la vio.
 |---|---|
 | Encendido | motores parados, espera la largada |
 | Largada | pulsador + línea centrada → arranca y siembra la calibración |
+| Segundo click | detiene y vuelve a la espera de largada |
 | Marcha | posición filtrada + corrección PD, velocidad según el error |
 | Intersección | avance recto de 200 ms sin leer sensores |
 | Línea perdida | pivote hacia el último lado 1.5 s → rebobinado |
@@ -79,7 +80,12 @@ S2 fuera de la línea o una punta pisándola — y toca reacomodar el robot.
 Un toque accidental en el aire no arranca nada, porque los extremos
 tampoco ven blanco limpio. Mantener el botón apretado mientras se baja el
 robot también funciona: arranca en el instante en que S2 encuentra la
-línea. Ya en carrera, el pulsador queda inerte.
+línea.
+
+En carrera, un nuevo click **detiene** el robot y lo devuelve a la
+espera. Para volver a ponerlo en marcha hay que soltar el botón y
+pulsarlo de nuevo, con la misma regla de largada: S2 sobre la línea y
+extremos libres.
 
 ## 4. Seguir la línea: posición, filtro y corrección
 

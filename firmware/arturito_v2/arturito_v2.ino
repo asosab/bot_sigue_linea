@@ -7,10 +7,12 @@
  * parados, se apoya sobre la linea y larga al pulsar el boton
  * de largada (D8). La largada exige S2 sobre negro y los
  * extremos S0/S4 libres: si esta mal apoyado no arranca y da
- * tiempo de reacomodarlo. Sin prueba de motores ni ventana de
- * calibracion: el reglamento no permite tocarlo una vez en
- * carrera. Antes de pulsar se puede verificar el LED del
- * modulo S2 encendido = esta viendo la linea.
+ * tiempo de reacomodarlo. Un segundo click detiene el robot y
+ * lo devuelve a la espera; un click nuevo lo relanza con la
+ * misma regla. Sin prueba de motores ni ventana de calibracion:
+ * el reglamento no permite tocarlo una vez en carrera. Antes
+ * de pulsar se puede verificar el LED del modulo S2 encendido
+ * = esta viendo la linea.
  *
  * - Posicion continua (media ponderada de los 5 canales
  *   analogicos) filtrada con EMA: corta el bamboleo.
@@ -69,6 +71,9 @@ const float N_OFF = 0.4;   // S0 y S4 tienen que ver blanco
 const int VEL_CRUCE = 140;
 const unsigned long AVANCE_CRUCE_MS = 200;
 
+// Antirrebote del pulsador (flanco estable despues de este tiempo)
+const unsigned long BTN_DEBOUNCE_MS = 50;
+
 // Recuperacion de linea perdida
 const unsigned long GIRO_BUSQUEDA_MS = 1500; // tiempo girando antes de rebobinar
 const int VEL_BUSQUEDA = 130;
@@ -90,6 +95,9 @@ int ultimoLado = 0;                 // -1 izquierda, +1 derecha
 unsigned long perdidaDesde = 0;
 unsigned long cruceHasta = 0;
 bool arrancado = false;
+bool btnPrev = HIGH;                // pull-up: HIGH = suelto
+bool btnBloqueado = false;          // tras detener, exige soltar para relanzar
+unsigned long btnUltimo = 0;
 
 // --- MOTORES (velocidad con signo: + adelante, - atras) ---
 void motorIzq(int vel) {
@@ -171,21 +179,43 @@ void setup() {
 void loop() {
   leerSensores();
 
-  // 1. Compuerta de arranque: quieto hasta pulsar largada estando
+  // 1. Pulsador: flanco de pulsado (HIGH->LOW) con antirrebote
+  bool btn = digitalRead(BTN);
+  bool presion = false;
+  if (btn != btnPrev && millis() - btnUltimo > BTN_DEBOUNCE_MS) {
+    btnUltimo = millis();
+    btnPrev = btn;
+    if (btn == LOW) presion = true;
+  }
+
+  // 2. Compuerta de arranque: quieto hasta pulsar largada estando
   //    bien apoyado (S2 sobre la linea, extremos libres). Si no se
   //    cumple no pasa nada: senal de reacomodar y volver a pulsar.
   if (!arrancado) {
-    if (digitalRead(BTN) == LOW &&   // pulsador a GND: presionado = LOW
+    if (btn == HIGH) btnBloqueado = false;
+    if (!btnBloqueado && btn == LOW &&   // pulsador a GND: presionado = LOW
         negrura(2) > N_ON && negrura(0) < N_OFF && negrura(4) < N_OFF) {
       sembrarPista();
       arrancado = true;
       posF = posPrev = 0;
+      perdidaDesde = 0;
+      cruceHasta = 0;
       Serial.println("LARGADA: arrancando.");
     } else {
       detener();
       delay(5);
       return;
     }
+  }
+  // 3. En carrera: un nuevo click detiene y devuelve a la espera.
+  //    Hay que soltar antes de relanzar (btnBloqueado).
+  else if (presion) {
+    arrancado = false;
+    btnBloqueado = true;
+    detener();
+    Serial.println("DETENIDO: esperando nueva largada.");
+    delay(5);
+    return;
   }
 
   // 2. Cruce comprometido: recto sin leer hasta que venza el tramo

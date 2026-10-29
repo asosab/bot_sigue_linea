@@ -742,6 +742,14 @@
   });
 
   function toggle() {
+    // en carrera el click es el pulsador real: detiene y deja
+    // esperando la largada (encendido pero quieto, como el firmware)
+    if (running && arrancado) {
+      arrancado = false;
+      pwmL = pwmR = 0;
+      lineaDesde = 0;
+      return;
+    }
     running = !running;
     bot.classList.toggle('on', running);
     if (running) {

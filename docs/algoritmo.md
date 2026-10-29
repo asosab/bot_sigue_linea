@@ -31,7 +31,10 @@ calibración.
   arranca en cuanto S2 ve la línea.
 - En el aire los cinco canales leen parecido, así que un toque accidental
   del pulsador sin la línea debajo no arranca nada.
-- Una vez en carrera el pulsador queda inerte.
+- En carrera, un nuevo click **detiene** el robot y lo devuelve a la
+  espera. Para relanzar hay que soltar el botón y pulsarlo de nuevo,
+  con la misma regla de largada (línea centrada). El flanco de pulsado
+  lleva antirrebote de 50 ms.
 
 ## Calibración adaptativa
 
