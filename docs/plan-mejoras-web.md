@@ -23,17 +23,27 @@ node .devin/skills/design-taste-frontend/scripts/inspect.mjs web/index.html --ou
 
 y una pasada visual sobre los screenshots. Meta: 0 FAIL en ambos.
 
-## Fase 1 — La cinta deja de tapar texto
+## Fase 1 — La cinta deja de tapar texto ✔ hecha (2026-10-29)
 
-- Subir `main` por encima de `#track` (`z-index` mayor que 10; el
-  `#lab`, `#visor` y `#menu` ya van por encima). La cinta sigue
-  viéndose en los huecos `.track-anchor`, el aire del hero y los
-  márgenes; al pasar detrás de una sección el sprite «se esconde» un
-  momento, lo que incluso suma sensación de profundidad. La cinta se
-  sigue pudiendo agarrar donde es visible.
-  `design-taste-frontend` (regla covered-text). Verificar: inspect sin
-  `covered-text` a los tres anchos; arrastre y encendido del carrito
-  siguen funcionando en los huecos.
+Implementado distinto a lo previsto, mejor:
+
+- `main` z-20 sobre `#track` z-10: la cinta visible corre por debajo y
+  se intuye tenue bajo las secciones translúcidas.
+- El agarre se resolvió **a nivel documento**, sin elemento sobre el
+  texto: `pointerdown` dentro de la banda (±20 px de la cuerda) reclama
+  el gesto solo si el objetivo no es control (`a`, `button`, …) — un
+  link bajo la cinta siempre gana su click. En táctil se cancela el
+  `touchmove` dentro de la banda (equivale al `touch-action:none` del
+  trazo anterior). Cursor `grab` al pasar el mouse por la banda.
+- Una primera versión con segunda cinta invisible (`#trackHit` sobre el
+  texto) falló: el inspector fuerza `pointer-events:auto` al medir y el
+  trazo invisible contaba como elemento que tapa. Se descartó.
+- El carrito va en `#trackTop`, un svg de 110×110 que lo sigue (no una
+  capa de página completa, que también cuenta como cubierta): sigue la
+  línea por encima del texto, se enciende y se arrastra igual.
+- `inspect.mjs` ya no reporta `covered-text` a 1440/768/390.
+  Verificado con Playwright: agarre sobre el hero, links del menú
+  intactos, click real enciende el carrito.
 
 ## Fase 2 — Tipografía
 

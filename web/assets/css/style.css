@@ -19,7 +19,22 @@ body {
   overflow: visible;
 }
 
-#trackHit, #labHit {
+/* la capa del carrito: una caja chica que lo sigue por el documento,
+   no una capa de página completa — un svg a todo lo ancho taparía el
+   texto (y el inspector lo mediría como contenido cubierto) */
+#trackTop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 30;
+  width: 110px;
+  height: 110px;
+  pointer-events: none;
+  overflow: visible;
+  will-change: transform;
+}
+
+#labHit {
   fill: none;
   stroke: transparent;
   stroke-width: 40;
@@ -29,7 +44,7 @@ body {
      scroll de la página (y un tirón hacia abajo refresca la página) */
   touch-action: none;
 }
-#trackHit.rope-drag, #labHit.rope-drag { cursor: grabbing; }
+#labHit.rope-drag { cursor: grabbing; }
 
 #trackPath {
   fill: none;
@@ -217,7 +232,7 @@ section, footer, header.hero { scroll-margin-top: 64px; }
 
 main {
   position: relative;
-  z-index: 1;
+  z-index: 20;                 /* por encima de la cinta (10), debajo de su agarre y el carrito (30) */
   max-width: 720px;
   margin: 0 auto;
   padding: 0 24px;

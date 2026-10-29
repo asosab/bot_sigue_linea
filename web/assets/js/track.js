@@ -5,9 +5,9 @@
    usa otra cadena igual, con la figura de la pista de práctica como forma
    inicial; ambas recuerdan su última posición en localStorage. */
 (function () {
-  var svg = document.getElementById('track');
+  var svg = document.getElementById('track');       // cinta visible, bajo el contenido
+  var svgTop = document.getElementById('trackTop'); // carrito sobre el contenido
   var path = document.getElementById('trackPath');
-  var hitPath = document.getElementById('trackHit');
   var bot = document.getElementById('bot');
   var senDots = bot.querySelectorAll('.sen');
 
@@ -311,7 +311,7 @@
     svg.setAttribute('height', docH);
     ropeInit();
     pageWorld = { kind: 'page', w: docW, h: docH,
-                  rope: rope, path: path, hitPath: hitPath };
+                  rope: rope, path: path };
     if (!inLab) world = pageWorld;
   }
 
@@ -473,7 +473,7 @@
       ropeStep(world.rope, world.w, world.h);
       var d = ropeD(world.rope);
       world.path.setAttribute('d', d);
-      world.hitPath.setAttribute('d', d);
+      if (world.hitPath) world.hitPath.setAttribute('d', d);
     }
 
     if (drag.held) {
@@ -524,10 +524,20 @@
     if (drag.fallT <= 0) { drag.fallT = 0; bot.classList.remove('lift'); }
   }
 
+  var TOP_HALF = 55;              // la caja del carrito mide 110×110
   function place() {
     var deg = bot_.th * 180 / Math.PI + 90;
-    bot.setAttribute('transform',
-      'translate(' + bot_.x + ' ' + bot_.y + ') rotate(' + deg + ') scale(' + botScale + ')');
+    if (inLab) {
+      // en el probador el svg es a pantalla completa: el grupo se mueve
+      bot.setAttribute('transform',
+        'translate(' + bot_.x + ' ' + bot_.y + ') rotate(' + deg + ') scale(' + botScale + ')');
+    } else {
+      // en la página la caja sigue al carrito y el grupo va centrado
+      svgTop.style.transform =
+        'translate(' + (bot_.x - TOP_HALF) + 'px,' + (bot_.y - TOP_HALF) + 'px)';
+      bot.setAttribute('transform',
+        'translate(' + TOP_HALF + ' ' + TOP_HALF + ') rotate(' + deg + ') scale(' + botScale + ')');
+    }
   }
 
   // =====================================================================
@@ -613,7 +623,7 @@
       if (dd < bd) { bd = dd; best = i; }
     }
     r.grab = best; r.gx = p.x; r.gy = p.y;
-    hit.classList.add('rope-drag');
+    if (hit) hit.classList.add('rope-drag');
   }
 
   function ropeDrop(r, hit, key, w, h) {
@@ -626,25 +636,77 @@
       ropeSave(r, key, w, h);
     }
     r.grab = -1;
-    hit.classList.remove('rope-drag');
+    if (hit) hit.classList.remove('rope-drag');
   }
 
-  hitPath.addEventListener('pointerdown', function (e) {
-    if (inLab) return;
+  // Agarrar la cinta de la página: sin elemento sobre el texto (taparía
+  // titulares y robaría clicks). Se reclama el gesto a nivel documento
+  // solo cuando el pointerdown cae dentro de la banda de la cinta y el
+  // objetivo no es un control — un link bajo la cinta siempre gana.
+  var GRAB_TOL = 20;                 // semi-ancho de la banda de agarre, px
+  var tapeGrabbed = false;
+
+  function sobreControl(e) {
+    return e.target.closest(
+      'a, button, input, select, textarea, summary, [role="button"], ' +
+      '#menu, #lab, #visor');
+  }
+
+  document.addEventListener('pointerdown', function (e) {
+    if (inLab || tapeGrabbed) return;
+    var p = { x: e.clientX, y: e.clientY + window.scrollY };
+    if (distToRope(rope, p.x, p.y) > GRAB_TOL) return;
+    if (sobreControl(e)) return;
     e.preventDefault();
-    hitPath.setPointerCapture(e.pointerId);
-    ropeGrab(rope, hitPath, svgPointAt(svg, e));
+    tapeGrabbed = true;
+    ropeGrab(rope, null, p);
+    document.body.style.cursor = 'grabbing';
   });
 
-  hitPath.addEventListener('pointermove', function (e) {
+  document.addEventListener('pointermove', function (e) {
     if (rope.grab < 0) return;
-    var p = svgPointAt(svg, e);
-    rope.gx = p.x; rope.gy = p.y;
+    rope.gx = e.clientX; rope.gy = e.clientY + window.scrollY;
   });
 
-  function ropeRelease() { ropeDrop(rope, hitPath, ROPE_KEY, docW, docH); }
-  hitPath.addEventListener('pointerup', ropeRelease);
-  hitPath.addEventListener('pointercancel', ropeRelease);
+  function tapeRelease() {
+    if (!tapeGrabbed) return;
+    tapeGrabbed = false;
+    document.body.style.cursor = '';
+    ropeDrop(rope, null, ROPE_KEY, docW, docH);
+  }
+  document.addEventListener('pointerup', tapeRelease);
+  document.addEventListener('pointercancel', tapeRelease);
+
+  // cursor «grab» cuando el mouse está sobre la banda y no hay control:
+  // es la pista visual de que ahí la cinta se puede agarrar
+  var cursorT = 0;
+  document.addEventListener('pointermove', function (e) {
+    if (e.pointerType !== 'mouse' || tapeGrabbed || inLab) return;
+    var now = performance.now();
+    if (now - cursorT < 60) return;
+    cursorT = now;
+    var near = !sobreControl(e) &&
+      distToRope(rope, e.clientX, e.clientY + window.scrollY) <= GRAB_TOL;
+    document.body.style.cursor = near ? 'grab' : '';
+  });
+
+  // En táctil, cancelar el scroll dentro de la banda es lo que reclama
+  // el gesto para la cinta: el pointerdown solo no basta, porque el
+  // browser empieza a scrollear con el primer touchmove. Equivale al
+  // touch-action:none que llevaba el trazo invisible anterior.
+  var tapeTouch = false;
+  document.addEventListener('touchstart', function (e) {
+    tapeTouch = !inLab && !tapeGrabbed &&
+      !sobreControl(e) &&
+      distToRope(rope,
+        e.touches[0].clientX,
+        e.touches[0].clientY + window.scrollY) <= GRAB_TOL;
+  }, { passive: true });
+  document.addEventListener('touchmove', function (e) {
+    if (tapeTouch) e.preventDefault();
+  }, { passive: false });
+  document.addEventListener('touchend', function () { tapeTouch = false; });
+  document.addEventListener('touchcancel', function () { tapeTouch = false; });
 
   // =====================================================================
   // Probador (lab)
@@ -745,7 +807,7 @@
 
   function closeLab() {
     inLab = false; world = pageWorld;
-    svg.appendChild(bot);
+    svgTop.appendChild(bot);
     if (savedPose) { bot_.x = savedPose.x; bot_.y = savedPose.y; bot_.th = savedPose.th; }
     lab.hidden = true;
     document.body.style.overflow = '';
