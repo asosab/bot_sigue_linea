@@ -19,6 +19,9 @@ build/
 *.bin
 *.eep
 
+# PDFs internos (código no público hasta después del concurso)
+pdfs/
+
 # OS
 Thumbs.db
 Desktop.ini
