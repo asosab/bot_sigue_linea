@@ -13,7 +13,7 @@ Configuración registrada desde `firmware/arturito/arturito.ino`.
 | [[componente-tcrt5000|TCRT5000]] | 5 | A0–A4 | lectura analógica, línea IR |
 | [[componente-drv8833|DRV8833]] | 1 | D5, D6, D9, D10 | driver dual de motores |
 | [[componente-hc02-48|Motor HC02-48]] | 2 | salidas del DRV8833 | reductora 1:48 |
-| Pulsador de largada | 1 | D8 | botón momentáneo a +BAT, ver [[esquema]] |
+| Pulsador de largada | 1 | D8 | botón momentáneo a GND, pull-up interno, ver [[esquema]] |
 | Rueda loca (bola) | 1 | chasis | apoyo trasero, ver `imagen/bola_trasera.jpg` |
 
 ## Mapa de pines

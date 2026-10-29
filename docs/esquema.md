@@ -36,19 +36,20 @@ Un botón momentáneo aparte del de encendido: al pulsarlo el bot larga la
 carrera si está bien apoyado (ver [[algoritmo]]). Permite verificar antes
 que el LED del módulo S2 esté encendido, es decir, leyendo la línea.
 
-| Tramo | Conexión |
+| Terminal del pulsador | Va a |
 |---|---|
-| + batería → pulsador → resistencia ~4.7 k | D8 |
-| D8 → resistencia 100 k | GND (pull-down) |
+| un lado | D8 (header digital, entre D7 y D9) |
+| otro lado | GND — cualquier masa: el pin GND del header POWER (junto a Vin y 5V), el GND del header digital (entre AREF y D13) o el riel de masa de la protoboard |
 
-La resistencia en serie protege el pin: con 4×AA (~6 V) el exceso sobre
-VCC drena por el diodo interno a corriente mínima; con una 18650 (~4.2 V)
-sobra margen sobre el umbral de HIGH (~3 V a VCC 5 V). Alternativa igual
-de válida y sin cuenta de voltaje: el pulsador al pin `5V` en vez de
-`+BAT`, con el mismo pull-down. Otra opción sin resistencias: pull-up
-interno (`INPUT_PULLUP`) y pulsador a GND, invirtiendo la lógica
-(presionado = LOW) — quedó descartada para no invertir el cableado
-propuesto.
+El pin usa el pull-up interno (`INPUT_PULLUP`): reposo = HIGH,
+presionado = LOW. **No lleva resistencias** — dos cables y listo.
+
+Nota de por qué no a `5V`: un pulsador entre `5V` y D8 obliga a un
+pull-down de 100 k a GND, porque sin él el pin queda flotando al soltar
+y lee disparos falsos — una largada fantasma en plena pista. Con pull-up
+interno el reposo queda definido por el propio Arduino y no hace falta
+nada externo. Si algún día se prefiere el cable a `5V` igual: se agrega
+el pull-down y en el código `digitalRead(BTN) == LOW` pasa a `== HIGH`.
 
 ## DRV8833 → motores
 

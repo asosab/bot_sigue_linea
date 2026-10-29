@@ -17,10 +17,11 @@ ya apoyado en la pista. Por eso no hay prueba de motores ni ventana de
 calibración.
 
 - Al encender queda quieto, con los motores parados.
-- La **largada** exige dos cosas a la vez: el pulsador (D8) presionado y
-  S2 viendo la línea (`negrura > 0.6`) con los extremos S0 y S4 libres
-  (`< 0.4`). S1 y S3 son indiferentes: por el grosor de la línea o la
-  pose de salida pueden pisarla o no.
+- La **largada** exige dos cosas a la vez: el pulsador (D8, a GND con
+  pull-up interno — presionado = LOW) y S2 viendo la línea
+  (`negrura > 0.6`) con los extremos S0 y S4 libres (`< 0.4`). S1 y S3
+  son indiferentes: por el grosor de la línea o la pose de salida pueden
+  pisarla o no.
 - El orden que da el pulsador permite verificar primero el LED del módulo
   S2 encendido — confirmación visual de que está leyendo la línea antes
   de largar. Cableado en [[esquema]].

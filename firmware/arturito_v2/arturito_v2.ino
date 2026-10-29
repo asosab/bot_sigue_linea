@@ -44,8 +44,8 @@
 #define IN4 10  // motor derecho atras (PWM)
 #define SLEEP_DRV 4 // EEP del DRV8833: HIGH = despierto
 #define FAULT_PIN 2 // ULT del DRV8833 (opcional)
-#define BTN 8       // pulsador de largada: a +BAT con serie ~4.7k
-                    // y pull-down 100k a GND (o al pin 5V, da igual)
+#define BTN 8       // pulsador de largada: entre D8 y GND, pull-up
+                    // interno (presionado = LOW). Sin resistencias.
 
 // --- PARAMETROS DE CONTROL ---
 const int VEL_MAX = 180;   // velocidad en recta
@@ -161,7 +161,7 @@ void setup() {
   pinMode(SLEEP_DRV, OUTPUT);
   digitalWrite(SLEEP_DRV, HIGH);
   pinMode(FAULT_PIN, INPUT_PULLUP);
-  pinMode(BTN, INPUT); // pull-down externo
+  pinMode(BTN, INPUT_PULLUP); // presionado = LOW
 
   Serial.begin(9600);
   Serial.println("===== ARTURITO v2 =====");
@@ -175,7 +175,7 @@ void loop() {
   //    bien apoyado (S2 sobre la linea, extremos libres). Si no se
   //    cumple no pasa nada: senal de reacomodar y volver a pulsar.
   if (!arrancado) {
-    if (digitalRead(BTN) == HIGH &&
+    if (digitalRead(BTN) == LOW &&   // pulsador a GND: presionado = LOW
         negrura(2) > N_ON && negrura(0) < N_OFF && negrura(4) < N_OFF) {
       sembrarPista();
       arrancado = true;
