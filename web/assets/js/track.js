@@ -44,10 +44,11 @@
   // La cinta: cadena cerrada de puntos con física Verlet
   // =====================================================================
   var rope = { px: [], py: [], ox: [], oy: [], segLen: [], n: 0, grab: -1 };
-  var BEND_RADIUS = 130;               // radio mínimo de curvatura de la cinta, px
+  var BEND_RADIUS = 100;               // radio mínimo de curvatura de la cinta, px
   var BEND_SPAN = 6;                   // segmentos por lado que revisa el límite
 
   function ropeInit() {
+    if (ropeRestore()) return;         // la figura guardada gana al diseño inicial
     var W = docW, H = docH;
     var m = WALL;
     var L = m, R = W - m;
@@ -105,6 +106,46 @@
       var j = (i + 1) % n;
       rope.segLen[i] = Math.hypot(rope.px[j] - rope.px[i], rope.py[j] - rope.py[i]);
     }
+  }
+
+  // la figura se guarda en localStorage cada vez que se suelta la cinta:
+  // al recargar la página reaparece el diseño que le dejó el usuario
+  var ROPE_KEY = 'arturito-rope';
+
+  function ropeSave() {
+    try {
+      var p = new Array(rope.n);
+      for (var i = 0; i < rope.n; i++) {
+        p[i] = [Math.round(rope.px[i] * 10) / 10,
+                Math.round(rope.py[i] * 10) / 10];
+      }
+      localStorage.setItem(ROPE_KEY,
+        JSON.stringify({ w: docW, h: docH, p: p }));
+    } catch (e) { /* sin storage disponible, la cinta no persiste */ }
+  }
+
+  function ropeRestore() {
+    var saved;
+    try { saved = JSON.parse(localStorage.getItem(ROPE_KEY)); }
+    catch (e) { return false; }
+    if (!saved || !saved.p || saved.p.length < 32 ||
+        !saved.w || !saved.h) return false;
+    // si la ventana cambió de tamaño la figura se escala en proporción
+    // y se recorta a los muros para que no quede nada fuera
+    var sx = docW / saved.w, sy = docH / saved.h;
+    var n = saved.p.length;
+    rope.n = n;
+    rope.px = new Float64Array(n); rope.py = new Float64Array(n);
+    rope.ox = new Float64Array(n); rope.oy = new Float64Array(n);
+    rope.segLen = new Float64Array(n);
+    for (var i = 0; i < n; i++) {
+      var x = Math.min(Math.max(saved.p[i][0] * sx, WALL), docW - WALL);
+      var y = Math.min(Math.max(saved.p[i][1] * sy, WALL), docH - WALL);
+      rope.px[i] = rope.ox[i] = x;
+      rope.py[i] = rope.oy[i] = y;
+    }
+    retarget();
+    return true;
   }
 
   function ropeStep() {
@@ -508,6 +549,7 @@
         rope.ox[i] = rope.px[i];
         rope.oy[i] = rope.py[i];
       }
+      ropeSave();
     }
     rope.grab = -1;
     hitPath.classList.remove('rope-drag');
