@@ -13,7 +13,8 @@ motores al encender) queda como respaldo histórico.
 - Tamaño: 5768 B flash (17 %), 369 B RAM (18 %)
 - `setup`: pines, despierta el DRV8833 (`SLEEP_DRV` = D4 en HIGH, ver
   [[componente-drv8833]]) y Serial a 9600 baudios. Sin prueba de motores
-  ni ventana de calibración: encendido en la mano espera quieto
+  ni ventana de calibración: encendido en la mano espera quieto y larga
+  con el pulsador de D8 una vez apoyado sobre la línea ([[esquema]])
 - `loop`: compuerta de arranque → cruce comprometido → PD sobre posición
   filtrada → recuperación. La estrategia completa está en [[algoritmo]]
 - Calibración adaptativa en marcha con siembra al apoyarlo: [[calibracion]]

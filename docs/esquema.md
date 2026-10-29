@@ -30,6 +30,26 @@ VMOT del driver, masa común).
 | EEP (nSLEEP, HIGH = despierto) | D4 |
 | ULT (nFAULT, opcional) | D2 |
 
+## Pulsador de largada → UNO
+
+Un botón momentáneo aparte del de encendido: al pulsarlo el bot larga la
+carrera si está bien apoyado (ver [[algoritmo]]). Permite verificar antes
+que el LED del módulo S2 esté encendido, es decir, leyendo la línea.
+
+| Tramo | Conexión |
+|---|---|
+| + batería → pulsador → resistencia ~4.7 k | D8 |
+| D8 → resistencia 100 k | GND (pull-down) |
+
+La resistencia en serie protege el pin: con 4×AA (~6 V) el exceso sobre
+VCC drena por el diodo interno a corriente mínima; con una 18650 (~4.2 V)
+sobra margen sobre el umbral de HIGH (~3 V a VCC 5 V). Alternativa igual
+de válida y sin cuenta de voltaje: el pulsador al pin `5V` en vez de
+`+BAT`, con el mismo pull-down. Otra opción sin resistencias: pull-up
+interno (`INPUT_PULLUP`) y pulsador a GND, invirtiendo la lógica
+(presionado = LOW) — quedó descartada para no invertir el cableado
+propuesto.
+
 ## DRV8833 → motores
 
 - OUT1/OUT2 → [[componente-hc02-48|motor izquierdo]]

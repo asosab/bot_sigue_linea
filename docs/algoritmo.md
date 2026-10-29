@@ -11,19 +11,26 @@ ya no es la que corre el robot.
 
 ## Arranque de competencia
 
-El reglamento no permite tocar el robot una vez en pista: se enciende en
-la mano y se apoya sobre la línea a la orden del juez. Por eso no hay
-prueba de motores ni ventana de calibración.
+El reglamento no permite tocar el robot una vez en carrera. El procedimiento
+de salida tiene dos gestos: encenderlo en la mano y largarlo con un pulsador
+ya apoyado en la pista. Por eso no hay prueba de motores ni ventana de
+calibración.
 
 - Al encender queda quieto, con los motores parados.
-- La **compuerta de arranque** dispara cuando S2 ve la línea
-  (`negrura > 0.6`) y los extremos S0 y S4 no la ven (`< 0.4`). S1 y S3
-  son indiferentes: por el grosor de la línea o la pose de salida pueden
-  pisarla o no.
-- En el aire los cinco canales leen parecido, así que S0 y S4 no cumplen
-  el umbral de blanco: no hay arranques falsos por sombras o la mano.
-- Si se apoya descentrado (S2 fuera de la línea) no arranca; la
-  mitigación pendiente sería aceptar también el patrón S1+S3 como disparo.
+- La **largada** exige dos cosas a la vez: el pulsador (D8) presionado y
+  S2 viendo la línea (`negrura > 0.6`) con los extremos S0 y S4 libres
+  (`< 0.4`). S1 y S3 son indiferentes: por el grosor de la línea o la
+  pose de salida pueden pisarla o no.
+- El orden que da el pulsador permite verificar primero el LED del módulo
+  S2 encendido — confirmación visual de que está leyendo la línea antes
+  de largar. Cableado en [[esquema]].
+- Si se apoya mal (S2 fuera de la línea o un extremo pisándola) el botón
+  no hace nada: es la señal de reacomodarlo y volver a pulsar.
+- Mantener el botón apretado mientras se baja el robot también sirve:
+  arranca en cuanto S2 ve la línea.
+- En el aire los cinco canales leen parecido, así que un toque accidental
+  del pulsador sin la línea debajo no arranca nada.
+- Una vez en carrera el pulsador queda inerte.
 
 ## Calibración adaptativa
 

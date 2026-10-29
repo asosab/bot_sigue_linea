@@ -45,7 +45,7 @@
   var calMin = [], calMax = [], lecturas = [0, 0, 0, 0, 0];
   var posF = 0, posPrev = 0;
   var ultimoLado = 0;
-  var perdidaDesde = 0, cruceHasta = 0;
+  var perdidaDesde = 0, cruceHasta = 0, lineaDesde = 0;
   var arrancado = false;
 
   // Cableado real verificado con la prueba de la cinta (2026-10-28):
@@ -364,17 +364,22 @@
   function control(now) {
     leerSensores();
 
-    // compuerta de arranque: quieto hasta apoyarlo sobre la línea
+    // compuerta de arranque: quieto hasta la «largada» — en el firmware
+    // es el pulsador; acá, sostenerlo quieto y centrado sobre la línea
     if (!arrancado) {
       if (negrura(2) > N_ON && negrura(0) < N_OFF && negrura(4) < N_OFF) {
-        sembrarPista();
-        arrancado = true;
-        posF = posPrev = 0;
-        perdidaDesde = 0;
+        if (!lineaDesde) lineaDesde = now;
+        if (now - lineaDesde >= LARGADA_MS) {
+          sembrarPista();
+          arrancado = true;
+          posF = posPrev = 0;
+          perdidaDesde = 0;
+        }
       } else {
-        pwmL = pwmR = 0;
-        return;
+        lineaDesde = 0;
       }
+      pwmL = pwmR = 0;
+      return;
     }
 
     // cruce comprometido: recto sin leer hasta que venza el tramo
@@ -586,6 +591,7 @@
       ultimoLado = 0;
       perdidaDesde = 0;
       cruceHasta = 0;
+      lineaDesde = 0;
       for (var i = 0; i < 5; i++) { calMin[i] = CAL_MIN_INI; calMax[i] = CAL_MAX_INI; }
     }
     else { pwmL = pwmR = 0; }
