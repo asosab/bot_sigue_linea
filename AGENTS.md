@@ -68,6 +68,28 @@ devin plugins install mksglu/context-mode
   `/ctx-stats`, `/ctx-doctor`, `/ctx-index`, `/ctx-search`,
   `/ctx-upgrade`, `/ctx-purge`, `/ctx-insight`.
 
+## Skills de diseño (emilkowalski/skill)
+
+Los 16 skills de https://emilkowal.ski/skill (diseño UI y animación de
+Emil Kowalski) se instalaron con el CLI `skills` de Vercel:
+
+- **Global** (todos los proyectos Devin): copias en
+  `~/.config/devin/skills/` — distinto de los plugins, que son junctions
+  en `%APPDATA%\devin\skills\`. Las dos rutas se cargan.
+- **Proyecto**: copias en `.devin/skills/` + `skills-lock.json`
+  (hashes por skill; `npx skills experimental_install` los restaura en
+  otra máquina).
+- Reinstalar/actualizar: `npx skills add emilkowalski/skill --skill '*' -a devin -g -y --copy`
+  (global) o sin `-g` desde la raíz (proyecto); `npx skills update`
+  sube versiones.
+
+Skills: `emil-design-eng` (filosofía general), `animate`,
+`animate-expo`, `review-animations`, `improve-animations`,
+`find-animation-opportunities`, `remove-animations`,
+`animation-performance`, `animation-vocabulary`, `apple-design`,
+`mobile-native`, `break-ui`, `prototype`, `pick-ui-library`,
+`ask-sonner`, `write-swift`.
+
 ## Documentation vault (Obsidian)
 
 `docs/` es un **vault Obsidian** — la raíz del repo se abre directamente en
