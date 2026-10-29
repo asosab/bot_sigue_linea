@@ -63,7 +63,7 @@
   // =====================================================================
   var rope = { px: [], py: [], ox: [], oy: [], segLen: [], n: 0, grab: -1 };
   var labRope = { px: [], py: [], ox: [], oy: [], segLen: [], n: 0, grab: -1 };
-  var ROPE_KEY = 'arturito-rope';
+  var ROPE_KEY = 'arturito-rope-v2';   // v2: la figura por defecto cambió de lazo a escalera
   var ROPE_LAB_KEY = 'arturito-rope-lab';
   var BEND_RADIUS = 100;               // radio mínimo de curvatura de la cinta, px
   var BEND_SPAN = 6;                   // segmentos por lado que revisa el límite
@@ -79,46 +79,57 @@
     if (ropeRestore(rope, ROPE_KEY, docW, docH)) return;   // la figura guardada gana
     var W = docW, H = docH;
     var m = WALL;
-    var L = m, R = W - m;
+    var L = m, R = W - m, T = m, B = H - m;
 
-    // la cinta rodea el bloque inicial: el borde superior pasa justo
-    // entre el carrito aparcado sobre el hero y el título «Arturito»,
-    // y el inferior queda arriba del título de «El equipo»
+    // el borde superior sigue pasando entre el carrito aparcado sobre
+    // el hero y el título «Arturito»
     var h1 = document.querySelector('.hero h1');
-    var h2 = document.querySelector('#equipo h2');
-    var T = m, B = H - m;
-    if (h1 && h2) {
-      var botBottom = Math.min(120, docH * 0.06) + 44; // borde bajo del carrito aparcado
-      var h1Top = h1.getBoundingClientRect().top + window.scrollY;
-      T = botBottom + (h1Top - botBottom) / 2;
-      B = h2.getBoundingClientRect().top + window.scrollY - 18;
+    if (h1) {
+      var botBottom = Math.min(120, docH * 0.06) + 44;
+      T = botBottom + (h1.getBoundingClientRect().top + window.scrollY - botBottom) / 2;
     }
-    var rad = Math.min(150, (R - L) * 0.35, (B - T) * 0.2);
-    var sw = R - L - 2 * rad, sh = B - T - 2 * rad;
-    var arcLen = Math.PI * rad / 2;
-    var per = 2 * (sw + sh) + 4 * arcLen;
-    var n = Math.max(64, Math.min(180, Math.round(per / 42)));
-    ropeAlloc(rope, n);
 
-    // recorrido horario del perímetro, tramo recto + esquina de 90°,
-    // empezando por el borde superior desde la izquierda
-    var segs = [
-      [sw,     function (t) { return [L + rad + t * sw, T]; }],
-      [arcLen, function (t) { var a = (t - 1) * Math.PI / 2; return [R - rad + rad * Math.cos(a), T + rad + rad * Math.sin(a)]; }],
-      [sh,     function (t) { return [R, T + rad + t * sh]; }],
-      [arcLen, function (t) { var a = t * Math.PI / 2;         return [R - rad + rad * Math.cos(a), B - rad + rad * Math.sin(a)]; }],
-      [sw,     function (t) { return [R - rad - t * sw, B]; }],
-      [arcLen, function (t) { var a = (t + 1) * Math.PI / 2;   return [L + rad + rad * Math.cos(a), B - rad + rad * Math.sin(a)]; }],
-      [sh,     function (t) { return [L, B - rad - t * sh]; }],
-      [arcLen, function (t) { var a = (t + 2) * Math.PI / 2;   return [L + rad + rad * Math.cos(a), T + rad + rad * Math.sin(a)]; }]
-    ];
-    var idx = 0, acc = segs[0][0];
-    for (var i = 0; i < n; i++) {
+    // la figura es una escalera que baja toda la página: cada peldaño
+    // cruza la columna justo en el hueco entre secciones (los divs
+    // .track-anchor), la bajada serpentea entre los dos rieles y la
+    // subida de vuelta cierra por el riel izquierdo
+    var anchors = [];
+    document.querySelectorAll('.track-anchor').forEach(function (a) {
+      var r = a.getBoundingClientRect();
+      anchors.push(r.top + window.scrollY + r.height / 2);
+    });
+    if (!anchors.length) for (var i = 1; i <= 6; i++) anchors.push(T + (B - T) * i / 7);
+
+    var wps = [[L, T], [R, T]];
+    var side = 1;                    // 1 = riel derecho, -1 = izquierdo
+    for (i = 0; i < anchors.length; i++) {
+      wps.push([side > 0 ? R : L, anchors[i]]);
+      wps.push([side > 0 ? L : R, anchors[i]]);
+      side = -side;
+    }
+    // tras el último peldaño bajamos por el riel en que quedamos y
+    // cerramos por el izquierdo: el tramo de cierre solapa los
+    // verticales ya usados y quedan dos rieles con peldaños
+    wps.push([side > 0 ? R : L, B]);
+    wps.push([L, B]);
+    wps.push([L, T]);
+
+    // muestreo uniforme del polígono
+    var segs = [], per = 0;
+    for (i = 0; i < wps.length - 1; i++) {
+      var len = Math.hypot(wps[i + 1][0] - wps[i][0], wps[i + 1][1] - wps[i][1]) || 1;
+      segs.push(len);
+      per += len;
+    }
+    var n = Math.max(96, Math.min(480, Math.round(per / 45)));
+    ropeAlloc(rope, n);
+    var idx = 0, acc = segs[0];
+    for (i = 0; i < n; i++) {
       var s = i * per / n;
-      while (s > acc && idx < segs.length - 1) { idx++; acc += segs[idx][0]; }
-      var p = segs[idx][1]((s - (acc - segs[idx][0])) / segs[idx][0]);
-      rope.px[i] = rope.ox[i] = p[0];
-      rope.py[i] = rope.oy[i] = p[1];
+      while (s > acc && idx < segs.length - 1) { idx++; acc += segs[idx]; }
+      var u = (s - (acc - segs[idx])) / segs[idx];
+      rope.px[i] = rope.ox[i] = wps[idx][0] + (wps[idx + 1][0] - wps[idx][0]) * u;
+      rope.py[i] = rope.oy[i] = wps[idx][1] + (wps[idx + 1][1] - wps[idx][1]) * u;
     }
     retarget(rope);
   }
