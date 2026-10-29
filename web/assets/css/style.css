@@ -340,11 +340,31 @@ li { margin: .4em 0; }
   font-weight: 600;
 }
 
+.podium { align-items: end; }
+
 .podium .card {
+  display: flex;
+  flex-direction: column;
   border-radius: 12px;
   padding: 14px;
   background: rgba(255, 246, 214, .55);
 }
+
+/* el podio en sí: un escalón coloreado a pie de cada tarjeta, con las
+   alturas del podium real (1.º más alto) y las bases alineadas */
+.podium .card::after {
+  content: '';
+  display: block;
+  margin: auto -14px -14px;
+  border-radius: 0 0 9px 9px;
+}
+.podium .p1::after { height: 64px; background: #f4c91f; }
+.podium .p2::after { height: 42px; background: #d9d9d9; }
+.podium .p3::after { height: 26px; background: #d9a86c; }
+
+/* fila de retratos con desnivel editorial en vez de tres cajas iguales */
+#equipo .card:nth-child(2) { transform: translateY(16px); }
+#equipo .card:nth-child(3) { transform: translateY(32px); }
 
 .prize .lugar {
   display: block;
@@ -484,6 +504,7 @@ footer {
 @media (max-width: 560px) {
   .cards { grid-template-columns: 1fr; }
   .card { max-width: 220px; margin: 0 auto; }
+  #equipo .card { transform: none; }
   .podium .card { max-width: 340px; }
   .lab-hint { display: none; }
   .lab-bar { padding: 10px 12px; }

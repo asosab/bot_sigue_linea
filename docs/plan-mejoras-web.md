@@ -71,18 +71,14 @@ Implementado distinto a lo previsto, mejor:
   LED, desplegable) llevan `taste-skill-ignore`. `Cerrar ✕` → `Cerrar`
   (emoji fuera). Lint: **0 FAIL**.
 
-## Fase 4 — Composición de secciones
+## Fase 4 — Composición de secciones ✔ hecha (2026-10-29)
 
-- **Premios → podio real**: en vez de tres tarjetas iguales, tres
-  bloques con alturas de podio (1.º más alto y ancho, 2.º y 3.º a los
-  lados). Es la metáfora del deporte y rompe la fila de tarjetas
-  clónicas. `design-taste-frontend` (card-rows).
-- **Equipo**: misma fila pero sin marcos idénticos — fotos sin borde,
-  captions a la izquierda, tamaños ligeramente distintos entre las
-  tres. O una alternativa más editorial si se prefiere.
-- `diagnostico` queda como texto corrido (es crónica y así funciona);
-  opcionalmente una foto del cableado rompiendo la columna a media
-  sección, si hay material.
+- **Premios → podio real**: orden 2.º | 1.º | 3.º con escalón
+  coloreado a pie de tarjeta (amarillo / gris / cobre) y bases
+  alineadas — la metáfora del podio en vez de tres tarjetas iguales.
+- **Equipo**: retratos con desnivel editorial (`translateY` 16/32 px;
+  desactivado en móvil) en vez de fila simétrica.
+- `diagnostico` queda como texto corrido (crónica, funciona así).
 
 ## Fase 5 — Acción en la primera pantalla
 
