@@ -50,17 +50,18 @@
   function ropeInit() {
     var W = docW, H = docH;
     var m = WALL + 12;
-    var L = m, R = W - m, B = H - m;
+    var L = m, R = W - m;
 
-    // el borde superior llega a media altura del hueco entre el párrafo
-    // del hero y el título de «El equipo»; la forma es un rectángulo de
-    // esquinas redondeadas, no un óvalo puntiagudo
-    var hint = document.querySelector('.hint');
+    // la cinta rodea el bloque inicial: el borde superior pasa justo
+    // debajo de «Arturito», como un subrayado, y el inferior queda
+    // arriba del título de «El equipo»; forma de rectángulo con
+    // esquinas redondeadas
+    var h1 = document.querySelector('.hero h1');
     var h2 = document.querySelector('#equipo h2');
-    var T = m;
-    if (hint && h2) {
-      T = (hint.getBoundingClientRect().bottom +
-           h2.getBoundingClientRect().top) / 2 + window.scrollY;
+    var T = m, B = H - m;
+    if (h1 && h2) {
+      T = h1.getBoundingClientRect().bottom + window.scrollY + 12;
+      B = h2.getBoundingClientRect().top + window.scrollY - 18;
     }
     var rad = Math.min(150, (R - L) * 0.35, (B - T) * 0.2);
     var sw = R - L - 2 * rad, sh = B - T - 2 * rad;
