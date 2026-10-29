@@ -12,6 +12,7 @@ Punto de entrada a la documentación del proyecto. Navegación por enlaces, no p
 - [[esquema]] — cableado completo del circuito
 - [[firmware]] — estructura del sketch, parámetros y versión en curso
 - [[algoritmo]] — estrategia de control (lectura de sensores → consigna de motores)
+- [[manual-programa]] — manual imprimible del firmware para el equipo (PDF en `pdfs/`)
 - [[pista]] — características de la línea y la pista de pruebas
 - [[concurso]] — 1.er Concurso Distrital de Robótica 2026: fechas, reglas y homologación
 - [[premios]] — premios del concurso y la hoja que los actualiza
