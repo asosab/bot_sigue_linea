@@ -12,7 +12,7 @@
 
   var SCALE = 0.35;
   var docW = 0, docH = 0;
-  var WALL = 84;                       // muro invisible: ancho de un carrito
+  var WALL = 30;                       // muro invisible: la cinta llega a 30 px del borde
 
   // --- Mundo activo (página o probador) ---------------------------------
   var pageWorld = null, labWorld = null, world = null;
@@ -49,18 +49,17 @@
 
   function ropeInit() {
     var W = docW, H = docH;
-    var m = WALL + 12;
+    var m = WALL;
     var L = m, R = W - m;
 
-    // la cinta rodea el bloque inicial: el borde superior pasa justo
-    // debajo de «Arturito», como un subrayado, y el inferior queda
-    // arriba del título de «El equipo»; forma de rectángulo con
-    // esquinas redondeadas
-    var h1 = document.querySelector('.hero h1');
+    // la cinta rodea el bloque inicial: el borde superior subraya
+    // «Arturito» sin tapar el párrafo de abajo y el inferior queda
+    // arriba del título de «El equipo»
+    var lede = document.querySelector('.lede');
     var h2 = document.querySelector('#equipo h2');
     var T = m, B = H - m;
-    if (h1 && h2) {
-      T = h1.getBoundingClientRect().bottom + window.scrollY + 12;
+    if (lede && h2) {
+      T = lede.getBoundingClientRect().top + window.scrollY - 11;
       B = h2.getBoundingClientRect().top + window.scrollY - 18;
     }
     var rad = Math.min(150, (R - L) * 0.35, (B - T) * 0.2);
