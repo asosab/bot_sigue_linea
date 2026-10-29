@@ -4,7 +4,7 @@ html { scroll-behavior: smooth; }
 
 body {
   margin: 0;
-  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family: "Bricolage Grotesque", "Segoe UI", system-ui, -apple-system, sans-serif;
   color: #222;
   background: #fff;
   overflow-x: hidden;
@@ -156,7 +156,7 @@ body {
 #menu a {
   color: #333;
   text-decoration: none;
-  font-size: .9rem;
+  font-size: .85rem;
   padding: 6px 10px;
   border-radius: 8px;
   white-space: nowrap;
@@ -256,19 +256,24 @@ section, footer {
   filter: drop-shadow(0 14px 16px rgba(0,0,0,.22));
 }
 
+h1, h2, h3, .lede, figcaption { text-wrap: balance; }
+
 h1 {
-  font-size: 3.2rem;
+  font-size: clamp(3rem, 9vw, 5rem);
   margin: .2em 0 .15em;
-  letter-spacing: .02em;
+  letter-spacing: -0.02em;
+  line-height: 1;
 }
 
 h2 {
-  font-size: 1.6rem;
+  font-size: 1.9rem;
   margin-top: 0;
   border-bottom: 3px solid #f4c91f;
   display: inline-block;
   padding-bottom: 4px;
 }
+
+h3 { font-size: 1.15rem; }
 
 .lede {
   font-size: 1.15rem;
@@ -278,7 +283,7 @@ h2 {
 }
 
 .hint {
-  font-size: .95rem;
+  font-size: .85rem;
   color: #555;
   max-width: 32em;
   margin: 0 auto;
@@ -305,7 +310,7 @@ li { margin: .4em 0; }
   border: 1px solid #e8cf72;
   border-radius: 999px;
   padding: 6px 14px;
-  font-size: .92rem;
+  font-size: .85rem;
 }
 
 .cards {
@@ -317,7 +322,7 @@ li { margin: .4em 0; }
 
 .card {
   margin: 0;
-  text-align: center;
+  text-align: left;
 }
 
 .card img {
@@ -331,7 +336,7 @@ li { margin: .4em 0; }
 .card figcaption {
   margin-top: 8px;
   font-weight: 600;
-  font-size: .95rem;
+  font-size: 1rem;
 }
 
 .card figcaption span {
@@ -355,18 +360,18 @@ li { margin: .4em 0; }
 
 .prize .lugar {
   display: block;
-  font-size: 1.5rem;
+  font-size: 1.9rem;
   font-weight: 700;
 }
 
 .prize p {
   margin: .4em 0 0;
-  font-size: .92rem;
+  font-size: .85rem;
 }
 
 .nota {
   color: #555;
-  font-size: .95rem;
+  font-size: .85rem;
 }
 
 figure.wide img {
@@ -428,7 +433,7 @@ figure.wide img {
 #visorCap {
   margin-top: 10px;
   color: #ddd;
-  font-size: .95rem;
+  font-size: .85rem;
 }
 
 .visor-flecha {
@@ -466,7 +471,7 @@ figure.wide img {
   padding: 8px 16px;
   border-radius: 999px;
   cursor: pointer;
-  font-size: .88rem;
+  font-size: .85rem;
 }
 
 .visor-barra button:hover { background: rgba(255, 255, 255, .25); }
@@ -479,20 +484,19 @@ figure.wide img {
 a { color: #0f7fae; }
 
 footer {
-  text-align: center;
+  text-align: left;
   color: #666;
-  font-size: .9rem;
+  font-size: .85rem;
   margin-bottom: 80px;
 }
 
-.credit { font-size: .82rem; }
+.credit { font-size: .85rem; }
 .credit a { color: #666; }
 
 @media (max-width: 560px) {
   .cards { grid-template-columns: 1fr; }
   .card { max-width: 220px; margin: 0 auto; }
   .podium .card { max-width: 340px; }
-  h1 { font-size: 2.4rem; }
   .lab-hint { display: none; }
   .lab-bar { padding: 10px 12px; }
 }

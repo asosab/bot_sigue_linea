@@ -45,22 +45,17 @@ Implementado distinto a lo previsto, mejor:
   Verificado con Playwright: agarre sobre el hero, links del menú
   intactos, click real enciende el carrito.
 
-## Fase 2 — Tipografía
+## Fase 2 — Tipografía ✔ hecha (2026-10-29)
 
-- Cambiar Segoe UI por una cara con carácter, una sola familia:
-  candidatas Outfit, Bricolage Grotesque o Geist (Google Fonts, un
-  `<link>` con `display=swap`; pesos 400/600/700).
-  `redesign-existing-projects` (font swap = mayor mejora por menor
-  riesgo).
-- Consolidar a cinco tamaños: display `clamp(3rem, 8vw, 5rem)` con
-  tracking −0.02em para el h1; h2 ~1.9–2.1rem; lede 1.15rem; cuerpo
-  16–17px (leading 1.55–1.6, medida ≤70 caracteres); un tamaño chico
-  (0.85rem) para notas y pies. Fuera los intermedios sueltos.
-  `design-taste-frontend` (leyes de tipo: contraste ≥3×, ≤5 tamaños).
-- `text-wrap: balance` en h1–h3 y captions para cortar palabras
-  huérfanas. `redesign-existing-projects`.
-- Solo el hero centrado; captions de tarjetas, premios y footer van a
-  la izquierda. `design-taste-frontend` (centro: un momento).
+- Bricolage Grotesque (variable, Google Fonts `display=swap`), una
+  sola familia en todo el sitio; el inspector mide 100 %.
+- Seis tamaños reales: 80 / 30 / 18 / 16 / 14 / 13 px — display
+  `clamp(3rem, 9vw, 5rem)` con tracking −0.02em para el h1 (antes
+  51px/3.6vw); h2 y `.lugar` a 1.9rem; h3 y lede a 1.15rem; cuerpo
+  16px; todo lo secundario consolidado en .85rem.
+- `text-wrap: balance` en h1–h3, lede y captions.
+- Solo el hero centrado; captions, premios y footer a la izquierda.
+- Override móvil del h1 eliminado: el clamp lo resuelve solo.
 
 ## Fase 3 — Color y acento
 
