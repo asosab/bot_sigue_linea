@@ -241,9 +241,33 @@
 
   <section id="descargas">
     <h2>Descargas</h2>
-    <p>El esquema de conexión de las partes y las dos versiones del código
-    que corre en el Arduino, juntas en un PDF para imprimir o tener a mano
-    el día del concurso: <a href="assets/pdf/arturito-esquema-y-codigo.pdf">arturito-esquema-y-codigo.pdf</a>.</p>
+    <p>El esquema de conexión y el código que corre hoy en el Arduino,
+    juntos en un PDF para imprimir o tener a mano el día del concurso:
+    <a href="assets/pdf/arturito-esquema-y-codigo.pdf">arturito-esquema-y-codigo.pdf</a>.</p>
+
+    <h3>Por qué hay una versión 2</h3>
+    <p>La primera versión decidía todo con una tabla de casos: según qué
+    sensores veían la línea, el robot elegía una orden fija, y entre un
+    caso y el siguiente el movimiento salía a tirones. Andaba, pero iba
+    brusco, siempre a la misma velocidad y con el umbral de lectura fijo
+    en el código. Reescribimos el control y esto fue lo que mejoró:</p>
+    <ul>
+      <li>La lectura dejó de ser blanco o negro por sensor y pasó a un
+      número continuo: la posición de la línea bajo el robot. El giro es
+      proporcional a esa posición, con un término derivativo que corta el
+      zigzag.</li>
+      <li>La velocidad se adapta sola: a fondo en las rectas, más baja en
+      las curvas. En una carrera a contrarreloj es tiempo gratis.</li>
+      <li>Se calibra al encender, sin tocar el código: hay cuatro segundos
+      para pasar la línea por debajo y toma sus propios valores de blanco
+      y negro.</li>
+      <li>Si pierde la línea busca hacia el último lado donde la vio y, si
+      no la encuentra, retrocede despacio hasta recuperarla.</li>
+      <li>Trae un ajuste fino por motor (TRIM) para corregir la deriva en
+      recta, porque ningún par de motores gira exactamente igual.</li>
+    </ul>
+    <p>La primera versión queda de respaldo y también se baja:
+    <a href="assets/pdf/arturito-codigo-v1.pdf">arturito-codigo-v1.pdf</a>.</p>
   </section>
 
   <div class="track-anchor" id="t5b"></div>
