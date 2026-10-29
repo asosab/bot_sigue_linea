@@ -826,6 +826,7 @@
   }
 
   document.getElementById('openLab').addEventListener('click', openLab);
+  document.getElementById('heroLab').addEventListener('click', openLab);
   document.getElementById('closeLab').addEventListener('click', closeLab);
   window.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && inLab) closeLab();

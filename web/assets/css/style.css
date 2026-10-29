@@ -280,6 +280,19 @@ h3 { font-size: 1.15rem; }
   margin: 0 auto;
 }
 
+/* la acción del hero: misma pill negra que «Testear código» pero grande */
+.cta {
+  display: inline-block;
+  margin-top: 20px;
+  border: 0;
+  background: #141414;
+  color: #fff;
+  font-size: 1rem;
+  padding: 12px 26px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
 .track-anchor { height: 70px; }
 
 p, li { line-height: 1.65; }

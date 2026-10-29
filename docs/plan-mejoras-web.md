@@ -80,15 +80,12 @@ Implementado distinto a lo previsto, mejor:
   desactivado en móvil) en vez de fila simétrica.
 - `diagnostico` queda como texto corrido (crónica, funciona así).
 
-## Fase 5 — Acción en la primera pantalla
+## Fase 5 — Acción en la primera pantalla ✔ hecha (2026-10-29)
 
-- Botón real en el hero: «Probar el simulador», pill negro como
-  `#openLab`, abre el lab. Aparece también dentro del primer cuadro del
-  teléfono. `inspect.mjs` (first-action), `design-taste-frontend`
-  (acción primaria real en el primer screen).
-- En móvil, valorar una fila de enlaces con scroll horizontal en vez de
-  hamburguesa, o mantener el menú y que el botón del hero cargue la
-  acción. `mobile-native` + render a 390 px.
+- Botón `«Probar el simulador»` (`.cta`, pill negra grande) en el hero;
+  abre el lab igual que «Testear código» del menú.
+- WARN `first-action` @390px limpio. Se conserva el menú hamburguesa:
+  la acción ya está en el primer cuadro.
 
 ## Fase 6 — Capa de movimiento
 
