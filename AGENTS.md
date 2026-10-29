@@ -90,6 +90,28 @@ Skills: `emil-design-eng` (filosofía general), `animate`,
 `mobile-native`, `break-ui`, `prototype`, `pick-ui-library`,
 `ask-sonner`, `write-swift`.
 
+## Skills de frontend (Leonxlnx/taste-skill)
+
+Los 13 skills de https://www.tasteskill.dev/ (frontend anti-genérico)
+se instalaron con el mismo CLI, en los mismos dos scopes. Ojo: la
+colección completa vive en la rama `taste-skill-v1.9`; `main` solo
+tiene el default v2. Reinstalar:
+
+```
+npx skills add "https://github.com/Leonxlnx/taste-skill/tree/taste-skill-v1.9" --skill '*' -a devin -g -y --copy --full-depth
+npx skills add Leonxlnx/taste-skill -a devin -g -y --copy   # refresca design-taste-frontend a v2
+```
+
+Nombres internos (difieren de los de la web): `design-taste-frontend`
+(default v2), `design-taste-frontend-v1`, `gpt-taste`,
+`redesign-existing-projects`, `image-to-code`, `full-output-enforcement`,
+`high-end-visual-design` (soft), `minimalist-ui`,
+`industrial-brutalist-ui` (brutalist), `stitch-design-taste`,
+`imagegen-frontend-web`, `imagegen-frontend-mobile`, `brandkit`.
+Los tres de imagegen generan imágenes de referencia: piden una
+herramienta de generación que Devin no trae; sirven igual para pedir
+art direction que luego se pasa a otra tool.
+
 ## Documentation vault (Obsidian)
 
 `docs/` es un **vault Obsidian** — la raíz del repo se abre directamente en
