@@ -3,14 +3,23 @@
  * ROBOT: ARTURITO v2 - SEGUIDOR DE LINEA CON CONTROL CONTINUO
  * CONCURSO: 1er Concurso Distrital de Robotica 2026 (Santa Cruz)
  * ==========================================================
- * Diferencias con v1:
+ * Arranque de competencia: se enciende en la mano, con motores
+ * parados, y arranca solo al apoyarlo sobre la linea (S2 ve
+ * negro y los extremos S0/S4 no). Sin prueba de motores ni
+ * ventana de calibracion: el reglamento no permite tocarlo
+ * una vez en el suelo.
+ *
  * - Posicion continua (media ponderada de los 5 canales
- *   analogicos) en vez de tabla de casos binaria.
+ *   analogicos) filtrada con EMA: corta el bamboleo.
  * - Velocidad adaptativa: a fondo en rectas, baja en curvas.
- * - Autocalibracion al encender: 4 s para pasar la linea por
- *   los sensores; si no se calibra usa valores por defecto.
- * - Recuperacion: gira hacia el ultimo lado que vio la linea y,
- *   si no la encuentra, rebobina (retrocede buscando el punto).
+ * - Calibracion adaptativa: parte de valores de laboratorio y
+ *   se ajusta sola en marcha; al apoyarlo, la posicion de
+ *   salida siembra el blanco y el negro reales de la pista.
+ * - Interseccion: al ver todo negro avanza recto un tramo
+ *   fijo sin leer, para no tomar un ramal por una lectura a
+ *   medio cruce.
+ * - Recuperacion: gira hacia el ultimo lado que vio la linea
+ *   y, si no la encuentra, rebobina (retrocede buscando).
  * - Trim de motores: TRIM_IZQ/TRIM_DER corrigen la deriva en
  *   recta (medir en el piso y ajustar a mano).
  *
@@ -34,56 +43,69 @@
 #define FAULT_PIN 2 // ULT del DRV8833 (opcional)
 
 // --- PARAMETROS DE CONTROL ---
-const int VEL_MAX = 200;   // velocidad en recta
-const int VEL_MIN = 80;    // velocidad en curva cerrada
-const float KP = 55.0;     // giro proporcional por unidad de posicion
-const float KD = 18.0;     // amortigua el zigzag (derivada de la posicion)
-const float KS = 60.0;     // cuanto baja la velocidad con el error
+const int VEL_MAX = 180;   // velocidad en recta
+const int VEL_MIN = 70;    // velocidad en curva cerrada
+const float KP = 40.0;     // giro proporcional por unidad de posicion
+const float KD = 25.0;     // amortigua el zigzag (derivada de posF)
+const float KS = 70.0;     // cuanto baja la velocidad con el error
+const float ALPHA = 0.4;   // filtro EMA de la posicion (0..1)
+const int REV_MAX = 60;    // reversa maxima corrigiendo (anti-pivoteo)
 
 // Trim de motores (1.0 = igual). Si tira a la derecha, bajar TRIM_IZQ
 // o subir TRIM_DER. Se ajusta a mano tras la prueba de recta.
 const float TRIM_IZQ = 1.0;
 const float TRIM_DER = 1.0;
 
+// Compuerta de arranque (umbrales sobre negrura 0..1)
+const float N_ON = 0.6;    // S2 tiene que ver negro firme
+const float N_OFF = 0.4;   // S0 y S4 tienen que ver blanco
+
+// Interseccion: avance recto comprometido al ver todo negro
+const int VEL_CRUCE = 140;
+const unsigned long AVANCE_CRUCE_MS = 200;
+
 // Recuperacion de linea perdida
 const unsigned long GIRO_BUSQUEDA_MS = 1500; // tiempo girando antes de rebobinar
 const int VEL_BUSQUEDA = 130;
 const int VEL_REBOBINADO = 90;
 
-// Calibracion por defecto si la ventana no capto negro
-const int CAL_MIN_DEF = 30;
-const int CAL_MAX_DEF = 930;
-const unsigned long CAL_MS = 4000;
+// Calibracion inicial de laboratorio (por canal; medir y rellenar).
+// En cinta negra sobre papel blanco: blanco ~26-30, negro ~850-960.
+int calMin[5] = {30, 30, 30, 30, 30};
+int calMax[5] = {930, 930, 930, 930, 930};
 
 // Posicion lateral de cada canal en la flecha: -2 izq .. +2 der
 const float PESO[5] = {-2.0, -1.0, 0.0, 1.0, 2.0};
 const int CANALES[5] = {S0, S1, S2, S3, S4};
 
-int calMin[5];
-int calMax[5];
-
+int lecturas[5];
+float posF = 0;
 float posPrev = 0;
-int ultimoLado = 0;           // -1 izquierda, +1 derecha
+int ultimoLado = 0;                 // -1 izquierda, +1 derecha
 unsigned long perdidaDesde = 0;
+unsigned long cruceHasta = 0;
+bool arrancado = false;
 
 // --- MOTORES (velocidad con signo: + adelante, - atras) ---
 void motorIzq(int vel) {
+  vel = constrain(vel, -255, 255);
   if (vel >= 0) {
-    analogWrite(IN1, min(vel, 255));
+    analogWrite(IN1, vel);
     digitalWrite(IN2, LOW);
   } else {
     digitalWrite(IN1, LOW);
-    analogWrite(IN2, min(-vel, 255));
+    analogWrite(IN2, -vel);
   }
 }
 
 void motorDer(int vel) {
+  vel = constrain(vel, -255, 255);
   if (vel >= 0) {
-    analogWrite(IN3, min(vel, 255));
+    analogWrite(IN3, vel);
     digitalWrite(IN4, LOW);
   } else {
     digitalWrite(IN3, LOW);
-    analogWrite(IN4, min(-vel, 255));
+    analogWrite(IN4, -vel);
   }
 }
 
@@ -91,41 +113,36 @@ void detener() {
   motorIzq(0); motorDer(0);
 }
 
-// --- CALIBRACION ---
-void calibrar() {
-  Serial.println("CALIBRACION: pasa la linea por debajo de los");
-  Serial.println("sensores durante 4 s (blanco y negro).");
-  for (int i = 0; i < 5; i++) { calMin[i] = 1023; calMax[i] = 0; }
-
-  unsigned long t0 = millis();
-  while (millis() - t0 < CAL_MS) {
-    for (int i = 0; i < 5; i++) {
-      int v = analogRead(CANALES[i]);
-      if (v < calMin[i]) calMin[i] = v;
-      if (v > calMax[i]) calMax[i] = v;
-    }
-    delay(10);
-  }
-
-  // Si algun canal no vio contraste, usar valores por defecto
+// --- SENSORES Y CALIBRACION ADAPTATIVA ---
+// Lee los 5 canales y expande calMin/calMax con cada extremo nuevo.
+void leerSensores() {
   for (int i = 0; i < 5; i++) {
-    if (calMax[i] - calMin[i] < 150) {
-      calMin[i] = CAL_MIN_DEF;
-      calMax[i] = CAL_MAX_DEF;
-    }
-    Serial.print("S"); Serial.print(i);
-    Serial.print(": "); Serial.print(calMin[i]);
-    Serial.print("-"); Serial.println(calMax[i]);
+    int v = analogRead(CANALES[i]);
+    lecturas[i] = v;
+    if (v < calMin[i]) calMin[i] = v;
+    if (v > calMax[i]) calMax[i] = v;
   }
 }
 
 // Negrura de un canal normalizada 0..1 segun su calibracion
 float negrura(int i) {
-  int v = analogRead(CANALES[i]);
-  float n = (float)(v - calMin[i]) / (float)(calMax[i] - calMin[i]);
+  float n = (float)(lecturas[i] - calMin[i]) / (float)(calMax[i] - calMin[i]);
   if (n < 0) n = 0;
   if (n > 1) n = 1;
   return n;
+}
+
+// Al apoyarlo sobre la linea, la posicion de salida siembra la
+// pista real: canal sobre negro -> su calMax, sobre blanco -> calMin
+void sembrarPista() {
+  for (int i = 0; i < 5; i++) {
+    int medio = (calMin[i] + calMax[i]) / 2;
+    if (lecturas[i] > medio) calMax[i] = lecturas[i];
+    else calMin[i] = lecturas[i];
+    Serial.print("S"); Serial.print(i);
+    Serial.print(": "); Serial.print(calMin[i]);
+    Serial.print("-"); Serial.println(calMax[i]);
+  }
 }
 
 void setup() {
@@ -142,19 +159,37 @@ void setup() {
 
   Serial.begin(9600);
   Serial.println("===== ARTURITO v2 =====");
-  calibrar();
-
-  // Prueba de motores igual que v1: adelante, pausa, atras
-  Serial.println("Prueba de motores...");
-  motorIzq(150); motorDer(150); delay(800);
-  detener(); delay(300);
-  motorIzq(-150); motorDer(-150); delay(800);
-  detener(); delay(500);
-  Serial.println("A seguir la linea.");
+  Serial.println("Motores parados: esperando la linea de salida.");
 }
 
 void loop() {
-  // 1. Lectura ponderada
+  leerSensores();
+
+  // 1. Compuerta de arranque: quieto hasta apoyarlo sobre la linea
+  if (!arrancado) {
+    if (negrura(2) > N_ON && negrura(0) < N_OFF && negrura(4) < N_OFF) {
+      sembrarPista();
+      arrancado = true;
+      posF = posPrev = 0;
+      Serial.println("LINEA VISTA: arrancando.");
+    } else {
+      detener();
+      delay(5);
+      return;
+    }
+  }
+
+  // 2. Cruce comprometido: recto sin leer hasta que venza el tramo
+  if (cruceHasta) {
+    if (millis() < cruceHasta) {
+      motorIzq(VEL_CRUCE); motorDer(VEL_CRUCE);
+      delay(5);
+      return;
+    }
+    cruceHasta = 0;
+  }
+
+  // 3. Lectura ponderada
   float suma = 0, sumaP = 0;
   bool todoNegro = true;
   for (int i = 0; i < 5; i++) {
@@ -164,38 +199,42 @@ void loop() {
     if (n < 0.7) todoNegro = false;
   }
 
-  // 2. Cruce o bifurcacion: todos negros -> seguir recto a fondo
+  // 4. Cruce o bifurcacion: armar el avance recto temporizado.
+  //    ultimoLado se conserva: si era una esquina cerrada y no un
+  //    cruce, la recuperacion sigue buscando al lado correcto.
   if (todoNegro) {
-    motorIzq(VEL_MAX); motorDer(VEL_MAX);
-    ultimoLado = 0;
+    cruceHasta = millis() + AVANCE_CRUCE_MS;
+    posF = posPrev = 0;
     perdidaDesde = 0;
+    motorIzq(VEL_CRUCE); motorDer(VEL_CRUCE);
     delay(5);
     return;
   }
 
-  // 3. Linea a la vista: control proporcional-derivativo
+  // 5. Linea a la vista: PD sobre la posicion filtrada
   if (suma > 0.3) {
-    float pos = sumaP / suma;               // -2 (izq) .. +2 (der)
-    float deriv = pos - posPrev;
-    posPrev = pos;
+    float pos = sumaP / suma;            // -2 (izq) .. +2 (der)
+    posF += ALPHA * (pos - posF);        // EMA: corta los saltos
+    float deriv = posF - posPrev;
+    posPrev = posF;
 
-    if (pos > 0.5) ultimoLado = 1;
-    else if (pos < -0.5) ultimoLado = -1;
+    if (posF > 0.5) ultimoLado = 1;
+    else if (posF < -0.5) ultimoLado = -1;
     perdidaDesde = 0;
 
-    int base = (int)(VEL_MAX - KS * abs(pos));
+    int base = (int)(VEL_MAX - KS * abs(posF));
     if (base < VEL_MIN) base = VEL_MIN;
 
-    float corr = KP * pos + KD * deriv;
-    int velIzq = (int)((base + corr) * TRIM_IZQ);
-    int velDer = (int)((base - corr) * TRIM_DER);
+    float corr = KP * posF + KD * deriv;
+    int velIzq = constrain((int)((base + corr) * TRIM_IZQ), -REV_MAX, 255);
+    int velDer = constrain((int)((base - corr) * TRIM_DER), -REV_MAX, 255);
     motorIzq(velIzq);
     motorDer(velDer);
     delay(5);
     return;
   }
 
-  // 4. Linea perdida: buscar hacia el ultimo lado visto
+  // 6. Linea perdida: buscar hacia el ultimo lado visto
   if (perdidaDesde == 0) perdidaDesde = millis();
   unsigned long perdidaMs = millis() - perdidaDesde;
 

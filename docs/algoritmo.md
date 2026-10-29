@@ -5,26 +5,87 @@ created: 2026-10-28
 ---
 # Algoritmo de seguimiento
 
-Máquina de casos sobre las 5 lecturas binarias (`lectura > UMBRAL = negro`).
-No es PID: corrige por escalones según qué sensor pisa la línea.
+Versión en curso: `firmware/arturito_v2/arturito_v2.ino`. La v1 (tabla de
+casos sobre lecturas binarias) queda en `firmware/arturito/` como respaldo;
+ya no es la que corre el robot.
 
-| Caso | Condición | Acción |
+## Arranque de competencia
+
+El reglamento no permite tocar el robot una vez en pista: se enciende en
+la mano y se apoya sobre la línea a la orden del juez. Por eso no hay
+prueba de motores ni ventana de calibración.
+
+- Al encender queda quieto, con los motores parados.
+- La **compuerta de arranque** dispara cuando S2 ve la línea
+  (`negrura > 0.6`) y los extremos S0 y S4 no la ven (`< 0.4`). S1 y S3
+  son indiferentes: por el grosor de la línea o la pose de salida pueden
+  pisarla o no.
+- En el aire los cinco canales leen parecido, así que S0 y S4 no cumplen
+  el umbral de blanco: no hay arranques falsos por sombras o la mano.
+- Si se apoya descentrado (S2 fuera de la línea) no arranca; la
+  mitigación pendiente sería aceptar también el patrón S1+S3 como disparo.
+
+## Calibración adaptativa
+
+`calMin[5]`/`calMax[5]` arrancan con los valores de laboratorio y se
+ajustan solos. Detalle en [[calibracion]].
+
+- Cada lectura expande el rango del canal con el extremo nuevo.
+- Al dispararse la compuerta, la posición de salida siembra la pista
+  real: el canal sobre negro guarda su lectura como `calMax` y el que
+  está sobre blanco como `calMin`.
+
+## Control: posición filtrada + PD
+
+Cada canal se normaliza a negrura 0..1 y la posición es la media
+ponderada con pesos -2..+2 (S0..S4). La posición cruda salta en escalones
+al pasar de un sensor al siguiente, así que el control trabaja sobre
+`posF`, un filtro EMA (`ALPHA = 0.4`), y la derivada se calcula sobre la
+filtrada — eso corta el golpe que daba el salto discreto.
+
+```
+base = VEL_MAX - KS·|posF|        (mínimo VEL_MIN)
+corr = KP·posF + KD·(posF - posPrev)
+rueda = constrain(base ± corr, -REV_MAX, 255)
+```
+
+La reversa al corregir está limitada a `REV_MAX` (60): una rueda puede
+morder sin que el robot pivote violento. La recuperación sí pivotea a
+fondo, que es donde hace falta.
+
+## Intersección comprometida
+
+Cuando los cinco canales ven negro (cruce o bifurcación) el robot arma un
+avance recto temporizado: `AVANCE_CRUCE_MS` (200 ms) a `VEL_CRUCE` sin
+leer sensores. Entrar bamboleado a un cruce dejaba lecturas a medio
+camino que podían mandarlo a un ramal; el tramo comprometido lo atraviesa
+con rumbo firme.
+
+`ultimoLado` se conserva al entrar al cruce: si el «todo negro» era una
+esquina cerrada y no una intersección, la recuperación busca hacia el
+lado correcto.
+
+## Línea perdida
+
+Sin línea (`suma < 0.3`): pivotea hacia `ultimoLado` a `VEL_BUSQUEDA`
+durante `GIRO_BUSQUEDA_MS` (1.5 s); si no reaparece, rebobina retrocediendo
+despacio a `VEL_REBOBINADO` todavía girando al mismo lado.
+
+## Parámetros
+
+| Constante | Valor | Qué regula |
 |---|---|---|
-| Centrado | solo S2 | recto rápido |
-| Desvío leve izq. | S3 (o S2+S3) | rápido izq., lento der. |
-| Desvío leve der. | S1 (o S2+S1) | lento izq., rápido der. |
-| Curva cerrada izq. | S4 (o S3+S4) | gira a la derecha |
-| Curva cerrada der. | S0 (o S0+S1) | gira a la izquierda |
-| Borde suelo | solo S0 o solo S4 | giro cerrado al lado que tocó |
-| Cruce | los 5 en negro | recto rápido |
-| Línea perdida | todos en blanco | repite `ultimoGiro`; si iba recto, se para |
+| VEL_MAX / VEL_MIN | 180 / 70 | velocidad en recta y techo de curva |
+| KP / KD | 40 / 25 | corrección proporcional y amortiguación |
+| KS | 70 | cuánto baja la velocidad con el error |
+| ALPHA | 0.4 | filtro EMA de la posición |
+| REV_MAX | 60 | reversa máxima corrigiendo |
+| N_ON / N_OFF | 0.6 / 0.4 | compuerta de arranque |
+| VEL_CRUCE / AVANCE_CRUCE_MS | 140 / 200 ms | tramo ciego en intersección |
+| VEL_BUSQUEDA / GIRO_BUSQUEDA_MS | 130 / 1.5 s | pivote de recuperación |
+| VEL_REBOBINADO | 90 | retroceso si no reaparece la línea |
+| TRIM_IZQ / TRIM_DER | 1.0 / 1.0 | deriva en recta, ajuste a mano |
 
-Ojo: en el código los casos 2–3 dicen «desviado a la izquierda» pero el
-giro aplicado corrige hacia el lado que ve la línea — conviene revisar el
-comentario contra el comportamiento real en pista.
-
-`ultimoGiro` (0/1/2) es la única memoria: al perder la línea el robot
-busca hacia el último lado donde la vio.
-
-Mejoras posibles pendientes: interpolación por peso de sensores o PID si
-la tabla de casos oscila en curvas rápidas.
+El simulador del sitio (`web/assets/js/track.js`) porta este mismo
+algoritmo: encendido con compuerta, calibración en marcha, PD filtrado y
+cruce comprometido.

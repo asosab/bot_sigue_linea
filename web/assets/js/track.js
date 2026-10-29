@@ -1,4 +1,4 @@
-/* Arturito — simulador del firmware real (firmware/arturito/arturito.ino).
+/* Arturito — simulador del firmware real (firmware/arturito_v2/arturito_v2.ino).
    La pista es una cinta cerrada dibujada como cadena Verlet: se puede
    agarrar y deformar con el dedo o el mouse, y el carrito la sigue leyendo
    sus 5 sensores sobre la geometría real de la cadena. El probador (lab)
@@ -19,16 +19,31 @@
 
   // --- Robot -------------------------------------------------------------
   var VMAX = 115, K = VMAX / 255;
-  var VEL_RAPIDA = 180, VEL_MEDIA = 150, VEL_LENTA = 120;
   var WHEEL_BASE = 60;
   var LINE_HALF = 7.2;                 // 14.4 px de línea ≈ 1.6 cm
+  var SPOT = 4;                        // margen de lectura del sensor, px
+
+  // parámetros del firmware (firmware/arturito_v2/arturito_v2.ino)
+  var VEL_MAX = 180, VEL_MIN = 70;
+  var KP = 40, KD = 25, KS = 70, ALPHA = 0.4, REV_MAX = 60;
+  var TRIM_IZQ = 1.0, TRIM_DER = 1.0;
+  var N_ON = 0.6, N_OFF = 0.4;
+  var VEL_CRUCE = 140, AVANCE_CRUCE_MS = 200;
+  var GIRO_BUSQUEDA_MS = 1500, VEL_BUSQUEDA = 130, VEL_REBOBINADO = 90;
+  var PESO = [-2, -1, 0, 1, 2];
+  var CAL_MIN_INI = 0.03, CAL_MAX_INI = 0.93;
 
   var bot_ = { x: 0, y: 0, th: 0 };
   var botScale = 1;
   var pwmL = 0, pwmR = 0;
   var running = false;
-  var ultimoGiro = 0;
-  var bootPhase = -1, bootT = 0;
+
+  // estado del control (espejo de las variables del .ino)
+  var calMin = [], calMax = [], lecturas = [0, 0, 0, 0, 0];
+  var posF = 0, posPrev = 0;
+  var ultimoLado = 0;
+  var perdidaDesde = 0, cruceHasta = 0;
+  var arrancado = false;
 
   // Cableado real verificado con la prueba de la cinta (2026-10-28):
   // vistos desde arriba, de izquierda a derecha van S0, S1, S2, S3, S4.
@@ -302,51 +317,117 @@
     return { x: bot_.x - lx * s - ly * c, y: bot_.y + lx * c - ly * s };
   }
 
-  function darkAt(wx, wy) {
-    if (!world) return false;
+  // oscuridad continua 0..1: 1 dentro de la línea y cae a 0 en SPOT px;
+  // el spot imita la lectura gradual del TCRT5000 al borde de la cinta
+  function oscuridad(wx, wy) {
+    if (!world) return 0;
     // los sensores solo ven la cinta; texto, fotos y el lab-bar son blanco
-    return distToRope(world.rope, wx, wy) < LINE_HALF + 3;
+    var d = distToRope(world.rope, wx, wy) - LINE_HALF;
+    if (d <= 0) return 1;
+    if (d >= SPOT) return 0;
+    return 1 - d / SPOT;
   }
 
   // =====================================================================
-  // Control: traducción directa de la tabla de casos del .ino
+  // Control: traducción directa del algoritmo del .ino
   // =====================================================================
-  function readSensors() {
-    var v = [];
+  function negrura(i) {
+    var n = (lecturas[i] - calMin[i]) / (calMax[i] - calMin[i]);
+    return n < 0 ? 0 : (n > 1 ? 1 : n);
+  }
+
+  // lee los 5 canales y expande calMin/calMax con cada extremo nuevo
+  function leerSensores() {
     for (var i = 0; i < 5; i++) {
       var w = toWorld(SENS[i].x, SENS[i].y);
-      v[i] = darkAt(w.x, w.y);
-      senDots[i].classList.toggle('hit', v[i]);
+      var v = oscuridad(w.x, w.y);
+      lecturas[i] = v;
+      if (v < calMin[i]) calMin[i] = v;
+      if (v > calMax[i]) calMax[i] = v;
+      senDots[i].classList.toggle('hit', v > 0.5);
     }
-    return v;
   }
 
-  function control() {
-    var s = readSensors();
-    var v0 = s[0], v1 = s[1], v2 = s[2], v3 = s[3], v4 = s[4];
-
-    if (v2 && !v0 && !v1 && !v3 && !v4)      { pwmL = VEL_RAPIDA; pwmR = VEL_RAPIDA; ultimoGiro = 0; }
-    else if (v3 || (v2 && v3))               { pwmL = VEL_RAPIDA; pwmR = VEL_LENTA;  ultimoGiro = 2; }
-    else if (v1 || (v2 && v1))               { pwmL = VEL_LENTA;  pwmR = VEL_RAPIDA; ultimoGiro = 1; }
-    else if (v4 || (v3 && v4))               { pwmL = VEL_RAPIDA; pwmR = 0;          ultimoGiro = 2; }
-    else if (v0 || (v0 && v1))               { pwmL = 0;          pwmR = VEL_RAPIDA; ultimoGiro = 1; }
-    else if (v0 && !v1 && !v2)               { pwmL = 0;          pwmR = VEL_RAPIDA; ultimoGiro = 1; }
-    else if (v4 && !v3 && !v2)               { pwmL = VEL_RAPIDA; pwmR = 0;          ultimoGiro = 2; }
-    else if (v0 && v1 && v2 && v3 && v4)     { pwmL = VEL_RAPIDA; pwmR = VEL_RAPIDA; }
-    else if (!v0 && !v1 && !v2 && !v3 && !v4) {
-      if (ultimoGiro === 1)      { pwmL = 0;          pwmR = VEL_RAPIDA; }
-      else if (ultimoGiro === 2) { pwmL = VEL_RAPIDA; pwmR = 0;          }
-      else                       { pwmL = 0;          pwmR = 0;          }
+  // al apoyarlo sobre la línea, la posición de salida siembra la pista:
+  // canal sobre negro → su calMax, sobre blanco → su calMin
+  function sembrarPista() {
+    for (var i = 0; i < 5; i++) {
+      var medio = (calMin[i] + calMax[i]) / 2;
+      if (lecturas[i] > medio) calMax[i] = lecturas[i];
+      else calMin[i] = lecturas[i];
     }
-    else { pwmL = VEL_MEDIA; pwmR = VEL_MEDIA; }
   }
 
-  var BOOT = [
-    { t: 800, l: VEL_MEDIA, r: VEL_MEDIA },
-    { t: 300, l: 0, r: 0 },
-    { t: 800, l: -VEL_MEDIA, r: -VEL_MEDIA },
-    { t: 500, l: 0, r: 0 }
-  ];
+  function control(now) {
+    leerSensores();
+
+    // compuerta de arranque: quieto hasta apoyarlo sobre la línea
+    if (!arrancado) {
+      if (negrura(2) > N_ON && negrura(0) < N_OFF && negrura(4) < N_OFF) {
+        sembrarPista();
+        arrancado = true;
+        posF = posPrev = 0;
+        perdidaDesde = 0;
+      } else {
+        pwmL = pwmR = 0;
+        return;
+      }
+    }
+
+    // cruce comprometido: recto sin leer hasta que venza el tramo
+    if (cruceHasta) {
+      if (now < cruceHasta) { pwmL = pwmR = VEL_CRUCE; return; }
+      cruceHasta = 0;
+    }
+
+    var suma = 0, sumaP = 0, todoNegro = true;
+    for (var i = 0; i < 5; i++) {
+      var n = negrura(i);
+      suma += n;
+      sumaP += PESO[i] * n;
+      if (n < 0.7) todoNegro = false;
+    }
+
+    // cruce o bifurcación: armar el avance recto temporizado; ultimoLado
+    // se conserva por si era una esquina cerrada y no un cruce
+    if (todoNegro) {
+      cruceHasta = now + AVANCE_CRUCE_MS;
+      posF = posPrev = 0;
+      perdidaDesde = 0;
+      pwmL = pwmR = VEL_CRUCE;
+      return;
+    }
+
+    // línea a la vista: PD sobre la posición filtrada
+    if (suma > 0.3) {
+      var pos = sumaP / suma;
+      posF += ALPHA * (pos - posF);        // EMA: corta los saltos
+      var deriv = posF - posPrev;
+      posPrev = posF;
+
+      if (posF > 0.5) ultimoLado = 1;
+      else if (posF < -0.5) ultimoLado = -1;
+      perdidaDesde = 0;
+
+      var base = Math.max(VEL_MIN, VEL_MAX - KS * Math.abs(posF));
+      var corr = KP * posF + KD * deriv;
+      pwmL = Math.max(-REV_MAX, Math.min(255, (base + corr) * TRIM_IZQ));
+      pwmR = Math.max(-REV_MAX, Math.min(255, (base - corr) * TRIM_DER));
+      return;
+    }
+
+    // línea perdida: buscar hacia el último lado visto
+    if (!perdidaDesde) perdidaDesde = now;
+    var perdidaMs = now - perdidaDesde;
+    if (perdidaMs < GIRO_BUSQUEDA_MS) {
+      var giro = ultimoLado >= 0 ? VEL_BUSQUEDA : -VEL_BUSQUEDA;
+      pwmL = giro; pwmR = -giro;
+    } else {
+      var g = ultimoLado >= 0 ? VEL_REBOBINADO : -VEL_REBOBINADO;
+      pwmL = -VEL_REBOBINADO + g / 2;
+      pwmR = -VEL_REBOBINADO - g / 2;
+    }
+  }
 
   function physics(dt) {
     var vL = pwmL * K, vR = pwmR * K;
@@ -392,14 +473,7 @@
     } else if (drag.fallT > 0) {
       fallStep(dt);
     } else if (running) {
-      if (bootPhase >= 0) {
-        bootT += dt * 1000;
-        var ph = BOOT[bootPhase];
-        if (bootT >= ph.t) { bootT = 0; if (++bootPhase >= BOOT.length) bootPhase = -1; }
-        else { pwmL = ph.l; pwmR = ph.r; }
-      } else {
-        control();
-      }
+      control(t);
       physics(dt);
     }
 
@@ -502,7 +576,15 @@
   function toggle() {
     running = !running;
     bot.classList.toggle('on', running);
-    if (running) { bootPhase = 0; bootT = 0; }
+    if (running) {
+      // encendido en la mano: espera la línea de salida como el real
+      arrancado = false;
+      posF = posPrev = 0;
+      ultimoLado = 0;
+      perdidaDesde = 0;
+      cruceHasta = 0;
+      for (var i = 0; i < 5; i++) { calMin[i] = CAL_MIN_INI; calMax[i] = CAL_MAX_INI; }
+    }
     else { pwmL = pwmR = 0; }
   }
 
@@ -691,7 +773,7 @@
     place();
   });
 
-  window.__art = { bot_, SENS, toWorld, darkAt, readSensors, rope: rope,
+  window.__art = { bot_, SENS, toWorld, oscuridad, leerSensores, rope: rope,
                    labRope: labRope, path: path, build: build, drag: drag };
 
   // =====================================================================

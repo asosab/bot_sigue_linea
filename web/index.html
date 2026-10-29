@@ -294,13 +294,19 @@
     <ul>
       <li>La lectura dejó de ser blanco o negro por sensor y pasó a un
       número continuo: la posición de la línea bajo el robot. El giro es
-      proporcional a esa posición, con un término derivativo que corta el
-      zigzag.</li>
+      proporcional a esa posición, suavizado por un filtro que evita los
+      tirones y un término derivativo que corta el zigzag.</li>
       <li>La velocidad se adapta sola: a fondo en las rectas, más baja en
       las curvas. En una carrera a contrarreloj es tiempo gratis.</li>
-      <li>Se calibra al encender, sin tocar el código: hay cuatro segundos
-      para pasar la línea por debajo y toma sus propios valores de blanco
-      y negro.</li>
+      <li>Encendido en la mano espera quieto, con los motores parados, y
+      arranca solo al apoyarlo sobre la línea. Así larga la ronda como
+      pide el reglamento, sin volver a tocarlo.</li>
+      <li>Se calibra solo sobre la marcha: sale con los valores medidos
+      en la mesa y, al apoyarlo, la primera lectura toma el blanco y el
+      negro reales de la pista. Cada sensor termina de ajustarse la
+      primera vez que pisa la línea.</li>
+      <li>En una intersección avanza recto un tramo fijo sin leer, para
+      no entrar a un ramal por una lectura a medio cruce.</li>
       <li>Si pierde la línea busca hacia el último lado donde la vio y, si
       no la encuentra, retrocede despacio hasta recuperarla.</li>
       <li>Trae un ajuste fino por motor (TRIM) para corregir la deriva en
