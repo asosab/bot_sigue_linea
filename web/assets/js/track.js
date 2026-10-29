@@ -2,7 +2,8 @@
    La pista es una cinta cerrada dibujada como cadena Verlet: se puede
    agarrar y deformar con el dedo o el mouse, y el carrito la sigue leyendo
    sus 5 sensores sobre la geometría real de la cadena. El probador (lab)
-   dibuja la figura de la pista de práctica en pantalla completa. */
+   usa otra cadena igual, con la figura de la pista de práctica como forma
+   inicial; ambas recuerdan su última posición en localStorage. */
 (function () {
   var svg = document.getElementById('track');
   var path = document.getElementById('trackPath');
@@ -10,7 +11,6 @@
   var bot = document.getElementById('bot');
   var senDots = bot.querySelectorAll('.sen');
 
-  var SCALE = 0.35;
   var docW = 0, docH = 0;
   var WALL = 30;                       // muro invisible: la cinta llega a 30 px del borde
 
@@ -44,11 +44,21 @@
   // La cinta: cadena cerrada de puntos con física Verlet
   // =====================================================================
   var rope = { px: [], py: [], ox: [], oy: [], segLen: [], n: 0, grab: -1 };
+  var labRope = { px: [], py: [], ox: [], oy: [], segLen: [], n: 0, grab: -1 };
+  var ROPE_KEY = 'arturito-rope';
+  var ROPE_LAB_KEY = 'arturito-rope-lab';
   var BEND_RADIUS = 100;               // radio mínimo de curvatura de la cinta, px
   var BEND_SPAN = 6;                   // segmentos por lado que revisa el límite
 
+  function ropeAlloc(r, n) {
+    r.n = n;
+    r.px = new Float64Array(n); r.py = new Float64Array(n);
+    r.ox = new Float64Array(n); r.oy = new Float64Array(n);
+    r.segLen = new Float64Array(n);
+  }
+
   function ropeInit() {
-    if (ropeRestore()) return;         // la figura guardada gana al diseño inicial
+    if (ropeRestore(rope, ROPE_KEY, docW, docH)) return;   // la figura guardada gana
     var W = docW, H = docH;
     var m = WALL;
     var L = m, R = W - m;
@@ -70,10 +80,7 @@
     var arcLen = Math.PI * rad / 2;
     var per = 2 * (sw + sh) + 4 * arcLen;
     var n = Math.max(64, Math.min(180, Math.round(per / 42)));
-    rope.n = n;
-    rope.px = new Float64Array(n); rope.py = new Float64Array(n);
-    rope.ox = new Float64Array(n); rope.oy = new Float64Array(n);
-    rope.segLen = new Float64Array(n);
+    ropeAlloc(rope, n);
 
     // recorrido horario del perímetro, tramo recto + esquina de 90°,
     // empezando por el borde superior desde la izquierda
@@ -95,61 +102,56 @@
       rope.px[i] = rope.ox[i] = p[0];
       rope.py[i] = rope.oy[i] = p[1];
     }
-    retarget();
+    retarget(rope);
   }
 
   // longitudes de reposo = distancias actuales: la figura queda plástica,
   // no elástica — sin holgura, la cinta se queda quieta donde la dejes
-  function retarget() {
-    var n = rope.n;
+  function retarget(r) {
+    var n = r.n;
     for (var i = 0; i < n; i++) {
       var j = (i + 1) % n;
-      rope.segLen[i] = Math.hypot(rope.px[j] - rope.px[i], rope.py[j] - rope.py[i]);
+      r.segLen[i] = Math.hypot(r.px[j] - r.px[i], r.py[j] - r.py[i]);
     }
   }
 
   // la figura se guarda en localStorage cada vez que se suelta la cinta:
   // al recargar la página reaparece el diseño que le dejó el usuario
-  var ROPE_KEY = 'arturito-rope';
-
-  function ropeSave() {
+  function ropeSave(r, key, w, h) {
     try {
-      var p = new Array(rope.n);
-      for (var i = 0; i < rope.n; i++) {
-        p[i] = [Math.round(rope.px[i] * 10) / 10,
-                Math.round(rope.py[i] * 10) / 10];
+      var p = new Array(r.n);
+      for (var i = 0; i < r.n; i++) {
+        p[i] = [Math.round(r.px[i] * 10) / 10,
+                Math.round(r.py[i] * 10) / 10];
       }
-      localStorage.setItem(ROPE_KEY,
-        JSON.stringify({ w: docW, h: docH, p: p }));
+      localStorage.setItem(key,
+        JSON.stringify({ w: w, h: h, p: p }));
     } catch (e) { /* sin storage disponible, la cinta no persiste */ }
   }
 
-  function ropeRestore() {
+  function ropeRestore(r, key, w, h) {
     var saved;
-    try { saved = JSON.parse(localStorage.getItem(ROPE_KEY)); }
+    try { saved = JSON.parse(localStorage.getItem(key)); }
     catch (e) { return false; }
     if (!saved || !saved.p || saved.p.length < 32 ||
         !saved.w || !saved.h) return false;
     // si la ventana cambió de tamaño la figura se escala en proporción
     // y se recorta a los muros para que no quede nada fuera
-    var sx = docW / saved.w, sy = docH / saved.h;
+    var sx = w / saved.w, sy = h / saved.h;
     var n = saved.p.length;
-    rope.n = n;
-    rope.px = new Float64Array(n); rope.py = new Float64Array(n);
-    rope.ox = new Float64Array(n); rope.oy = new Float64Array(n);
-    rope.segLen = new Float64Array(n);
+    ropeAlloc(r, n);
     for (var i = 0; i < n; i++) {
-      var x = Math.min(Math.max(saved.p[i][0] * sx, WALL), docW - WALL);
-      var y = Math.min(Math.max(saved.p[i][1] * sy, WALL), docH - WALL);
-      rope.px[i] = rope.ox[i] = x;
-      rope.py[i] = rope.oy[i] = y;
+      var x = Math.min(Math.max(saved.p[i][0] * sx, WALL), w - WALL);
+      var y = Math.min(Math.max(saved.p[i][1] * sy, WALL), h - WALL);
+      r.px[i] = r.ox[i] = x;
+      r.py[i] = r.oy[i] = y;
     }
-    retarget();
+    retarget(r);
     return true;
   }
 
-  function ropeStep() {
-    var n = rope.n, px = rope.px, py = rope.py, ox = rope.ox, oy = rope.oy;
+  function ropeStep(r, bw, bh) {
+    var n = r.n, px = r.px, py = r.py, ox = r.ox, oy = r.oy;
 
     // integración Verlet con amortiguación fuerte y umbral de sueño:
     // la cinta quiere estar quieta, no un columpio eterno
@@ -161,9 +163,9 @@
     }
 
     // agarre: el punto arrastrado sigue el puntero
-    if (rope.grab >= 0) {
-      px[rope.grab] = rope.gx; py[rope.grab] = rope.gy;
-      ox[rope.grab] = rope.gx; oy[rope.grab] = rope.gy;
+    if (r.grab >= 0) {
+      px[r.grab] = r.gx; py[r.grab] = r.gy;
+      ox[r.grab] = r.gx; oy[r.grab] = r.gy;
     }
 
     // restricciones de distancia entre vecinos (anillos cerrados)
@@ -172,12 +174,12 @@
         var k = (j + 1) % n;
         var dx = px[k] - px[j], dy = py[k] - py[j];
         var d = Math.hypot(dx, dy) || 1e-6;
-        var diff = (d - rope.segLen[j]) / d * 0.5;
+        var diff = (d - r.segLen[j]) / d * 0.5;
         dx *= diff; dy *= diff;
         px[j] += dx; py[j] += dy;
         px[k] -= dx; py[k] -= dy;
       }
-      if (rope.grab >= 0) {
+      if (r.grab >= 0) {
         // radio mínimo de curvatura mientras se arrastra: la cinta no se
         // dobla más cerrada que un arco de BEND_RADIUS. Se revisa en varias
         // escalas (spans de k segmentos) para que el doblez se reparta en
@@ -187,7 +189,7 @@
         for (var c = 0; c < n; c++) {
           var arc = 0;
           for (var k = 1; k <= kmax; k++) {
-            arc += rope.segLen[(c + n - k) % n] + rope.segLen[(c + k - 1) % n];
+            arc += r.segLen[(c + n - k) % n] + r.segLen[(c + k - 1) % n];
             // un arco más largo que media circunferencia puede cerrarse
             // legítimamente: ahí la cuerda corta ya no delata un pliegue
             if (arc >= Math.PI * BEND_RADIUS) break;
@@ -199,9 +201,9 @@
               var push = (minD - cd) / cd;
               // si un extremo es el punto agarrado, empuja solo el libre:
               // el agarrado vuelve al puntero al final de la iteración
-              if (i0 === rope.grab) {
+              if (i0 === r.grab) {
                 px[i2] += cx0 * push; py[i2] += cy0 * push;
-              } else if (i2 === rope.grab) {
+              } else if (i2 === r.grab) {
                 px[i0] -= cx0 * push; py[i0] -= cy0 * push;
               } else {
                 push *= 0.5;
@@ -218,7 +220,7 @@
           var i0 = (c + n - 1) % n, i2 = (c + 1) % n;
           var cx0 = px[i2] - px[i0], cy0 = py[i2] - py[i0];
           var cd = Math.hypot(cx0, cy0) || 1e-6;
-          var minD = 0.85 * (rope.segLen[i0] + rope.segLen[c]) * 0.5;
+          var minD = 0.85 * (r.segLen[i0] + r.segLen[c]) * 0.5;
           if (cd < minD) {
             var push = (minD - cd) / cd * 0.5;
             px[i0] -= cx0 * push; py[i0] -= cy0 * push;
@@ -226,17 +228,17 @@
           }
         }
       }
-      if (rope.grab >= 0) { px[rope.grab] = rope.gx; py[rope.grab] = rope.gy; }
+      if (r.grab >= 0) { px[r.grab] = r.gx; py[r.grab] = r.gy; }
     }
 
     // rigidez de cinta solo mientras se arrastra: suaviza la forma que se
     // está creando sin volver al óvalo (si actuara en reposo parecería un
     // elástico que tira para atrás). También mueve la posición previa
     // para no inyectar velocidad.
-    if (rope.grab >= 0) {
+    if (r.grab >= 0) {
       for (var s = 0; s < n; s++) {
         var p0 = (s + n - 1) % n, p1 = (s + 1) % n;
-        if (s === rope.grab) continue;
+        if (s === r.grab) continue;
         var sx = ((px[p0] + px[p1]) / 2 - px[s]) * 0.16;
         var sy = ((py[p0] + py[p1]) / 2 - py[s]) * 0.16;
         px[s] += sx; ox[s] += sx;
@@ -247,14 +249,14 @@
     // muros invisibles
     var m = WALL;
     for (var w = 0; w < n; w++) {
-      if (px[w] < m) px[w] = m; else if (px[w] > docW - m) px[w] = docW - m;
-      if (py[w] < m) py[w] = m; else if (py[w] > docH - m) py[w] = docH - m;
+      if (px[w] < m) px[w] = m; else if (px[w] > bw - m) px[w] = bw - m;
+      if (py[w] < m) py[w] = m; else if (py[w] > bh - m) py[w] = bh - m;
     }
   }
 
   // Catmull-Rom cerrado → curvas suaves de río
-  function ropeD() {
-    var n = rope.n, px = rope.px, py = rope.py;
+  function ropeD(r) {
+    var n = r.n, px = r.px, py = r.py;
     var d = 'M ' + px[0].toFixed(1) + ' ' + py[0].toFixed(1);
     for (var i = 0; i < n; i++) {
       var p0 = px[(i + n - 1) % n], p0y = py[(i + n - 1) % n];
@@ -268,12 +270,12 @@
     return d + ' Z';
   }
 
-  function distToRope(x, y) {
-    var n = rope.n, best = Infinity;
+  function distToRope(r, x, y) {
+    var n = r.n, best = Infinity;
     for (var i = 0; i < n; i++) {
       var j = (i + 1) % n;
-      var ax = rope.px[i], ay = rope.py[i];
-      var bx = rope.px[j], by = rope.py[j];
+      var ax = r.px[i], ay = r.py[i];
+      var bx = r.px[j], by = r.py[j];
       var abx = bx - ax, aby = by - ay;
       var t = ((x - ax) * abx + (y - ay) * aby) / (abx * abx + aby * aby || 1);
       t = Math.max(0, Math.min(1, t));
@@ -290,7 +292,8 @@
     svg.setAttribute('width', docW);
     svg.setAttribute('height', docH);
     ropeInit();
-    pageWorld = { kind: 'page', w: docW, h: docH };
+    pageWorld = { kind: 'page', w: docW, h: docH,
+                  rope: rope, path: path, hitPath: hitPath };
     if (!inLab) world = pageWorld;
   }
 
@@ -301,19 +304,8 @@
 
   function darkAt(wx, wy) {
     if (!world) return false;
-    if (world.kind === 'page') {
-      // los sensores solo ven la cinta; texto y fotos son blanco
-      return distToRope(wx, wy) < LINE_HALF + 3;
-    }
-    // lab: raster estático con la figura dibujada
-    var ctx = world.ctx;
-    var cx = Math.round(wx * SCALE), cy = Math.round(wy * SCALE);
-    if (cx < 1 || cy < 1 || cx >= ctx.canvas.width - 1 || cy >= ctx.canvas.height - 1) return false;
-    var px = ctx.getImageData(cx - 1, cy - 1, 3, 3).data;
-    for (var i = 0; i < px.length; i += 4) {
-      if (px[i] + px[i + 1] + px[i + 2] < 384) return true;
-    }
-    return false;
+    // los sensores solo ven la cinta; texto, fotos y el lab-bar son blanco
+    return distToRope(world.rope, wx, wy) < LINE_HALF + 3;
   }
 
   // =====================================================================
@@ -388,11 +380,11 @@
     var dt = Math.min(0.05, (t - lastT) / 1000);
     lastT = t;
 
-    if (world && world.kind === 'page') {
-      ropeStep();
-      var d = ropeD();
-      path.setAttribute('d', d);
-      hitPath.setAttribute('d', d);
+    if (world && world.rope) {
+      ropeStep(world.rope, world.w, world.h);
+      var d = ropeD(world.rope);
+      world.path.setAttribute('d', d);
+      world.hitPath.setAttribute('d', d);
     }
 
     if (drag.held) {
@@ -515,45 +507,51 @@
   }
 
   // =====================================================================
-  // Agarrar la cinta: el punto más cercano sigue al puntero
+  // Agarrar la cinta: el punto más cercano sigue al puntero. La misma
+  // mecánica sirve para la cinta de la página y la del probador
   // =====================================================================
-  function svgPoint(e) {
-    var r = svg.getBoundingClientRect();
+  function svgPointAt(el, e) {
+    var r = el.getBoundingClientRect();
     return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+
+  function ropeGrab(r, hit, p) {
+    var best = -1, bd = Infinity;
+    for (var i = 0; i < r.n; i++) {
+      var dd = (r.px[i] - p.x) * (r.px[i] - p.x) + (r.py[i] - p.y) * (r.py[i] - p.y);
+      if (dd < bd) { bd = dd; best = i; }
+    }
+    r.grab = best; r.gx = p.x; r.gy = p.y;
+    hit.classList.add('rope-drag');
+  }
+
+  function ropeDrop(r, hit, key, w, h) {
+    if (r.grab >= 0) {
+      retarget(r);                    // la figura nueva se queda
+      for (var i = 0; i < r.n; i++) {    // y parada en seco, sin rebote
+        r.ox[i] = r.px[i];
+        r.oy[i] = r.py[i];
+      }
+      ropeSave(r, key, w, h);
+    }
+    r.grab = -1;
+    hit.classList.remove('rope-drag');
   }
 
   hitPath.addEventListener('pointerdown', function (e) {
     if (inLab) return;
     e.preventDefault();
     hitPath.setPointerCapture(e.pointerId);
-    var p = svgPoint(e);
-    var best = -1, bd = Infinity;
-    for (var i = 0; i < rope.n; i++) {
-      var dd = (rope.px[i] - p.x) * (rope.px[i] - p.x) + (rope.py[i] - p.y) * (rope.py[i] - p.y);
-      if (dd < bd) { bd = dd; best = i; }
-    }
-    rope.grab = best; rope.gx = p.x; rope.gy = p.y;
-    hitPath.classList.add('rope-drag');
+    ropeGrab(rope, hitPath, svgPointAt(svg, e));
   });
 
   hitPath.addEventListener('pointermove', function (e) {
     if (rope.grab < 0) return;
-    var p = svgPoint(e);
+    var p = svgPointAt(svg, e);
     rope.gx = p.x; rope.gy = p.y;
   });
 
-  function ropeRelease() {
-    if (rope.grab >= 0) {
-      retarget();                      // la figura nueva se queda
-      for (var i = 0; i < rope.n; i++) {   // y parada en seco, sin rebote
-        rope.ox[i] = rope.px[i];
-        rope.oy[i] = rope.py[i];
-      }
-      ropeSave();
-    }
-    rope.grab = -1;
-    hitPath.classList.remove('rope-drag');
-  }
+  function ropeRelease() { ropeDrop(rope, hitPath, ROPE_KEY, docW, docH); }
   hitPath.addEventListener('pointerup', ropeRelease);
   hitPath.addEventListener('pointercancel', ropeRelease);
 
@@ -563,8 +561,7 @@
   var lab = document.getElementById('lab');
   var labSvg = document.getElementById('labTrack');
   var labPath = document.getElementById('labPath');
-  var labRaster = document.createElement('canvas');
-  var labCtx = labRaster.getContext('2d', { willReadFrequently: true });
+  var labHit = document.getElementById('labHit');
   var inLab = false;
   var savedPose = null;
   var labStart = null;
@@ -583,7 +580,6 @@
           ' C ' + (cx + rx) + ' ' + (cy - 2 * a) + ', ' + (cx + rx * 1.25) + ' ' + (cy - a * 0.55) + ', ' + cx + ' ' + cy +
           ' C ' + (cx + rx * 1.25) + ' ' + (cy + a * 0.55) + ', ' + (cx + rx) + ' ' + (cy + 2 * a) + ', ' + cx + ' ' + (cy + 2 * a) +
           ' C ' + (cx - rx) + ' ' + (cy + 2 * a) + ', ' + (cx - rx * 1.25) + ' ' + (cy + a * 0.55) + ', ' + cx + ' ' + cy + ' Z';
-      labStart = { x: cx, y: cy - 2 * a, th: 0 };
     } else {
       var b = rx * 0.52;
       d = 'M ' + cx + ' ' + cy +
@@ -591,32 +587,64 @@
           ' C ' + (cx - 2 * b) + ' ' + (cy + ry) + ', ' + (cx - b * 0.55) + ' ' + (cy + ry * 1.25) + ', ' + cx + ' ' + cy +
           ' C ' + (cx + b * 0.55) + ' ' + (cy + ry * 1.25) + ', ' + (cx + 2 * b) + ' ' + (cy + ry) + ', ' + (cx + 2 * b) + ' ' + cy +
           ' C ' + (cx + 2 * b) + ' ' + (cy - ry) + ', ' + (cx + b * 0.55) + ' ' + (cy - ry * 1.25) + ', ' + cx + ' ' + cy + ' Z';
-      labStart = { x: cx - 2 * b, y: cy, th: Math.PI / 2 };
     }
 
-    labPath.setAttribute('d', d);
+    labWorld = { kind: 'lab', w: W, h: H,
+                 rope: labRope, path: labPath, hitPath: labHit };
 
-    labRaster.width = Math.max(2, Math.round(W * SCALE));
-    labRaster.height = Math.max(2, Math.round(H * SCALE));
-    labCtx.fillStyle = '#fff';
-    labCtx.fillRect(0, 0, labRaster.width, labRaster.height);
-    labCtx.save();
-    labCtx.scale(SCALE, SCALE);
-    labCtx.strokeStyle = '#000';
-    labCtx.lineWidth = 14.4;
-    labCtx.lineJoin = 'miter';
-    labCtx.lineCap = 'round';
-    labCtx.stroke(new Path2D(d));
-    labCtx.restore();
+    // con figura guardada se restaura; si no, el circuito en ocho de
+    // práctica se muestrea a puntos de la cadena
+    if (!ropeRestore(labRope, ROPE_LAB_KEY, W, H)) {
+      labPath.setAttribute('d', d);
+      var len = labPath.getTotalLength();
+      var n = Math.max(64, Math.min(180, Math.round(len / 42)));
+      ropeAlloc(labRope, n);
+      for (var i = 0; i < n; i++) {
+        var p = labPath.getPointAtLength(i * len / n);
+        labRope.px[i] = labRope.ox[i] = p.x;
+        labRope.py[i] = labRope.oy[i] = p.y;
+      }
+      retarget(labRope);
+    }
 
-    labWorld = { kind: 'lab', ctx: labCtx, w: W, h: H };
+    // el carrito arranca sobre el primer nodo de la cinta, mirando hacia
+    // el tramo que sigue: así cae sobre la línea aunque la figura sea una
+    // que dejó el usuario y no el ocho por defecto
+    labStart = {
+      x: labRope.px[0], y: labRope.py[0],
+      th: Math.atan2(labRope.py[1] - labRope.py[0],
+                     labRope.px[1] - labRope.px[0])
+    };
+    var rd = ropeD(labRope);
+    labPath.setAttribute('d', rd);
+    labHit.setAttribute('d', rd);
     if (inLab) world = labWorld;
   }
 
+  labHit.addEventListener('pointerdown', function (e) {
+    if (!inLab) return;
+    e.preventDefault();
+    labHit.setPointerCapture(e.pointerId);
+    ropeGrab(labRope, labHit, svgPointAt(labSvg, e));
+  });
+
+  labHit.addEventListener('pointermove', function (e) {
+    if (labRope.grab < 0) return;
+    var p = svgPointAt(labSvg, e);
+    labRope.gx = p.x; labRope.gy = p.y;
+  });
+
+  function labRelease() {
+    ropeDrop(labRope, labHit, ROPE_LAB_KEY,
+             window.innerWidth, window.innerHeight);
+  }
+  labHit.addEventListener('pointerup', labRelease);
+  labHit.addEventListener('pointercancel', labRelease);
+
   function openLab() {
+    lab.hidden = false;                 // visible para medir la figura
     buildLab();
     savedPose = { x: bot_.x, y: bot_.y, th: bot_.th };
-    lab.hidden = false;
     document.body.style.overflow = 'hidden';
     labSvg.appendChild(bot);
     world = labWorld; inLab = true;
@@ -664,7 +692,7 @@
   });
 
   window.__art = { bot_, SENS, toWorld, darkAt, readSensors, rope: rope,
-                   path: path, build: build, drag: drag };
+                   labRope: labRope, path: path, build: build, drag: drag };
 
   // =====================================================================
   // Menú hamburguesa: cuando los enlaces no caben en la barra se agrupan
