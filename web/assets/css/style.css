@@ -25,6 +25,9 @@ body {
   stroke-width: 40;
   pointer-events: stroke;
   cursor: grab;
+  /* sin esto, en táctil el gesto de arrastrar la cinta se lo lleva el
+     scroll de la página (y un tirón hacia abajo refresca la página) */
+  touch-action: none;
 }
 #trackHit.rope-drag, #labHit.rope-drag { cursor: grabbing; }
 
