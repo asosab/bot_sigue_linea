@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Arturito — robot seguidor de línea</title>
+<title>Arturito, robot seguidor de línea</title>
 <meta name="description" content="Arturito, el robot seguidor de línea de la U.E. Jaime Alfonso Escalante Gutierrez A para el 1.er Concurso Distrital de Robótica 2026 de Santa Cruz.">
 <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -85,7 +85,7 @@
     <p class="lede">Un carrito que sigue líneas negras, armado y programado por tres
     estudiantes de secundaria del colegio Jaime Alfonso Escalante Gutierrez A,
     en Santa Cruz de la Sierra.</p>
-    <p class="hint">La cinta negra se puede arrastrar — muévela para leer lo
+    <p class="hint">La cinta negra se puede arrastrar: muévela para leer lo
     que hay debajo o dibuja figuras nuevas con ella.</p>
     <button id="heroLab" class="cta" type="button">Probar el simulador</button>
   </header>
@@ -186,7 +186,7 @@
     separado con programas chicos. Los dos de diagnóstico
     (<code>prueba_drv8833</code> y <code>prueba_sensores</code>) quedaron
     guardados en el repositorio. Y una nota práctica: los cables dupont se
-    aflojan solos — dos de los fallos de esa tarde fueron cables que se
+    aflojan solos. Dos de los fallos de esa tarde fueron cables que se
     habían salido al mover otros.</p>
 
     <h3>Los sensores van en punta de flecha</h3>
@@ -236,8 +236,8 @@
     regla.</p>
     <p>El pulsador va entre el pin D8 y masa, a pelo: el pin usa el
     pull-up interno del Arduino y se entera del botonazo cuando lo bajan
-    a masa. Miramos las otras dos opciones — llevarlo a 5 V o al positivo
-    de la batería — y las dos obligaban a sumar resistencias; la de 5 V,
+    a masa. Miramos las otras dos opciones (llevarlo a 5 V o al positivo
+    de la batería) y las dos obligaban a sumar resistencias; la de 5 V,
     además, dejaba el pin flotando mientras el botón está suelto, y un
     pin flotando puede leer largadas que nadie pidió. Lo que pesó fue una
     regla simple: cada elemento que se suma a un sistema es un punto más
@@ -259,7 +259,7 @@
     particularidad: todas las corridas se desviaban unos 30 cm hacia la
     izquierda. La cinta mide proyección, no camino: si el robot describe un
     arco, el trecho real es más largo que lo que marca la regla. Con la
-    geometría del arco —radio de casi un metro— salieron unos 79 cm
+    geometría del arco (radio de casi un metro) salieron unos 79 cm
     recorridos: 26 cm/s a esa potencia, más de lo que sugería la lectura
     ingenua. Y el desvío parecía delatar una rueda más lenta que la otra,
     así que ajustamos el trim en consecuencia.</p>
@@ -269,18 +269,18 @@
     descartar la pose de salida cambiamos el protocolo: marcas en el piso
     en vez de video, midiendo distancia recorrida y separación final a un
     borde de la pista. Con el protocolo fino corrimos tres configuraciones
-    de potencia entre ruedas —224, 238 y 255 en el derecho contra 255 en el
-    izquierdo— y las tres dieron la misma apertura al mismo lado, unos
+    de potencia entre ruedas (224, 238 y 255 en el derecho contra 255 en el
+    izquierdo) y las tres dieron la misma apertura al mismo lado, unos
     25 cm por metro recorrido. El desvío no respondía al balance de
     motores: respondía a otra cosa. Veredicto provisional: las ruedas
-    están parejas y el viraje es mecánico — el ángulo de montaje de una
-    rueda, la bola del desodorante descentrada o algo que roza el piso. Se
+    están parejas y el viraje es mecánico (el ángulo de montaje de una
+    rueda, la bola del desodorante descentrada o algo que roza el piso). Se
     compensa por software mientras se busca el punto físico.</p>
 
     <h3>El robot que se acuerda</h3>
     <p>El concurso son tres corridas y cuenta la mejor, así que hacía falta
     saber cómo corrió cada una sin llevar la compu al costado de la pista.
-    La placa tiene una memoria que sobrevive al apagado —la EEPROM— y
+    La placa tiene una memoria que sobrevive al apagado (la EEPROM) y
     ahora cada corrida terminada con el pulsador guarda su tiempo de
     largada a parada, cuántas veces perdió la línea, cuántas esquinas y
     cruces resolvió, y la calibración de blanco y negro que aprendió en esa
@@ -330,7 +330,7 @@
       <div class="card prize p2">
         <span class="lugar">2.º</span>
         <p>Trofeo de subcampeón, medalla, certificado y una sesión de
-        terapia psicológica con la Lic. Oscar Urgazagasti.</p>
+        terapia psicológica con el Lic. Oscar Urgazagasti.</p>
       </div>
       <div class="card prize p1">
         <span class="lugar">1.º</span>
@@ -406,7 +406,7 @@
   <div class="track-anchor" id="t6"></div>
 
   <footer>
-    <p>Gaby, Darius y Max — U.E. Jaime Alfonso Escalante Gutierrez A<br>
+    <p>Gaby, Darius y Max · U.E. Jaime Alfonso Escalante Gutierrez A<br>
     Distrito Santa Cruz 1, Bolivia · 2026</p>
     <p class="credit">Página y simulador escritos por
     <a href="https://asosab.github.io">Alejandro Sosa Briceño</a></p>

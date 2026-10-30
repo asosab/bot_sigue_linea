@@ -8,7 +8,7 @@ created: 2026-10-28
 La organización lleva la lista en una hoja de cálculo que sigue en
 movimiento:
 [hoja de premios](https://docs.google.com/spreadsheets/d/1v668F8H_tW4PmcqcF7VmiRZiuO-SWr6V/edit?usp=sharing).
-Última revisión: **2026-10-28**. Releerla cada tanto y actualizar esta
+Última revisión: **2026-10-30**. Releerla cada tanto y actualizar esta
 nota.
 
 ## Seguidor de línea
