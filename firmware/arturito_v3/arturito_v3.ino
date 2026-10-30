@@ -133,20 +133,18 @@ const int POSF_ESQ_CICLOS = 2;    // persistencia del lado extremo
 // la X, 4 curvas falsas en ~3 s, ningun todo-negro real).
 const float NEG_CENTRO_VETO = 0.4; // S2 por encima = la punta ve linea
 
-// Contexto de masa ancha: la linea mide 20 mm, no mas — si el
-// arreglo lee mas ancho es que la aborda en diagonal (2 canales,
-// ~1.4-1.8, lo resuelve el PD) o que encontro un camino cruzado.
-// No hay dos lineas paralelas: el unico solapamiento de cintas son
-// las intersecciones, con angulos variables — masa >2.0 garantiza
-// cruce y la orden correcta ahi es seguir guiado por la ruta, no
-// girar. Un extremo solo o centroide corrido es "la linea yendose"
-// solo con contexto fino; tras un borron es el borde del borron —
-// el PD lo sigue igual y no se gasta un giro comprometido
-// (corrida #14: dos ext falsos tras suma >2.4 -> timeout a blanco).
-// Y con 1.4 el veto tapo la horquilla entera: una diagonal ya lo
-// alcanzaba (corrida #16, 0 esquinas, paso de largo la primera
-// curva).
-const float MASA_ANCHA = 2.0;          // suma de negruras = borron real
+// Contexto de masa ancha: la linea mide 20 mm, no mas — abordada en
+// diagonal puede pintar S1+S2+S3 juntos (y con el vaiven de a dos:
+// S1+S2 o S2+S3) sin dejar de ser una sola cinta: eso lo sigue el
+// PD, no es veto. Cruce de verdad = cinta en un extremo + interior
+// a la vez (huella >40 mm, imposible con una sola linea ni en
+// diagonal) — ahi el extremo solo posterior es el borde del borron,
+// no la linea yendose (corrida #14: dos ext falsos tras un borron
+// de suma >2.4 con S4 metido -> timeout a blanco). Un extremo solo
+// o centroide corrido es "la linea yendose" solo con contexto fino.
+// Y con umbral en 1.4 el veto tapo la horquilla entera (corrida
+// #16, 0 esquinas, paso de largo la primera curva).
+const float MASA_ANCHA = 2.0;          // suma de negruras = masa real
 const unsigned long MASA_VENTANA_MS = 200;
 
 // Guardia post-recuperacion de los giros comprometidos: tras una pausa de busqueda, una
@@ -720,7 +718,9 @@ void loop() {
     sumaP += X_MM[i] * n[i];
     if (n[i] < 0.7) todoNegro = false;
   }
-  if (suma > MASA_ANCHA) sumaAltaHasta = millis() + MASA_VENTANA_MS;
+  // Borron = extremo + interior a la vez; el trio solo es diagonal.
+  if (suma > MASA_ANCHA && (n[0] > NEG_EXT || n[4] > NEG_EXT))
+    sumaAltaHasta = millis() + MASA_VENTANA_MS;
 
   // 7. Todo negro: cruce o esquina. El historial decide: si antes
   //    del negro la linea venia corrida, era una esquina y hay que
