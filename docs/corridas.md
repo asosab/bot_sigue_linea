@@ -32,5 +32,7 @@ mismo episodio), `esquinas` = curvas comprometidas disparadas, `cruces`
 
 | 13 | 23,23 s | 21 | 14 | 0 | la más larga hasta ahora; `curva-barrida` funcionó dos veces y el PD recuperó cinta real. Cayó en el sector del trapecio: un asomo débil (S0≈0,26) gatilló `posf` a un ciclo de salir de la pausa → pivote a blanco → cadena de rescates → fuera del tablero arriba-izq. Fixes: posf con guardia 400 ms post-recuperación (pausa/salida de curva/cruce) + CURVA_MIN 60 ms |
 
+| 14 | 34,35 s | 22 | 10 | 0 | la más larga; no salió del tablero (stop del usuario con línea cerca). `ext` gatilló dos veces sobre el borde de un borrón (extremo solo ~100 ms tras suma >2,4) → timeouts a blanco. El `ext` que sí era esquina (+32,52, curva-ok +33,05) venía de suma <1,0. Fix: veto ext/posf 400 ms tras masa ancha (suma >1,4) |
+
 Las trazas detalladas de cada corrida se pegan en la entrada del día en
 `docs/log/` cuando se leen.

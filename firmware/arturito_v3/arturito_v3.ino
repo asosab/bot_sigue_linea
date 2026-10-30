@@ -133,6 +133,15 @@ const int POSF_ESQ_CICLOS = 2;    // persistencia del lado extremo
 // la X, 4 curvas falsas en ~3 s, ningun todo-negro real).
 const float NEG_CENTRO_VETO = 0.4; // S2 por encima = la punta ve linea
 
+// Contexto de masa ancha: un extremo solo (o centroide corrido) es
+// "la linea yendose" solo si el contexto reciente era linea fina.
+// Tras un borron (suma alta: encrucijada, esquina ancha, cintas
+// solapadas) el extremo solo es el borde del borron — el PD lo sigue
+// guiado igual y no se gasta un giro comprometido (corrida #14:
+// dos ext falsos tras suma >2.4 -> timeout a blanco).
+const float MASA_ANCHA = 1.4;          // suma de negruras = borron
+const unsigned long MASA_VENTANA_MS = 400;
+
 // Guardia post-recuperacion de posf: tras una pausa de busqueda, una
 // salida de curva comprometida o un cruce, el centroide no puede
 // comprometer un giro hasta que el PD pruebe la linea un tramo. Un
@@ -260,6 +269,7 @@ unsigned long curvaLockoutHasta = 0;
 const unsigned long CURVA_LOCKOUT_MS = 300;
 unsigned long asientoHasta = 0;
 unsigned long posfGuardiaHasta = 0;
+unsigned long sumaAltaHasta = 0;
 bool esperando = false;           // contando ESPERA_LARGADA_MS tras el click
 unsigned long esperaHasta = 0;
 
@@ -703,6 +713,7 @@ void loop() {
     sumaP += X_MM[i] * n[i];
     if (n[i] < 0.7) todoNegro = false;
   }
+  if (suma > MASA_ANCHA) sumaAltaHasta = millis() + MASA_VENTANA_MS;
 
   // 7. Todo negro: cruce o esquina. El historial decide: si antes
   //    del negro la linea venia corrida, era una esquina y hay que
@@ -722,9 +733,9 @@ void loop() {
   //    punta libre de cinta (un brazo de la X con S2 sobre la linea
   //    propia tambien deja un extremo casi solo).
   bool extIzq = (n[0] > NEG_EXT) && (n[2] < NEG_CENTRO_VETO) &&
-                (suma - n[0] < SUMA_OTROS);
+                (suma - n[0] < SUMA_OTROS) && millis() >= sumaAltaHasta;
   bool extDer = (n[4] > NEG_EXT) && (n[2] < NEG_CENTRO_VETO) &&
-                (suma - n[4] < SUMA_OTROS);
+                (suma - n[4] < SUMA_OTROS) && millis() >= sumaAltaHasta;
   int ladoExt = extIzq ? -1 : (extDer ? 1 : 0);
   if (ladoExt != 0 && ladoExt == extremoLado) {
     if (++extremoConteo >= EXTREMO_CICLOS) {
@@ -744,7 +755,8 @@ void loop() {
   //     extremo mientras S2 sigue sobre la linea propia — ahi no se
   //     esta yendo la linea, esta cruzando otra (corrida #11).
   if (suma > UMBRAL_LINEA) {
-    if (n[2] < NEG_CENTRO_VETO && millis() >= posfGuardiaHasta) {
+    if (n[2] < NEG_CENTRO_VETO && millis() >= posfGuardiaHasta &&
+        millis() >= sumaAltaHasta) {
       float posAhora = sumaP / suma;
       int ladoPos = (posAhora > POSF_ESQ) ? 1 :
                     (posAhora < -POSF_ESQ) ? -1 : 0;
