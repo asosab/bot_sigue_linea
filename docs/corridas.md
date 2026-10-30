@@ -48,5 +48,7 @@ mismo episodio), `esquinas` = curvas comprometidas disparadas, `cruces`
 
 | 21 | 6,29 s | 8 | 0 | 0 | mismo ciclo límite: enganche débil, viraje a la derecha sostenido 700 ms sobre S3 sin converger, cruce a la izquierda, búsqueda. Nueva perspectiva: el problema desde #14 no es decisión sino ciclo límite del control — la virada no frena al converger. Fix: `FRENO_RETORNO` (corr ×0,4 al converger en banda media), reemplaza `CORR_SUAVE` |
 
+| 22 | 17,58 s | 27 | 4 | 0 | la más larga — el freno de retorno estabilizó el seguimiento. El usuario notó que "se devuelve ligeramente": es `VEL_PIVOTE_INT = -110` (rueda interna en reversa en el pivote). Fix v3: -110 → -70. Luego se instaló v2 para demo (botón arranca/para/rearranca, ya incorporado) |
+
 Las trazas detalladas de cada corrida se pegan en la entrada del día en
 `docs/log/` cuando se leen.

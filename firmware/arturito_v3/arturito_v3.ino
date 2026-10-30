@@ -130,7 +130,7 @@ const unsigned long CURVA_MAX_MS = 700;  // techo antes de pasar a buscar
 // desplazaba el arreglo fuera de la esquina (corrida #10, rueda
 // fuera del tablero en el cruce de 90).
 const unsigned long CURVA_PIVOTE_MS = 250;
-const int VEL_PIVOTE_INT = -110; // interna en reversa = pivote
+const int VEL_PIVOTE_INT = -70;  // interna en reversa = pivote; con -110 el robot se devolvia visiblemente (corrida #22)
 const float NEG_EXT = 0.45;       // negrura para "el extremo ve la linea"
 const float SUMA_OTROS = 0.6;     // techo de los demas canales
 const int EXTREMO_CICLOS = 2;     // persistencia para disparar la curva
