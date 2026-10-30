@@ -5,7 +5,7 @@
  * Sirve para dos constantes de arturito_v3:
  *
  * - MM_S_A_CRUCE (mm/s a VEL_CRUCE): con MODO_PIVOTE en 0, cada
- *   pulsada corre recto a VEL_PRUEBA durante CORRIDA_MS y para.
+ *   pulsada corre recto con VEL_IZQ/VEL_DER durante CORRIDA_MS y para.
  *   Se filma con una cinta metrica a lo largo de la ruta; el
  *   tiempo del primer, segundo y tercer tercio del recorrido da
  *   la velocidad media y cuanto tarda en tomar velocidad.
@@ -20,7 +20,7 @@
  * PREVIO_MS tras la pulsada para sacar la mano.
  *
  * Cada pulsada es una corrida nueva: repetir varias veces y
- * promediar. Otro valor de VEL_PRUEBA pide recompilar.
+ * promediar. Otros valores de VEL_IZQ/VEL_DER piden recompilar.
  *
  * Hardware: UNO + DRV8833 (IN1..IN4 en D5/D6/D9/D10, EEP en D4),
  * pulsador en D8 a GND (pull-up interno).
