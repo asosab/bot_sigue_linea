@@ -21,6 +21,33 @@ y el fondo para que [[algoritmo]] decida hacia dónde corregir.
 | S3 | A3 | centro derecho |
 | S4 | A4 | extremo derecho |
 
+## Geometría del montaje (medida 2026-10-29)
+
+Arreglo en flecha sobre cartón: S2 adelante, S1/S3 medios, S0/S4 atrás en
+las puntas. Cada módulo mide 10 × 5 mm. Coordenadas tomadas sobre el
+chasis: x lateral (+ derecha del bot), y longitudinal respecto a S2
+(+ adelante). S2 queda 47 mm por delante del eje de las ruedas.
+
+| Sensor | x (mm) | y (mm) |
+|---|---|---|
+| S0 | −20 | −14 |
+| S1 | −5 | −4 |
+| S2 | 0 | 0 |
+| S3 | +5 | −4 |
+| S4 | +20 | −14 |
+
+Fotos del montaje con regla: `imagen/sensores01..03.jpg`.
+
+Dos consecuencias que usa [[algoritmo]]:
+
+- Contra la línea de 20 mm (±10 mm), los tres internos a ±5 mm saturan
+  juntos hasta ~5 mm de desvío: hay una zona sin señal de posición y el
+  control la declara zona muerta en vez de corregir a ciegas.
+- El largo total de la flecha es 14 mm < 20 mm: las tres filas caben
+  dentro de la banda de un cruce, así que «todo negro» sí puede leerse —
+  en cruces y también en esquinas de 90°, por eso el historial separa
+  una de otra.
+
 ## Datos clave del datasheet
 
 - Lectura analógica con `analogRead` (0–1023); el cable de señal va al pin

@@ -48,8 +48,17 @@ pista.
 
 ## Ajuste de constantes
 
-El PD filtrado (KP 40, KD 25, KS 70, ALPHA 0.4) arranca con valores
-razonados, no medidos: afinar en la pista de práctica mirando el zigzag y
-la salida de curvas. `TRIM_IZQ`/`TRIM_DER` corrigen la deriva en recta;
-`REV_MAX` limita la marcha atrás al corregir (subirlo si una curva de 90°
-le cuesta al seguimiento normal).
+El PD de v3 (KP 6, KD 10, KS 5, ALPHA 0.55, en milímetros) arranca con
+valores razonados, no medidos: afinar en la pista de práctica mirando el
+zigzag y la salida de curvas. `TRIM_IZQ`/`TRIM_DER` corrigen la deriva en
+recta. `DB_MM` cubre la zona donde los tres internos saturan (~5 mm);
+bajarla si sobra suelto en recta, subirla si sigue bamboleando.
+
+Dos constantes piden medición en el piso:
+
+- `MM_S_A_CRUCE`: velocidad real en mm/s a PWM 140. Medir el recorrido
+  del robot en unos segundos de recta y dividir; convierte
+  `AVANCE_CRUCE_MM` (45 mm) en el tiempo del tramo ciego.
+- `PIVOTE_MS`: tiempo que tarda el pivote a `VEL_BUSQUEDA` en girar 90°.
+  Medirlo girando sobre una marca en el piso. De ahí salen también
+  `PIVOTE2_MS` (el doble, para el barrido del otro lado).

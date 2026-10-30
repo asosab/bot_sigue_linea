@@ -5,9 +5,8 @@ created: 2026-10-28
 ---
 # Algoritmo de seguimiento
 
-Versión en curso: `firmware/arturito_v2/arturito_v2.ino`. La v1 (tabla de
-casos sobre lecturas binarias) queda en `firmware/arturito/` como respaldo;
-ya no es la que corre el robot.
+Versión en curso: `firmware/arturito_v3/arturito_v3.ino`. La v2 queda en
+`firmware/arturito_v2/` como respaldo y la v1 en `firmware/arturito/`.
 
 ## Arranque de competencia
 
@@ -46,57 +45,104 @@ ajustan solos. Detalle en [[calibracion]].
   real: el canal sobre negro guarda su lectura como `calMax` y el que
   está sobre blanco como `calMin`.
 
-## Control: posición filtrada + PD
+## Posición en milímetros
 
-Cada canal se normaliza a negrura 0..1 y la posición es la media
-ponderada con pesos -2..+2 (S0..S4). La posición cruda salta en escalones
-al pasar de un sensor al siguiente, así que el control trabaja sobre
-`posF`, un filtro EMA (`ALPHA = 0.4`), y la derivada se calcula sobre la
-filtrada — eso corta el golpe que daba el salto discreto.
+Los pesos de la media ponderada son las coordenadas laterales medidas del
+arreglo (ver [[componente-tcrt5000]]): S0/S4 a ±20 mm, S1/S3 a ±5 mm y S2
+al centro. La posición `posF` (filtrada con EMA, `ALPHA = 0.55`) queda en
+milímetros reales, −20 izquierda a +20 derecha.
+
+El montaje tiene una consecuencia medible: la línea de 20 mm cubre ±10 mm
+y los sensores internos están a ±5 mm, así que con el robot hasta ~5 mm
+desplazado los tres internos saturan juntos y no hay señal de posición.
+Corregir sobre esa zona muerta era el bamboleo en recta: el control se
+aplica sobre `posE = posF − signo·DB_MM` (`DB_MM = 6`), que vale cero
+dentro de la banda. Ahí el robot va a `VEL_MAX` pleno, sin corrección — el
+turbo de recta sale solo.
 
 ```
-base = VEL_MAX - KS·|posF|        (mínimo VEL_MIN)
-corr = KP·posF + KD·(posF - posPrev)
-rueda = constrain(base ± corr, -REV_MAX, 255)
+posE = posF menos DB_MM hacia el centro   (0 dentro de la banda)
+base = VEL_MAX − KS·|posE|                (mínimo VEL_MIN)
+corr = KP·posE + KD·(posF − posPrev)      (0 si posE es 0)
+rueda = constrain(base ± corr, RUEDA_MIN, 255)
 ```
 
-La reversa al corregir está limitada a `REV_MAX` (60): una rueda puede
-morder sin que el robot pivote violento. La recuperación sí pivotea a
-fondo, que es donde hace falta.
+`RUEDA_MIN` (40) mantiene las dos ruedas hacia adelante en toda corrección
+normal: el robot dobla con diferencial sin frenar. La rueda quieta o en
+reversa queda reservada a la curva comprometida y a la búsqueda.
 
-## Intersección comprometida
+## Memoria de posiciones
 
-Cuando los cinco canales ven negro (cruce o bifurcación) el robot arma un
-avance recto temporizado: `AVANCE_CRUCE_MS` (200 ms) a `VEL_CRUCE` sin
-leer sensores. Entrar bamboleado a un cruce dejaba lecturas a medio
-camino que podían mandarlo a un ramal; el tramo comprometido lo atraviesa
-con rumbo firme.
+Un anillo de 16 muestras guarda las últimas posiciones válidas (`posF` con
+línea a la vista). Se congela durante cruces, curvas comprometidas y
+pérdidas, así que siempre responde cómo venía la pista antes del evento.
+Dos usos:
 
-`ultimoLado` se conserva al entrar al cruce: si el «todo negro» era una
-esquina cerrada y no una intersección, la recuperación busca hacia el
-lado correcto.
+- **Cruce o esquina**: al leer todo negro se mira `posF` de ~12 muestras
+  atrás. Si supera ±8 mm la línea venía corrida — era una esquina y toca
+  girar. Si venía centrada es un cruce y se atraviesa recto. Sin la
+  memoria, una esquina de 90° entrando ladeada leía todo negro y el robot
+  se lanzaba recto fuera de la pista.
+- **Dirección de búsqueda**: al perder la línea, el promedio de las tres
+  últimas posiciones da el lado real por donde salió, mejor que la última
+  excursión grande del bamboleo.
 
-## Línea perdida
+## Intersección y curva comprometida
 
-Sin línea (`suma < 0.3`): pivotea hacia `ultimoLado` a `VEL_BUSQUEDA`
-durante `GIRO_BUSQUEDA_MS` (1.5 s); si no reaparece, rebobina retrocediendo
-despacio a `VEL_REBOBINADO` todavía girando al mismo lado.
+- **Cruce**: avance recto comprometido de `AVANCE_CRUCE_MM` (45 mm = banda
+  de 20 mm + flecha de 14 mm + margen) a `VEL_CRUCE`, sin leer. Se convierte
+  a tiempo con `MM_S_A_CRUCE`, la velocidad real medida en el piso.
+- **Curva cerrada**: si solo un extremo ve la línea durante 3 ciclos, o si
+  el todo-negro llegó con historial corrido, entra la curva comprometida:
+  rueda externa a `VEL_CURVA_EXT` e interna quieta (aquí sí frena una rueda)
+  hacia ese lado. Sale cuando el trío interno recupera la línea (mínimo
+  `CURVA_MIN_MS` de giro) o al vencer `CURVA_MAX_MS`, que pasa a búsqueda.
+
+Tras salir de curva o de búsqueda hay un asiento de `ASIENTO_MS` con la
+velocidad capada a `VEL_ASIENTO`, para que el PD la recupere centrándola
+en vez de salir disparado.
+
+## Línea perdida: búsqueda sin 180
+
+Sin línea durante `PERDIDA_MIN_CICLOS` arranca la búsqueda por fases, con
+el lado que da el historial:
+
+1. Arco hacia adelante hacia ese lado (`ARCO_MS`): ambas ruedas avanzan
+   con diferencial fuerte.
+2. Pivote acotado al mismo lado (`PIVOTE_MS`, calibrado a ~90°).
+3. Arco al lado contrario (`ARCO2_MS`).
+4. Pivote acotado de vuelta (`PIVOTE2_MS`), y se repite el ciclo.
+
+Ninguna fase junta más de ~90° de rumbo respecto al rumbo de carrera, así
+que el robot ya no puede terminar la búsqueda mirando para atrás — el
+modo de v2 que giraba 1,5 s a contra-rotación y enganchaba la línea a
+180° era el que lo devolvía a la largada. En cualquier fase, confirmar la
+línea dos ciclos seguidos devuelve al PD con asiento.
 
 ## Parámetros
 
 | Constante | Valor | Qué regula |
 |---|---|---|
-| VEL_MAX / VEL_MIN | 180 / 70 | velocidad en recta y techo de curva |
-| KP / KD | 40 / 25 | corrección proporcional y amortiguación |
-| KS | 70 | cuánto baja la velocidad con el error |
-| ALPHA | 0.4 | filtro EMA de la posición |
-| REV_MAX | 60 | reversa máxima corrigiendo |
+| VEL_MAX / VEL_MIN | 200 / 80 | velocidad centrado (turbo) y piso en curva |
+| KP / KD | 6.0 / 10.0 | corrección por mm y amortiguación |
+| KS | 5.0 | cuánto baja la velocidad con el error |
+| ALPHA | 0.55 | filtro EMA de la posición |
+| DB_MM | 6 | zona muerta (≈ la zona saturada del arreglo) |
+| RUEDA_MIN | 40 | piso de la rueda interna corrigiendo |
+| UMBRAL_LINEA / PERDIDA_MIN_CICLOS | 0.3 / 3 | línea a la vista y debounce de pérdida |
 | N_ON / N_OFF | 0.6 / 0.4 | compuerta de arranque |
-| VEL_CRUCE / AVANCE_CRUCE_MS | 140 / 200 ms | tramo ciego en intersección |
-| VEL_BUSQUEDA / GIRO_BUSQUEDA_MS | 130 / 1.5 s | pivote de recuperación |
-| VEL_REBOBINADO | 90 | retroceso si no reaparece la línea |
+| VEL_CRUCE / AVANCE_CRUCE_MM | 140 / 45 mm | tramo ciego en intersección |
+| MM_S_A_CRUCE | 224 mm/s | velocidad real a PWM 140 (medir en piso) |
+| VEL_CURVA_EXT / VEL_CURVA_INT | 150 / 0 | ruedas en la curva comprometida |
+| CURVA_MIN_MS / CURVA_MAX_MS | 90 / 500 | giro mínimo y techo de la curva |
+| EXTREMO_CICLOS / NEG_EXT | 3 / 0.45 | persistencia del solo-extremo |
+| POS_ESQ_MM / HIST_CRUCE | 8 mm / 12 | historial que separa esquina de cruce |
+| VEL_ARCO_EXT / VEL_ARCO_INT | 140 / 40 | ruedas del arco de búsqueda |
+| VEL_BUSQUEDA / PIVOTE_MS | 110 / 280 ms | pivote acotado (~90°, medir) |
+| ARCO_MS / ARCO2_MS / PIVOTE2_MS | 600 / 750 / 560 | fases de la búsqueda |
+| ASIENTO_MS / VEL_ASIENTO | 250 / 120 | velocidad capada tras recuperar |
 | TRIM_IZQ / TRIM_DER | 1.0 / 1.0 | deriva en recta, ajuste a mano |
 
-El simulador del sitio (`web/assets/js/track.js`) porta este mismo
-algoritmo: encendido con compuerta, calibración en marcha, PD filtrado y
-cruce comprometido.
+El simulador del sitio (`web/assets/js/track.js`) porta el algoritmo de la
+v2; falta migrarlo a esta versión (posición en mm, zona muerta, historial,
+curva comprometida y búsqueda por fases).
