@@ -75,6 +75,11 @@ const float DB_MM = 6.0;    // zona muerta: dentro, corr = 0 y a fondo
 // alternos (corrida #18) — gana menos y exige asimetria real.
 const float K_SESGO = 40.0;        // PWM por negrura de sesgo S1-S3
 const float SESGO_MIN = 0.3;       // asimetria n1-n3 minima, o nada
+// La correccion se atenua con la confianza de la lectura: con masa
+// baja el centroide es ruidoso y perseguirlo a ganancia plena cruza
+// la cinta una y otra vez (vaiven al recentrar, corridas #18-19:
+// perseguia lecturas de 0.3-0.4 de masa a 200+ PWM de diferencial).
+const float SUMA_CONFIANZA = 0.7;  // suma >= esto = correccion plena
 const int RUEDA_MIN = 40;   // piso de la rueda interna en el PD
 
 // Trim de motores (1.0 = igual). Si tira a la derecha, bajar TRIM_IZQ
@@ -828,6 +833,7 @@ void loop() {
     float corr = (fabs(posF) < DB_MM) ? 0 : KP * posF + KD * deriv;
     if (suma < MASA_ANCHA && fabs(n[1] - n[3]) > SESGO_MIN)
       corr += K_SESGO * (n[1] - n[3]);
+    if (suma < SUMA_CONFIANZA) corr *= suma / SUMA_CONFIANZA;
 
     int velIzq = (int)((base + corr) * TRIM_IZQ);
     int velDer = (int)((base - corr) * TRIM_DER);

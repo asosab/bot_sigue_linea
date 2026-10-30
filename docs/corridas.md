@@ -42,5 +42,7 @@ mismo episodio), `esquinas` = curvas comprometidas disparadas, `cruces`
 
 | 18 | 12,02 s | 6 | 7 | 0 | perdió en la intersección; el usuario notó oscilación al recentrar la cinta — el propio `K_SESGO=70` oscilaba: cada vaivén S1/S3 inyectaba ±40-70 PWM alternos. Fix: K_SESGO=40 + exige asimetría >0,3 |
 
+| 19 | 5,09 s | 6 | 1 | 0 | nunca enganchó firme: parpadeo S2 224→804→84→680, perdió a los 80 ms, `posf` comprometió sobre masa 0,36 → blanco → fuera. Fix: `corr` se atenúa con la confianza de la lectura (`suma < 0,7` → proporcional) |
+
 Las trazas detalladas de cada corrida se pegan en la entrada del día en
 `docs/log/` cuando se leen.
