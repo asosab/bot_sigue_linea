@@ -66,6 +66,8 @@ tramo exacto y para. Datos y derivados en [[medicion-velocidad]].
   Con `MODO_PIVOTE = 1`, cada pulsada pivotea en el sitio 3 s. En el
   video se cuentan los cuartos de vuelta. De ahí sale también
   `PIVOTE2_MS` (el doble, el barrido del otro lado).
-- `TRIM = 1.0`: dos tandas con recorte al derecho dieron el mismo
-  derrape a la derecha — insensible al trim, ruedas parejas. La
-  corrida 255/255 decide entre pose inicial y causa mecánica.
+- `TRIM = 1.0`: tres configuraciones del derecho (224, 238, 255)
+  dieron el mismo derrape a la derecha (~15°) — el viraje es
+  mecánico, no del balance. Se revisa en el chasis (convergencia de
+  rueda, bola trasera, rozamiento); la prueba de empuje a mano lo
+  confirma.

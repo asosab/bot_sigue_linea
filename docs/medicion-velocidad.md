@@ -109,6 +109,27 @@ al parar.
 - Prueba de discriminación: `VEL_IZQ = VEL_DER = 255` con salida bien
   alineada. Si derrapa igual es mecánico; si va recto era la pose.
 
+## Cuarta tanda: 255/255 (2026-10-30)
+
+| Prueba | cm recorridos (3 s) | separación final al borde izq. |
+|---|---|---|
+| 1 | 92.3 | 33.3 |
+| 2 | 91.7 | 36.8 |
+| 3 | 93.2 | 31.3 |
+| 4 | 93.1 | 32.5 |
+| **media** | **92.6** | **33.5** |
+
+- Con ruedas iguales repite el mismo derrape: ~25 cm a la derecha en
+  ~93 cm. Las tres configuraciones (224, 238, 255 en el derecho) dan el
+  mismo resultado: **el viraje ~15° es mecánico** — convergencia de
+  rueda, bola trasera descentrada o rozamiento — no del balance PWM.
+- Implicación para el firmware: un viraje de 15° mueve ~8 mm al costado
+  en el tramo ciego del cruce (30 mm) — candidato a parte de las
+  pérdidas de línea vistas en pista.
+- Discriminante sin firmware: empujarlo a mano con motores apagados
+  por la regla. Si se abre a la derecha, es chasis (toe de rueda,
+  bola, rozamiento); revisar ángulos de montaje y despeje de sensores.
+
 ## Decisiones que salen de acá
 
 - `MM_S_A_CRUCE = 264` — convierte `AVANCE_CRUCE_MM` (30 mm) en ~114 ms
