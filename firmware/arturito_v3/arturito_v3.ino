@@ -144,6 +144,11 @@ const int VEL_ASIENTO = 120;
 // Antirrebote del pulsador
 const unsigned long BTN_DEBOUNCE_MS = 50;
 
+// Espera tras el pulsador de largada: los motores quedan parados
+// ESPERA_LARGADA_MS para retirar el dedo, y el cronometro de la
+// corrida arranca con el movimiento real, no con el click.
+const unsigned long ESPERA_LARGADA_MS = 2000;
+
 // Calibracion inicial de laboratorio (por canal; medir y rellenar).
 // En cinta negra sobre papel blanco: blanco ~26-30, negro ~850-960.
 int calMin[5] = {30, 30, 30, 30, 30};
@@ -224,6 +229,8 @@ unsigned long cruceHasta = 0;
 unsigned long curvaDesde = 0;
 int curvaLado = 0;
 unsigned long asientoHasta = 0;
+bool esperando = false;           // contando ESPERA_LARGADA_MS tras el click
+unsigned long esperaHasta = 0;
 
 // Maquina de la busqueda: fase 0..3 y lado recordado
 int faseBusqueda = -1;              // -1 = no esta buscando
@@ -501,39 +508,54 @@ void loop() {
     if (btn == LOW) presion = true;
   }
 
-  // 2. Compuerta de arranque (igual que v2)
+  // 2. Compuerta de arranque (igual que v2) + espera para retirar el
+  //    dedo antes de que se muevan los motores.
   if (!arrancado) {
-    if (btn == HIGH) btnBloqueado = false;
-    // Compuerta: negrura normal o lectura cruda de respaldo, por si
-    // la calibracion persistida de otra pista comprime la escala.
-    if (!btnBloqueado && btn == LOW &&
-        (negrura(2) > N_ON || lecturas[2] > 650) &&
-        (negrura(0) < N_OFF || lecturas[0] < 350) &&
-        (negrura(4) < N_OFF || lecturas[4] < 350)) {
-      sembrarPista();
+    if (esperando) {
+      detener();
+      if (millis() < esperaHasta) {
+        delay(5);
+        return;
+      }
+      esperando = false;
       arrancado = true;
       largadaDesde = millis();
-      perdRun = esqRun = cruceRun = 0;
-      posF = posPrev = 0;
-      ultimoLado = 0; // no heredar el lado de la corrida anterior
-      histLen = 0;
-      perdidaConteo = 0;
-      extremoConteo = 0;
-      posfConteo = 0;
-      cruceHasta = 0;
-      curvaDesde = 0;
-      faseBusqueda = -1;
-      pausaFase = -1;
-      enLinea = false;
-      asientoHasta = 0;
-      trazaIdx = trazaLen = 0;
       muestraProx = millis() + MUESTRA_MS;
       trazaEvento(T_LARGADA, 0);
       Serial.println("LARGADA: arrancando.");
     } else {
-      detener();
-      delay(5);
-      return;
+      if (btn == HIGH) btnBloqueado = false;
+      // Compuerta: negrura normal o lectura cruda de respaldo, por si
+      // la calibracion persistida de otra pista comprime la escala.
+      if (!btnBloqueado && btn == LOW &&
+          (negrura(2) > N_ON || lecturas[2] > 650) &&
+          (negrura(0) < N_OFF || lecturas[0] < 350) &&
+          (negrura(4) < N_OFF || lecturas[4] < 350)) {
+        sembrarPista();
+        esperando = true;
+        esperaHasta = millis() + ESPERA_LARGADA_MS;
+        perdRun = esqRun = cruceRun = 0;
+        posF = posPrev = 0;
+        ultimoLado = 0; // no heredar el lado de la corrida anterior
+        histLen = 0;
+        perdidaConteo = 0;
+        extremoConteo = 0;
+        posfConteo = 0;
+        cruceHasta = 0;
+        curvaDesde = 0;
+        faseBusqueda = -1;
+        pausaFase = -1;
+        enLinea = false;
+        asientoHasta = 0;
+        trazaIdx = trazaLen = 0;
+        Serial.println("LARGADA: espera para retirar el dedo.");
+        delay(5);
+        return;
+      } else {
+        detener();
+        delay(5);
+        return;
+      }
     }
   }
   // 3. En carrera: un nuevo click detiene y devuelve a la espera
