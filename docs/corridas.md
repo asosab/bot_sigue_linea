@@ -36,5 +36,7 @@ mismo episodio), `esquinas` = curvas comprometidas disparadas, `cruces`
 
 | 15 | 11,38 s | 10 | 7 | 0 | tardó en la primera esquina de 90°: `curva-der/ext` + `curva-ok` funcionaron, pero al reenganchar perdió y `ext` gatilló izq sobre un asomo débil 200 ms tras pausa → 700 ms a blanco → búsqueda → fuera de pista. Fixes: ext también bajo guardia post-recuperación + posF se resetea a la lectura actual al reenganchar la línea |
 
+| 16 | 6,32 s | 9 | 0 | 0 | regresión del veto de masa: MASA_ANCHA 1,4 la alcanzaba una línea fina barriendo dos canales (~1,8) → ext/posf vetados toda la horquilla → pasó de largo la primera curva, 0 esquinas. Fix: MASA_ANCHA 2,0 (borrón real) + ventana 200 ms |
+
 Las trazas detalladas de cada corrida se pegan en la entrada del día en
 `docs/log/` cuando se leen.

@@ -138,9 +138,12 @@ const float NEG_CENTRO_VETO = 0.4; // S2 por encima = la punta ve linea
 // Tras un borron (suma alta: encrucijada, esquina ancha, cintas
 // solapadas) el extremo solo es el borde del borron — el PD lo sigue
 // guiado igual y no se gasta un giro comprometido (corrida #14:
-// dos ext falsos tras suma >2.4 -> timeout a blanco).
-const float MASA_ANCHA = 1.4;          // suma de negruras = borron
-const unsigned long MASA_VENTANA_MS = 400;
+// dos ext falsos tras suma >2.4 -> timeout a blanco). El umbral es
+// alto de verdad: una linea fina barriendo dos canales ya suma ~1.8
+// y con 1.4 el veto tapo la horquilla entera (corrida #16, 0
+// esquinas, paso de largo la primera curva).
+const float MASA_ANCHA = 2.0;          // suma de negruras = borron real
+const unsigned long MASA_VENTANA_MS = 200;
 
 // Guardia post-recuperacion de los giros comprometidos: tras una pausa de busqueda, una
 // salida de curva comprometida o un cruce, el centroide no puede
