@@ -99,7 +99,13 @@ const float MM_S_A_CRUCE = 264.0; // medida 2026-10-29: ~79 cm de arco en 3 s
 const int VEL_CURVA_EXT = 150;    // rueda externa
 const int VEL_CURVA_INT = 0;      // rueda interna quieta (aca si frena)
 const unsigned long CURVA_MIN_MS = 90;   // giro comprometido minimo
-const unsigned long CURVA_MAX_MS = 500;  // techo antes de pasar a buscar
+const unsigned long CURVA_MAX_MS = 700;  // techo antes de pasar a buscar
+// Pasado este plazo sin confirmacion, la rueda interna pasa a
+// reversa: pivote sobre el eje. Con la interna a cero el arco
+// desplazaba el arreglo fuera de la esquina (corrida #10, rueda
+// fuera del tablero en el cruce de 90).
+const unsigned long CURVA_PIVOTE_MS = 250;
+const int VEL_PIVOTE_INT = -110; // interna en reversa = pivote
 const float NEG_EXT = 0.45;       // negrura para "el extremo ve la linea"
 const float SUMA_OTROS = 0.6;     // techo de los demas canales
 const int EXTREMO_CICLOS = 2;     // persistencia para disparar la curva
@@ -630,8 +636,10 @@ void loop() {
       trazaEvento(T_CURVA_OUT, 1);
       arrancarBusqueda();
     } else {
-      if (curvaLado > 0) { motorIzq(VEL_CURVA_EXT); motorDer(VEL_CURVA_INT); }
-      else               { motorIzq(VEL_CURVA_INT); motorDer(VEL_CURVA_EXT); }
+      int ruedaInt = (enCurva > CURVA_PIVOTE_MS)
+                     ? VEL_PIVOTE_INT : VEL_CURVA_INT;
+      if (curvaLado > 0) { motorIzq(VEL_CURVA_EXT); motorDer(ruedaInt); }
+      else               { motorIzq(ruedaInt); motorDer(VEL_CURVA_EXT); }
       delay(5);
       return;
     }
