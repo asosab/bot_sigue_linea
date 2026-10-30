@@ -26,6 +26,7 @@ mismo episodio), `esquinas` = curvas comprometidas disparadas, `cruces`
 | 8 | 5,73 s | 6 | 0 | 2 | horquilla: centroide crudo llegó a −19 mm pero POSF_ESQ era 20 → 0 esquinas. Lado de búsqueda ya correcto (busq-der). posF clavado +7/+9 = TRIM_DER 1.05 sobre-compensa. Fix: POSF_ESQ 16 + espera 700 ms |
 | 9 | 11,35 s | 14 | 4 | 0 | posF ya dispara (3× curva-der/posf) pero 2 curva-ok instantáneos en el borrón + timeout 500 ms ≈ 180° de error → se regresó por donde venía. Fixes: curva-ok pide S2 sobre línea + lockout 300 ms entre curvas |
 | 10 | 10,97 s | 14 | 4 | 0 | mucho mejor: llegó al cruce de 90°, `curva-izq/posf` disparó bien pero el arco con interna=0 barrió el arreglo fuera de la esquina → timeout → rueda fuera del tablero. Fix: rueda interna a reversa (pivote) pasados 250 ms + CURVA_MAX 700 |
+| 11 | 13,50 s | 18 | 9 | 0 | llegó a la intersección en X pero los disparos ext/posf se adelantan al todo-negro: cada brazo de la X dispara esquina como si fuera curva real → camino equivocado. Pivote en reversa confirmado en traza (v150 -110) |
 
 Las trazas detalladas de cada corrida se pegan en la entrada del día en
 `docs/log/` cuando se leen.
