@@ -66,5 +66,7 @@ tramo exacto y para. Datos y derivados en [[medicion-velocidad]].
   Con `MODO_PIVOTE = 1`, cada pulsada pivotea en el sitio 3 s. En el
   video se cuentan los cuartos de vuelta. De ahí sale también
   `PIVOTE2_MS` (el doble, el barrido del otro lado).
-- `TRIM_DER = 0.88` por el derrape medido, calculado con vía
-  `w = 131 mm`; falta una corrida de verificación para confirmar.
+- `TRIM_DER = 0.85`: la rueda izquierda es la lenta y la desventaja
+  crece con el PWM (0.876 a 140, 0.825 a ~255); 0.85 compromete el
+  rango de carrera. La corrida fina usa `VEL_DER = 210` contra
+  izquierdo a 255.

@@ -38,13 +38,11 @@
 // --- PARAMETROS DE LA PRUEBA ---
 // Corrida de lateralidad: el izquierdo fisico (visto de arriba, al
 // frente) va a potencia plena y el derecho queda recortado por el
-// calculo del derrape (v_izq/v_der = 0.876 medido). Diagnostico:
-// - va recto o curva suave a la derecha -> el izquierdo era el lento
-//   y el canal del esquema esta bien
-// - sigue curvando a la izquierda -> los canales estan cruzados o el
-//   derrape original venia de la pose inicial, no del balance
+// calculo del derrape. Segunda tanda (2026-10-29): con 255/224 siguio
+// curvando ~23 cm a la izquierda en ~95 cm -> e_izq/e_der = 0.825 a
+// este PWM; la desventaja del izquierdo crece con la velocidad.
 const int VEL_IZQ = 255;             // izquierdo a maxima potencia
-const int VEL_DER = (int)(VEL_IZQ * 0.876); // derecho controlado
+const int VEL_DER = (int)(VEL_IZQ * 0.825); // derecho controlado: 210
 
 const unsigned long CORRIDA_MS = 3000;  // duracion exacta de la corrida
 const unsigned long PREVIO_MS = 400;    // pausa tras la pulsada (sacar la mano)

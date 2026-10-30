@@ -56,12 +56,44 @@ Detalle en [[componente-tcrt5000]].
 | S3 | +15 | +38 |
 | S4 | +30 | +28 |
 
+## Segunda tanda: lateralidad a alta potencia (2026-10-30)
+
+Mismo sketch, otra configuración: `VEL_IZQ = 255` a plena potencia y
+`VEL_DER = 224` (255 × 0.876, la primera estimación). Protocolo nuevo
+sin video: frente en 0 cm y 8 cm de separación al borde derecho; se
+mide distancia recorrida y separación final.
+
+| Prueba | cm recorridos (3 s) | separación final a la derecha |
+|---|---|---|
+| 1 | 94.8 | 31.7 |
+| 2 | 96.0 | 28.0 |
+| 3 | 95.9 | 27.0 |
+| 4 | 94.8 | 31.9 |
+| 5 | 94.6 | 35.5 |
+| 6 | 94.2 | 34.0 |
+| **media** | **95.1** | **31.4** |
+
+## Derivado
+
+- Separación al borde derecho creció de 8 a ~31 cm: siguió curvando a
+  la izquierda ~23 cm por 95 cm — menos que en la primera tanda
+  (0,24 contra 0,42 cm/cm), el recorte ayudó pero quedó corto.
+- Arco: radio ~208 cm → `v_L/v_R = 0.939` a PWM 255/224 →
+  `e_izq/e_der = 0.825` a esta potencia, cuando a 140 era 0.876.
+  La rueda izquierda es la lenta y su desventaja crece con el PWM:
+  no hay un solo trim que valga para todo el rango.
+- Velocidad a 255: ~95 cm proyectados en 3 s → ~32 cm/s proyectados,
+  ~34 cm/s de arco (~340 mm/s).
+- La lectura intermedia (TRIM 0.88 a PWM 140 «empeoró» a ojo) queda
+  reconciliada: el valor era insuficiente, no de lado equivocado.
+
 ## Decisiones que salen de acá
 
 - `MM_S_A_CRUCE = 264` — convierte `AVANCE_CRUCE_MM` (30 mm) en ~114 ms
   de tramo ciego de cruce.
-- `TRIM_DER = 0.88`, calculado con vía medida de 131 mm; queda una
-  corrida de verificación para cerrar el ajuste.
+- `TRIM_DER = 0.85` en la v3: compromiso del rango de carrera
+  (140–255). La verificación fina corre con `VEL_DER = 210`
+  (255 × 0.825).
 - `PIVOTE_MS` sigue sin medir: falta la corrida con `MODO_PIVOTE = 1`.
 
 ## Relacionado
