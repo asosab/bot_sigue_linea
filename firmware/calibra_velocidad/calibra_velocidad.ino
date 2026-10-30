@@ -36,14 +36,14 @@
 #define LED 13      // marca del tramo de carrera en el video
 
 // --- PARAMETROS DE LA PRUEBA ---
-// Corrida de lateralidad: el izquierdo fisico (visto de arriba, al
-// frente) va a potencia plena y el derecho queda recortado por el
-// calculo del derrape. Tanda del 2026-10-30 (medida al borde
-// izquierdo): con 255/224 se fue ~23 cm a la derecha en ~95 cm ->
-// e_izq/e_der = 0.936; la desventaja del izquierdo es chica y la
-// primera tanda venia inflada por la pose inicial.
-const int VEL_IZQ = 255;             // izquierdo a maxima potencia
-const int VEL_DER = (int)(VEL_IZQ * 0.936); // derecho controlado: 238
+// Corrida de sesgo natural: ruedas IGUALES a fondo. Las tandas con
+// recorte al derecho (224 y 238) dieron el mismo derrape a la
+// derecha (~24 cm/95 cm): la deriva es insensible al trim, asi que
+// e_izq/e_der ~ 1.0 y el sesgo viene de la pose inicial o de algo
+// mecanico (bola trasera, chasis). Corrida limpia con ambas a 255:
+// si derrapa igual es mecanico; si va recto era la pose.
+const int VEL_IZQ = 255;
+const int VEL_DER = 255;
 
 const unsigned long CORRIDA_MS = 3000;  // duracion exacta de la corrida
 const unsigned long PREVIO_MS = 400;    // pausa tras la pulsada (sacar la mano)

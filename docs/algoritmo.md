@@ -144,7 +144,7 @@ línea dos ciclos seguidos devuelve al PD con asiento.
 | VEL_BUSQUEDA / PIVOTE_MS | 110 / 280 ms | pivote acotado (~90°, medir) |
 | ARCO_MS / ARCO2_MS / PIVOTE2_MS | 600 / 750 / 560 | fases de la búsqueda |
 | ASIENTO_MS / VEL_ASIENTO | 250 / 120 | velocidad capada tras recuperar |
-| TRIM_IZQ / TRIM_DER | 1.0 / 0.93 | deriva en recta ([[medicion-velocidad]]) |
+| TRIM_IZQ / TRIM_DER | 1.0 / 1.0 | ruedas parejas ([[medicion-velocidad]]) |
 
 El simulador del sitio (`web/assets/js/track.js`) porta el algoritmo de la
 v2; falta migrarlo a esta versión (posición en mm, zona muerta, historial,

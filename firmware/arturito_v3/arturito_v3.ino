@@ -68,11 +68,11 @@ const int RUEDA_MIN = 40;   // piso de la rueda interna en el PD
 
 // Trim de motores (1.0 = igual). Si tira a la derecha, bajar TRIM_IZQ
 // o subir TRIM_DER. Se ajusta a mano tras la prueba de recta.
-// Medida 2026-10-30: la rueda izquierda es ~6 % lenta
-// (e_izq/e_der = 0.936 a PWM 255/224). La desviacion grande de la
-// primera tanda venia inflada por la pose de salida.
+// Medida 2026-10-30: ruedas parejas a alta potencia — el derrape fue
+// insensible al trim en dos tandas (deriva ~14° constante), viene de
+// la pose o de algo mecanico. TRIM 1.0 hasta la corrida 255/255.
 const float TRIM_IZQ = 1.0;
-const float TRIM_DER = 0.93;
+const float TRIM_DER = 1.0;
 
 // Compuerta de arranque (umbrales sobre negrura 0..1)
 const float N_ON = 0.6;    // S2 tiene que ver negro firme

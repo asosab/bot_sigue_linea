@@ -88,12 +88,33 @@ al parar.
 - Velocidad a 255: ~95 cm proyectados en 3 s → ~32 cm/s proyectados,
   ~34 cm/s de arco (~340 mm/s).
 
+## Tercera tanda: 255/238 (2026-10-30)
+
+| Prueba | cm recorridos (3 s) | separación final al borde izq. |
+|---|---|---|
+| 1 | 92.0 | 33.6 |
+| 2 | 93.7 | 32.5 |
+| 3 | 93.4 | 34.2 |
+| **media** | **93.0** | **33.4** |
+
+## Derivado
+
+- Derrape a la derecha ~25 cm en ~93 cm — igual o peor que con 224,
+  cuando subir el PWM derecho debía reducir la curva. La deriva es
+  **insensible al trim**: `e_izq/e_der ≈ 1.0`, ruedas parejas.
+- ~24 cm por 95 cm ≈ 14° constante: el robot va recto en la dirección
+  en que arranca. El sesgo viene de la pose inicial o de algo mecánico
+  (bola trasera, chasis), no del balance de ruedas. La primera tanda
+  apuntaba a la izquierda; estas dos a la derecha.
+- Prueba de discriminación: `VEL_IZQ = VEL_DER = 255` con salida bien
+  alineada. Si derrapa igual es mecánico; si va recto era la pose.
+
 ## Decisiones que salen de acá
 
 - `MM_S_A_CRUCE = 264` — convierte `AVANCE_CRUCE_MM` (30 mm) en ~114 ms
   de tramo ciego de cruce.
-- `TRIM_DER = 0.93` en la v3. La verificación fina corre con
-  `VEL_DER = 238` (255 × 0.936); si queda residual, ajustar alrededor.
+- `TRIM = 1.0` en la v3 hasta la corrida 255/255; si el sesgo persiste
+  es mecánico y se revisa la bola trasera, no el firmware.
 - `PIVOTE_MS` sigue sin medir: falta la corrida con `MODO_PIVOTE = 1`.
 
 ## Relacionado

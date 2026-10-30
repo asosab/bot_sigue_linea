@@ -43,7 +43,7 @@ robot. `firmware/arturito_v2/` (control continuo, v2) y
 | VEL_ARCO_EXT / INT | 140 / 40 |
 | VEL_BUSQUEDA / PIVOTE_MS | 110 / 280 ms |
 | ASIENTO_MS / VEL_ASIENTO | 250 / 120 |
-| TRIM_IZQ / TRIM_DER | 1.0 / 0.93 |
+| TRIM_IZQ / TRIM_DER | 1.0 / 1.0 |
 
 Compilar y subir: [[toolchain]]. La subida a la placa siempre pide
 confirmación.

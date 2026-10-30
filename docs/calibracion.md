@@ -66,6 +66,6 @@ tramo exacto y para. Datos y derivados en [[medicion-velocidad]].
   Con `MODO_PIVOTE = 1`, cada pulsada pivotea en el sitio 3 s. En el
   video se cuentan los cuartos de vuelta. De ahí sale también
   `PIVOTE2_MS` (el doble, el barrido del otro lado).
-- `TRIM_DER = 0.93`: la rueda izquierda es ~6 % lenta
-  (`e_izq/e_der = 0.936`, medida del 2026-10-30 al borde izquierdo).
-  La corrida fina usa `VEL_DER = 238` contra izquierdo a 255.
+- `TRIM = 1.0`: dos tandas con recorte al derecho dieron el mismo
+  derrape a la derecha — insensible al trim, ruedas parejas. La
+  corrida 255/255 decide entre pose inicial y causa mecánica.
