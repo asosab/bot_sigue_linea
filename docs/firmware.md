@@ -28,6 +28,10 @@ robot. `firmware/arturito_v2/` (control continuo, v2) y
   sirve `MM_S_A_CRUCE` y `PIVOTE_MS`, ver [[calibracion]]
 - `#define DEBUG 1` imprime `posF`, `base` y `corr` cada 100 ms por
   serie, para afinar en la pista
+- EEPROM: guarda por corrida el tiempo largada→parada, contadores
+  (pérdidas/esquinas/cruces) y la calibración aprendida; al encender la
+  recarga e imprime la tabla por serie, ver [[algoritmo]]
+- Tamaño: 8700 B flash (26 %), 667 B RAM (32 %)
 
 ## Parámetros en código
 

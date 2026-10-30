@@ -38,6 +38,8 @@
  * en D5/D6/D9/D10, EEP en D4, ULT en D2).
  */
 
+#include <EEPROM.h>
+
 // --- PINES ---
 #define S0 A0 // extremo izquierdo (atras en la flecha)
 #define S1 A1 // medio izquierdo
@@ -139,6 +141,26 @@ const int CANALES[5] = {S0, S1, S2, S3, S4};
 float hist[HIST_N];
 int histLen = 0;
 
+// --- MEMORIA PERSISTENTE (EEPROM, sobrevive al apagado) ---
+// Registro de carreras: calibracion aprendida en la pista real y
+// hasta 8 tiempos con sus contadores. Al parar con el pulsador se
+// guarda la corrida; al encender se recarga la calibracion y se
+// imprime la tabla de tiempos por serie.
+struct Registro {
+  byte magic;                  // 0xA7 si hay datos validos
+  byte corridas;               // total de corridas guardadas
+  int calMin[5];
+  int calMax[5];
+  unsigned long tiempos[8];    // ms largada -> parada
+  byte perdidas[8];            // entradas a busqueda por corrida
+  byte esquinas[8];            // curvas comprometidas
+  byte cruces[8];              // todo-negro resuelto como cruce
+};
+const byte EEPROM_MAGIC = 0xA7;
+Registro reg;
+unsigned long largadaDesde = 0;
+byte perdRun = 0, esqRun = 0, cruceRun = 0;
+
 int lecturas[5];
 float posF = 0;
 float posPrev = 0;
@@ -234,6 +256,7 @@ float histGet(int k) {
 
 // --- MANEJADORES DE MANIOBRA COMPROMETIDA ---
 void entrarCruce() {
+  cruceRun++;
   cruceHasta = millis() +
     (unsigned long)(AVANCE_CRUCE_MM * 1000.0 / MM_S_A_CRUCE);
   posF = posPrev = 0;
@@ -244,6 +267,7 @@ void entrarCruce() {
 
 // lado: -1 izquierda, +1 derecha
 void entrarCurva(int lado) {
+  esqRun++;
   curvaDesde = millis();
   curvaLado = lado;
   perdidaConteo = 0;
@@ -253,6 +277,7 @@ void entrarCurva(int lado) {
 
 // --- BUSQUEDA: arranque y fases ---
 void arrancarBusqueda() {
+  perdRun++;
   // Direccion: promedio de las ultimas posiciones validas; si no
   // alcanza, el ultimo lado grande; si no, la derecha.
   float p = (histGet(0) + histGet(1) + histGet(2)) / 3.0;
@@ -291,6 +316,33 @@ void setup() {
   Serial.begin(9600);
   Serial.println("===== ARTURITO v3 =====");
   Serial.println("Esperando: apoyar sobre la linea y pulsar largada.");
+
+  // Recargar el registro persistente: si es valido, la calibracion
+  // de la ultima pista arranca sembrada y la tabla de tiempos sale
+  // por serie para consultarla con cable despues de las corridas.
+  EEPROM.get(0, reg);
+  if (reg.magic != EEPROM_MAGIC) {
+    reg.magic = EEPROM_MAGIC;
+    reg.corridas = 0;
+    memset(reg.tiempos, 0, sizeof(reg.tiempos));
+    memset(reg.perdidas, 0, sizeof(reg.perdidas));
+    memset(reg.esquinas, 0, sizeof(reg.esquinas));
+    memset(reg.cruces, 0, sizeof(reg.cruces));
+  } else {
+    for (int i = 0; i < 5; i++) {
+      calMin[i] = reg.calMin[i];
+      calMax[i] = reg.calMax[i];
+    }
+    Serial.print("Corridas guardadas: ");
+    Serial.println(reg.corridas);
+    for (int i = 0; i < reg.corridas && i < 8; i++) {
+      Serial.print("  #"); Serial.print(i + 1);
+      Serial.print(": "); Serial.print(reg.tiempos[i] / 1000.0);
+      Serial.print(" s | perdidas "); Serial.print(reg.perdidas[i]);
+      Serial.print(" esquinas "); Serial.print(reg.esquinas[i]);
+      Serial.print(" cruces "); Serial.println(reg.cruces[i]);
+    }
+  }
 }
 
 void loop() {
@@ -308,10 +360,16 @@ void loop() {
   // 2. Compuerta de arranque (igual que v2)
   if (!arrancado) {
     if (btn == HIGH) btnBloqueado = false;
+    // Compuerta: negrura normal o lectura cruda de respaldo, por si
+    // la calibracion persistida de otra pista comprime la escala.
     if (!btnBloqueado && btn == LOW &&
-        negrura(2) > N_ON && negrura(0) < N_OFF && negrura(4) < N_OFF) {
+        (negrura(2) > N_ON || lecturas[2] > 650) &&
+        (negrura(0) < N_OFF || lecturas[0] < 350) &&
+        (negrura(4) < N_OFF || lecturas[4] < 350)) {
       sembrarPista();
       arrancado = true;
+      largadaDesde = millis();
+      perdRun = esqRun = cruceRun = 0;
       posF = posPrev = 0;
       histLen = 0;
       perdidaConteo = 0;
@@ -331,7 +389,21 @@ void loop() {
     arrancado = false;
     btnBloqueado = true;
     detener();
-    Serial.println("DETENIDO: esperando nueva largada.");
+    // Guardar la corrida en EEPROM: tiempo, contadores y calibracion
+    int slot = reg.corridas % 8;
+    reg.tiempos[slot] = millis() - largadaDesde;
+    reg.perdidas[slot] = perdRun;
+    reg.esquinas[slot] = esqRun;
+    reg.cruces[slot] = cruceRun;
+    for (int i = 0; i < 5; i++) {
+      reg.calMin[i] = calMin[i];
+      reg.calMax[i] = calMax[i];
+    }
+    reg.corridas++;
+    EEPROM.put(0, reg);
+    Serial.print("DETENIDO: ");
+    Serial.print(reg.tiempos[slot] / 1000.0);
+    Serial.println(" s guardados. Esperando nueva largada.");
     delay(5);
     return;
   }

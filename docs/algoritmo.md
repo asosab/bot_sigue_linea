@@ -105,6 +105,20 @@ Tras salir de curva o de búsqueda hay un asiento de `ASIENTO_MS` con la
 velocidad capada a `VEL_ASIENTO`, para que el PD la recupere centrándola
 en vez de salir disparado.
 
+## Memoria persistente (EEPROM)
+
+La UNO guarda un registro en EEPROM que sobrevive al apagado — pensado
+para las corridas de prueba y las tres de la competencia:
+
+- Al parar con el pulsador se guarda la corrida: tiempo largada→parada
+  (ms), contadores de pérdidas, esquinas comprometidas y cruces, más la
+  calibración `calMin`/`calMax` aprendida en la pista real.
+- Al encender recarga la calibración de la última pista (la siguiente
+  corrida arranca calibrada) e imprime por serie la tabla de hasta 8
+  corridas con sus contadores — se consulta conectando el cable después.
+- La compuerta de arranque acepta también lectura cruda de respaldo, por
+  si la calibración persistida de otra pista comprime la negrura.
+
 ## Línea perdida: búsqueda sin 180
 
 Sin línea durante `PERDIDA_MIN_CICLOS` arranca la búsqueda por fases, con
