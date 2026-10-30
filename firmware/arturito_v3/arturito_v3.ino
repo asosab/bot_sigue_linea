@@ -101,7 +101,7 @@ const float MM_S_A_CRUCE = 264.0; // medida 2026-10-29: ~79 cm de arco en 3 s
 // Curva cerrada comprometida (esquina de 90 grados)
 const int VEL_CURVA_EXT = 150;    // rueda externa
 const int VEL_CURVA_INT = 0;      // rueda interna quieta (aca si frena)
-const unsigned long CURVA_MIN_MS = 90;   // giro comprometido minimo
+const unsigned long CURVA_MIN_MS = 60;   // giro comprometido minimo
 const unsigned long CURVA_MAX_MS = 700;  // techo antes de pasar a buscar
 // Pasado este plazo sin confirmacion, la rueda interna pasa a
 // reversa: pivote sobre el eje. Con la interna a cero el arco
@@ -130,6 +130,14 @@ const int POSF_ESQ_CICLOS = 2;    // persistencia del lado extremo
 // S2 sobre cinta es seguir una linea ajena (corrida #11: pinball en
 // la X, 4 curvas falsas en ~3 s, ningun todo-negro real).
 const float NEG_CENTRO_VETO = 0.4; // S2 por encima = la punta ve linea
+
+// Guardia post-recuperacion de posf: tras una pausa de busqueda, una
+// salida de curva comprometida o un cruce, el centroide no puede
+// comprometer un giro hasta que el PD pruebe la linea un tramo. Un
+// asomo debil de extremo gatillaba el giro a un solo ciclo de
+// retomar la cinta (corrida #13: pausa -> posf en 10 ms -> reversa);
+// un brazo transitorio no sobrevive el plazo, una esquina real si.
+const unsigned long POSF_GUARDIA_MS = 400;
 
 // Discriminacion cruce/esquina sobre el historial
 const float POS_ESQ_MM = 8.0;     // |posF| historica que delata esquina
@@ -248,6 +256,7 @@ int curvaLado = 0;
 unsigned long curvaLockoutHasta = 0;
 const unsigned long CURVA_LOCKOUT_MS = 300;
 unsigned long asientoHasta = 0;
+unsigned long posfGuardiaHasta = 0;
 bool esperando = false;           // contando ESPERA_LARGADA_MS tras el click
 unsigned long esperaHasta = 0;
 
@@ -410,6 +419,7 @@ void entrarCruce() {
   faseBusqueda = -1;
   pausaFase = -1;
   enLinea = false;
+  posfGuardiaHasta = cruceHasta + POSF_GUARDIA_MS;
   motorIzq(VEL_CRUCE); motorDer(VEL_CRUCE);
 }
 
@@ -445,6 +455,7 @@ void pausarBusqueda() {
     pausaEnFase = millis() - faseDesde;
     pausaDesde = millis();
     asientoHasta = millis() + ASIENTO_MS;
+    posfGuardiaHasta = millis() + POSF_GUARDIA_MS;
   }
   faseBusqueda = -1;
 }
@@ -654,6 +665,7 @@ void loop() {
       curvaDesde = 0;
       asientoHasta = millis() + ASIENTO_MS;
       curvaLockoutHasta = millis() + CURVA_LOCKOUT_MS;
+      posfGuardiaHasta = millis() + POSF_GUARDIA_MS;
       trazaEvento(T_CURVA_OUT, (barrida && !volvio) ? 2 : 0);
     } else if (enCurva >= CURVA_MAX_MS) {
       curvaDesde = 0;
@@ -721,7 +733,7 @@ void loop() {
   //     extremo mientras S2 sigue sobre la linea propia — ahi no se
   //     esta yendo la linea, esta cruzando otra (corrida #11).
   if (suma > UMBRAL_LINEA) {
-    if (n[2] < NEG_CENTRO_VETO) {
+    if (n[2] < NEG_CENTRO_VETO && millis() >= posfGuardiaHasta) {
       float posAhora = sumaP / suma;
       int ladoPos = (posAhora > POSF_ESQ) ? 1 :
                     (posAhora < -POSF_ESQ) ? -1 : 0;

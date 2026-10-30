@@ -30,5 +30,7 @@ mismo episodio), `esquinas` = curvas comprometidas disparadas, `cruces`
 
 | 12 | 13,00 s | 16 | 7 | 0 | cruzó la X y llegó a la esquina superior derecha; la línea pasó por el trío interno a ~80 ms de giro pero CURVA_MIN=90 vetó el curva-ok → el arreglo la barrió de largo y el pivote a reversa la alejó → timeout → el rescate armó una reversa de 180° → salió del tablero por arriba. Fix: abortar la curva cuando la masa cruza al lado contrario (`curva-barrida` → PD) |
 
+| 13 | 23,23 s | 21 | 14 | 0 | la más larga hasta ahora; `curva-barrida` funcionó dos veces y el PD recuperó cinta real. Cayó en el sector del trapecio: un asomo débil (S0≈0,26) gatilló `posf` a un ciclo de salir de la pausa → pivote a blanco → cadena de rescates → fuera del tablero arriba-izq. Fixes: posf con guardia 400 ms post-recuperación (pausa/salida de curva/cruce) + CURVA_MIN 60 ms |
+
 Las trazas detalladas de cada corrida se pegan en la entrada del día en
 `docs/log/` cuando se leen.
