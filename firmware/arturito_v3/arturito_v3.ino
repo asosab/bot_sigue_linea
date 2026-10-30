@@ -142,7 +142,7 @@ const float NEG_CENTRO_VETO = 0.4; // S2 por encima = la punta ve linea
 const float MASA_ANCHA = 1.4;          // suma de negruras = borron
 const unsigned long MASA_VENTANA_MS = 400;
 
-// Guardia post-recuperacion de posf: tras una pausa de busqueda, una
+// Guardia post-recuperacion de los giros comprometidos: tras una pausa de busqueda, una
 // salida de curva comprometida o un cruce, el centroide no puede
 // comprometer un giro hasta que el PD pruebe la linea un tramo. Un
 // asomo debil de extremo gatillaba el giro a un solo ciclo de
@@ -733,9 +733,11 @@ void loop() {
   //    punta libre de cinta (un brazo de la X con S2 sobre la linea
   //    propia tambien deja un extremo casi solo).
   bool extIzq = (n[0] > NEG_EXT) && (n[2] < NEG_CENTRO_VETO) &&
-                (suma - n[0] < SUMA_OTROS) && millis() >= sumaAltaHasta;
+                (suma - n[0] < SUMA_OTROS) && millis() >= sumaAltaHasta &&
+                millis() >= posfGuardiaHasta;
   bool extDer = (n[4] > NEG_EXT) && (n[2] < NEG_CENTRO_VETO) &&
-                (suma - n[4] < SUMA_OTROS) && millis() >= sumaAltaHasta;
+                (suma - n[4] < SUMA_OTROS) && millis() >= sumaAltaHasta &&
+                millis() >= posfGuardiaHasta;
   int ladoExt = extIzq ? -1 : (extDer ? 1 : 0);
   if (ladoExt != 0 && ladoExt == extremoLado) {
     if (++extremoConteo >= EXTREMO_CICLOS) {
@@ -782,10 +784,14 @@ void loop() {
   //    que la senal se apaga del todo (cae de UMBRAL/2). La banda
   //    debil intermedia la sigue el PD — girar hacia el asomo recupera
   //    la linea; soltarla ahi era lo que recaia en la busqueda.
+  bool estabaEnLinea = enLinea;
   enLinea = (suma > UMBRAL_LINEA) || (enLinea && suma > UMBRAL_LINEA / 2.0);
   if (enLinea) {
     float pos = sumaP / suma;            // mm, -30 (izq) .. +30 (der)
-    posF += ALPHA * (pos - posF);
+    // Al reenganchar (salir de curva, cruce o busqueda) la lectura
+    // actual es la mejor estima: el EMA arrastraba el valor viejo un
+    // tramo y corregia al lado equivocado tras las maniobras.
+    posF = estabaEnLinea ? posF + ALPHA * (pos - posF) : pos;
     float deriv = posF - posPrev;
     posPrev = posF;
     histPush(posF);

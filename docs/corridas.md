@@ -34,5 +34,7 @@ mismo episodio), `esquinas` = curvas comprometidas disparadas, `cruces`
 
 | 14 | 34,35 s | 22 | 10 | 0 | la más larga; no salió del tablero (stop del usuario con línea cerca). `ext` gatilló dos veces sobre el borde de un borrón (extremo solo ~100 ms tras suma >2,4) → timeouts a blanco. El `ext` que sí era esquina (+32,52, curva-ok +33,05) venía de suma <1,0. Fix: veto ext/posf 400 ms tras masa ancha (suma >1,4) |
 
+| 15 | 11,38 s | 10 | 7 | 0 | tardó en la primera esquina de 90°: `curva-der/ext` + `curva-ok` funcionaron, pero al reenganchar perdió y `ext` gatilló izq sobre un asomo débil 200 ms tras pausa → 700 ms a blanco → búsqueda → fuera de pista. Fixes: ext también bajo guardia post-recuperación + posF se resetea a la lectura actual al reenganchar la línea |
+
 Las trazas detalladas de cada corrida se pegan en la entrada del día en
 `docs/log/` cuando se leen.
