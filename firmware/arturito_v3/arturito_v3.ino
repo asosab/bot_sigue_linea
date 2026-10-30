@@ -101,7 +101,7 @@ const int VEL_CURVA_INT = 0;      // rueda interna quieta (aca si frena)
 const unsigned long CURVA_MIN_MS = 90;   // giro comprometido minimo
 const unsigned long CURVA_MAX_MS = 500;  // techo antes de pasar a buscar
 const float NEG_EXT = 0.45;       // negrura para "el extremo ve la linea"
-const float SUMA_OTROS = 0.9;     // techo de los demas canales
+const float SUMA_OTROS = 0.6;     // techo de los demas canales
 const int EXTREMO_CICLOS = 2;     // persistencia para disparar la curva
 const float NEG_INTERNA = 0.6;    // trio interno que confirma la vuelta
 
@@ -497,22 +497,23 @@ void loop() {
     confirmaConteo = 0;
     faseBusqueda = -1;
 
-    // Zona muerta: sin senal real dentro de +-DB_MM, se va a fondo
-    float posE = 0;
-    if (posF > DB_MM) posE = posF - DB_MM;
-    else if (posF < -DB_MM) posE = posF + DB_MM;
-
-    int base = (int)(VEL_MAX - KS * fabs(posE));
+    // Zona muerta como interruptor: dentro de +-DB_MM no hay senal
+    // real y se va a fondo; afuera la correccion es completa sobre
+    // posF — restarla dejaba una banda debil justo donde empiezan
+    // las curvas y el robot las pasaba de largo (regresion vs v2).
+    int base = (int)(VEL_MAX - KS * fabs(posF));
     if (base < VEL_MIN) base = VEL_MIN;
     if (millis() < asientoHasta && base > VEL_ASIENTO) base = VEL_ASIENTO;
 
-    float corr = (posE == 0) ? 0 : KP * posE + KD * deriv;
+    float corr = (fabs(posF) < DB_MM) ? 0 : KP * posF + KD * deriv;
 
     int velIzq = (int)((base + corr) * TRIM_IZQ);
     int velDer = (int)((base - corr) * TRIM_DER);
-    // Piso positivo: la rueda interna nunca frena corrigiendo
-    if (velIzq < RUEDA_MIN) velIzq = RUEDA_MIN;
-    if (velDer < RUEDA_MIN) velDer = RUEDA_MIN;
+    // Piso de la rueda interna: 40 en correccion normal, 0 en error
+    // grande — el freno completo queda para el caso extremo.
+    int piso = (fabs(posF) > 15.0) ? 0 : RUEDA_MIN;
+    if (velIzq < piso) velIzq = piso;
+    if (velDer < piso) velDer = piso;
     if (velIzq > 255) velIzq = 255;
     if (velDer > 255) velDer = 255;
     motorIzq(velIzq);
