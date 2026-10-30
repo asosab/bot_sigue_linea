@@ -60,8 +60,10 @@ Detalle en [[componente-tcrt5000]].
 
 Mismo sketch, otra configuración: `VEL_IZQ = 255` a plena potencia y
 `VEL_DER = 224` (255 × 0.876, la primera estimación). Protocolo nuevo
-sin video: frente en 0 cm y 8 cm de separación al **borde izquierdo**;
-se mide distancia recorrida y separación final al borde.
+sin video, visto en cenital con el frente hacia arriba: frente en 0 cm
+y separación medida desde el **borde izquierdo de la pista** hasta el
+**borde externo de la rueda izquierda**, 8 cm al salir y el valor final
+al parar.
 
 | Prueba | cm recorridos (3 s) | separación final al borde izq. |
 |---|---|---|
