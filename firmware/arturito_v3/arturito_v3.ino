@@ -422,7 +422,12 @@ void arrancarBusqueda() {
   // Pausa reciente: mismo episodio, retomar la fase sin reiniciar el
   // pivote. Pausa vieja o inexistente: episodio nuevo desde cero.
   if (pausaFase >= 0 && millis() - pausaDesde <= PAUSA_MAX_MS) {
-    ladoBusqueda = pausaLado;
+    // El lado de la pausa puede venir de una decision vieja (ej. el
+    // primer barrido tras la largada, con historial vacio). Si los
+    // asomos recientes ya marcaron otro lado, el dato fresco gana —
+    // en la corrida #7 busco a la izquierda con la linea a la
+    // derecha todo el episodio.
+    ladoBusqueda = (ultimoLado != 0) ? ultimoLado : pausaLado;
     faseBusqueda = pausaFase;
     faseDesde = millis() - pausaEnFase;
     trazaEvento(T_BUSQ_RES, ladoBusqueda);
@@ -510,6 +515,7 @@ void loop() {
       largadaDesde = millis();
       perdRun = esqRun = cruceRun = 0;
       posF = posPrev = 0;
+      ultimoLado = 0; // no heredar el lado de la corrida anterior
       histLen = 0;
       perdidaConteo = 0;
       extremoConteo = 0;
