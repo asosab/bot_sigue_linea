@@ -119,7 +119,14 @@ const unsigned long PIVOTE_MS = 280;  // ~90 grados a VEL_BUSQUEDA: medir
 const unsigned long ARCO_MS = 400;    // arco hacia el lado de la perdida
 const unsigned long PIVOTE2_MS = 560; // pivote de vuelta (~-90 grados)
 const unsigned long ARCO2_MS = 500;   // arco al lado contrario
-const int CONFIRMA_CICLOS = 2;        // ciclos con linea para salir
+
+// Si la linea asoma un instante en plena busqueda, el PD la agarra y
+// el barrido queda en pausa: al perderla otra vez retoma donde iba,
+// no vuelve a la fase 0. Reiniciar el pivote en cada asomo sumaba
+// giros al mismo lado sin tope y terminaba sacando la rueda de la
+// pista (corrida #5: 117 reentradas en 10 s). Vencido el plazo la
+// perdida se toma como otra y el barrido empieza de cero.
+const unsigned long PAUSA_MAX_MS = 600;
 
 // Asiento tras recuperar la linea: velocidad capada un tramo
 const unsigned long ASIENTO_MS = 250;
@@ -173,7 +180,6 @@ int ultimoLado = 0;                 // -1 izquierda, +1 derecha
 int perdidaConteo = 0;
 int extremoConteo = 0;
 int extremoLado = 0;
-int confirmaConteo = 0;
 bool arrancado = false;
 bool btnPrev = HIGH;
 bool btnBloqueado = false;
@@ -187,6 +193,11 @@ unsigned long asientoHasta = 0;
 int faseBusqueda = -1;              // -1 = no esta buscando
 int ladoBusqueda = 0;
 unsigned long faseDesde = 0;
+int pausaFase = -1;                 // fase pausada por un asomo (-1 = sin pausa)
+int pausaLado = 0;
+unsigned long pausaEnFase = 0;
+unsigned long pausaDesde = 0;
+bool enLinea = false;               // histeresis: el PD la suelta solo si se apaga del todo
 
 // --- MOTORES (velocidad con signo: + adelante, - atras) ---
 void motorIzq(int vel) {
@@ -267,6 +278,9 @@ void entrarCruce() {
   posF = posPrev = 0;
   perdidaConteo = 0;
   extremoConteo = 0;
+  faseBusqueda = -1;
+  pausaFase = -1;
+  enLinea = false;
   motorIzq(VEL_CRUCE); motorDer(VEL_CRUCE);
 }
 
@@ -278,11 +292,37 @@ void entrarCurva(int lado) {
   perdidaConteo = 0;
   extremoConteo = 0;
   faseBusqueda = -1;
+  pausaFase = -1; // la curva cambia el marco: la pausa ya no aplica
+  enLinea = false;
 }
 
-// --- BUSQUEDA: arranque y fases ---
+// --- BUSQUEDA: arranque, pausa y fases ---
+// Al salir de la busqueda (el PD tomo la linea) se guarda la fase, el
+// lado y cuanto llevaba de esa fase: si la perdida vuelve enseguida el
+// barrido retoma donde iba. Tambien capa la velocidad un tramo
+// (asiento), como hacia la salida por confirmacion.
+void pausarBusqueda() {
+  if (faseBusqueda >= 0) {
+    pausaFase = faseBusqueda;
+    pausaLado = ladoBusqueda;
+    pausaEnFase = millis() - faseDesde;
+    pausaDesde = millis();
+    asientoHasta = millis() + ASIENTO_MS;
+  }
+  faseBusqueda = -1;
+}
+
 void arrancarBusqueda() {
   perdRun++;
+  // Pausa reciente: mismo episodio, retomar la fase sin reiniciar el
+  // pivote. Pausa vieja o inexistente: episodio nuevo desde cero.
+  if (pausaFase >= 0 && millis() - pausaDesde <= PAUSA_MAX_MS) {
+    ladoBusqueda = pausaLado;
+    faseBusqueda = pausaFase;
+    faseDesde = millis() - pausaEnFase;
+    return;
+  }
+  pausaFase = -1;
   // Direccion: promedio de las ultimas posiciones validas; si no
   // alcanza, el ultimo lado grande; si no, la derecha.
   float p = (histGet(0) + histGet(1) + histGet(2)) / 3.0;
@@ -291,7 +331,6 @@ void arrancarBusqueda() {
   else ladoBusqueda = (ultimoLado != 0) ? ultimoLado : 1;
   faseBusqueda = 0;
   faseDesde = millis();
-  confirmaConteo = 0;
 }
 
 // Arco hacia adelante: las dos ruedas avanzan, diferencial fuerte
@@ -381,6 +420,8 @@ void loop() {
       cruceHasta = 0;
       curvaDesde = 0;
       faseBusqueda = -1;
+      pausaFase = -1;
+      enLinea = false;
       asientoHasta = 0;
       Serial.println("LARGADA: arrancando.");
     } else {
@@ -483,8 +524,13 @@ void loop() {
     extremoLado = ladoExt;
   }
 
-  // 9. Linea a la vista: PD con zona muerta y rueda interna en piso
-  if (suma > UMBRAL_LINEA) {
+  // 9. Linea a la vista: PD con zona muerta y rueda interna en piso.
+  //    Histeresis: entra pidiendo UMBRAL_LINEA pero no la suelta hasta
+  //    que la senal se apaga del todo (cae de UMBRAL/2). La banda
+  //    debil intermedia la sigue el PD — girar hacia el asomo recupera
+  //    la linea; soltarla ahi era lo que recaia en la busqueda.
+  enLinea = (suma > UMBRAL_LINEA) || (enLinea && suma > UMBRAL_LINEA / 2.0);
+  if (enLinea) {
     float pos = sumaP / suma;            // mm, -30 (izq) .. +30 (der)
     posF += ALPHA * (pos - posF);
     float deriv = posF - posPrev;
@@ -494,8 +540,7 @@ void loop() {
     if (posF > 6.0) ultimoLado = 1;
     else if (posF < -6.0) ultimoLado = -1;
     perdidaConteo = 0;
-    confirmaConteo = 0;
-    faseBusqueda = -1;
+    pausarBusqueda();
 
     // Zona muerta como interruptor: dentro de +-DB_MM no hay senal
     // real y se va a fondo; afuera la correccion es completa sobre
@@ -540,18 +585,6 @@ void loop() {
     return;
   }
   if (faseBusqueda < 0) arrancarBusqueda();
-
-  if (suma > UMBRAL_LINEA / 2.0) {      // asoma algo: confirmar y salir
-    if (++confirmaConteo >= CONFIRMA_CICLOS) {
-      faseBusqueda = -1;
-      perdidaConteo = 0;
-      asientoHasta = millis() + ASIENTO_MS;
-      delay(5);
-      return;
-    }
-  } else {
-    confirmaConteo = 0;
-  }
 
   unsigned long enFase = millis() - faseDesde;
   switch (faseBusqueda) {
