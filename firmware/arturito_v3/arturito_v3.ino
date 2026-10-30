@@ -228,6 +228,8 @@ unsigned long btnUltimo = 0;
 unsigned long cruceHasta = 0;
 unsigned long curvaDesde = 0;
 int curvaLado = 0;
+unsigned long curvaLockoutHasta = 0;
+const unsigned long CURVA_LOCKOUT_MS = 300;
 unsigned long asientoHasta = 0;
 bool esperando = false;           // contando ESPERA_LARGADA_MS tras el click
 unsigned long esperaHasta = 0;
@@ -394,7 +396,11 @@ void entrarCruce() {
 
 // lado: -1 izquierda, +1 derecha. via: 1 extremo-solo, 2 posF, 3
 // todo-negro — queda en la traza para saber que camino disparo.
+// El lockout entre curvas deja al PD verificar la linea antes de
+// comprometer otro giro: en la corrida #9 dos disparos a 100 ms en
+// el mismo borron de cinta acumularon ~180 grados de error.
 void entrarCurva(int lado, int via) {
+  if (millis() < curvaLockoutHasta) return;
   esqRun++;
   trazaEvento(T_CURVA, lado * via);
   curvaDesde = millis();
@@ -610,12 +616,17 @@ void loop() {
   if (curvaDesde) {
     unsigned long enCurva = millis() - curvaDesde;
     float interna = negrura(1) + negrura(2) + negrura(3);
-    if (enCurva >= CURVA_MIN_MS && interna > NEG_INTERNA) {
+    // Salida ok pide el trio interno Y el centro viendo la linea:
+    // solo el trio la soltaba sobre otro tramo de cinta en la esquina.
+    if (enCurva >= CURVA_MIN_MS && interna > NEG_INTERNA &&
+        negrura(2) > 0.4) {
       curvaDesde = 0;
       asientoHasta = millis() + ASIENTO_MS;
+      curvaLockoutHasta = millis() + CURVA_LOCKOUT_MS;
       trazaEvento(T_CURVA_OUT, 0);
     } else if (enCurva >= CURVA_MAX_MS) {
       curvaDesde = 0;
+      curvaLockoutHasta = millis() + CURVA_LOCKOUT_MS;
       trazaEvento(T_CURVA_OUT, 1);
       arrancarBusqueda();
     } else {
