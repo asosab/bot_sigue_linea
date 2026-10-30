@@ -23,6 +23,7 @@ mismo episodio), `esquinas` = curvas comprometidas disparadas, `cruces`
 | 5 | 10,75 s | 117 | 4 | 0 | reinicio de fase 0 en la búsqueda → pivote sin tope, rueda fuera de la pista. Fix: pausa/retoma |
 | 6 | 6,11 s | 5 | 0 | 0 | pasó de largo la horquilla de 180° sin registrarla (ventana extremo-solo inexistente). Fix: disparo por posF |
 | 7 | 3,59 s | 5 | 0 | 0 | perdió la línea a ~100 ms de la largada; buscó a la izq. con la línea a la der. todo el episodio. Fixes: reset de `ultimoLado` en largada + retoma con lado fresco |
+| 8 | 5,73 s | 6 | 0 | 2 | horquilla: centroide crudo llegó a −19 mm pero POSF_ESQ era 20 → 0 esquinas. Lado de búsqueda ya correcto (busq-der). posF clavado +7/+9 = TRIM_DER 1.05 sobre-compensa. Fix: POSF_ESQ 16 + espera 700 ms |
 
 Las trazas detalladas de cada corrida se pegan en la entrada del día en
 `docs/log/` cuando se leen.

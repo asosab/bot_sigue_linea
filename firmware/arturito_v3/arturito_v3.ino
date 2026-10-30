@@ -111,7 +111,7 @@ const float NEG_INTERNA = 0.6;    // trio interno que confirma la vuelta
 // redondeada a velocidad de recta puede no existir — la linea se va
 // por el borde pisando dos canales y el robot pasa de largo
 // (corrida #6: 0 esquinas en un 180).
-const float POSF_ESQ = 20.0;      // mm: centroide fuera del trio interno
+const float POSF_ESQ = 16.0;      // mm: centroide fuera del trio interno
 const int POSF_ESQ_CICLOS = 2;    // persistencia del lado extremo
 
 // Discriminacion cruce/esquina sobre el historial
@@ -147,7 +147,7 @@ const unsigned long BTN_DEBOUNCE_MS = 50;
 // Espera tras el pulsador de largada: los motores quedan parados
 // ESPERA_LARGADA_MS para retirar el dedo, y el cronometro de la
 // corrida arranca con el movimiento real, no con el click.
-const unsigned long ESPERA_LARGADA_MS = 2000;
+const unsigned long ESPERA_LARGADA_MS = 700;
 
 // Calibracion inicial de laboratorio (por canal; medir y rellenar).
 // En cinta negra sobre papel blanco: blanco ~26-30, negro ~850-960.
