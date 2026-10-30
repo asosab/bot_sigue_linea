@@ -92,11 +92,13 @@ const int PERDIDA_MIN_CICLOS = 3; // ciclos sin linea antes de buscar
 
 // Interseccion: avance recto comprometido al ver todo negro.
 // El todo-negro se lee cuando la fila trasera (S0/S4) entra a
-// la banda; la distancia ciega cubre esos 20 mm + margen. Se
-// pasa a tiempo con la velocidad real medida en el piso.
+// la banda. El avance no es un tramo fijo: sale cuando la punta
+// vuelve a un patron de linea (S2 sobre cinta sin saturar los
+// cinco — S2 va adelantado y es el primero en encontrar la salida)
+// o al vencer el techo, ~264 mm/s medido en el piso.
 const int VEL_CRUCE = 140;
-const float AVANCE_CRUCE_MM = 30.0;
-const float MM_S_A_CRUCE = 264.0; // medida 2026-10-29: ~79 cm de arco en 3 s
+const unsigned long CRUCE_MIN_MS = 60;   // ~16 mm de tramo ciego minimo
+const unsigned long CRUCE_MAX_MS = 500;  // ~130 mm: techo del avance
 
 // Curva cerrada comprometida (esquina de 90 grados)
 const int VEL_CURVA_EXT = 150;    // rueda externa
@@ -250,6 +252,7 @@ bool arrancado = false;
 bool btnPrev = HIGH;
 bool btnBloqueado = false;
 unsigned long btnUltimo = 0;
+unsigned long cruceDesde = 0;
 unsigned long cruceHasta = 0;
 unsigned long curvaDesde = 0;
 int curvaLado = 0;
@@ -410,8 +413,8 @@ void imprimirTraza() {
 void entrarCruce() {
   cruceRun++;
   trazaEvento(T_CRUCE, 0);
-  cruceHasta = millis() +
-    (unsigned long)(AVANCE_CRUCE_MM * 1000.0 / MM_S_A_CRUCE);
+  cruceDesde = millis();
+  cruceHasta = millis() + CRUCE_MAX_MS;
   posF = posPrev = 0;
   perdidaConteo = 0;
   extremoConteo = 0;
@@ -419,7 +422,6 @@ void entrarCruce() {
   faseBusqueda = -1;
   pausaFase = -1;
   enLinea = false;
-  posfGuardiaHasta = cruceHasta + POSF_GUARDIA_MS;
   motorIzq(VEL_CRUCE); motorDer(VEL_CRUCE);
 }
 
@@ -630,14 +632,23 @@ void loop() {
     trazaEvento(T_MUESTRA, 0);
   }
 
-  // 4. Cruce comprometido: recto sin leer hasta que venza el tramo
+  // 4. Cruce comprometido: recto hasta que la punta reencuentra el
+  //    patron de linea (S2 sobre cinta sin los cinco saturados) o
+  //    vence el techo — un tramo fijo salia ciego a mitad del hub si
+  //    el cruce era ancho, y desaprovechaba la punta adelantada.
   if (cruceHasta) {
-    if (millis() < cruceHasta) {
+    bool saturado = negrura(0) > 0.7 && negrura(1) > 0.7 &&
+                    negrura(2) > 0.7 && negrura(3) > 0.7 &&
+                    negrura(4) > 0.7;
+    bool reaparecio = millis() - cruceDesde >= CRUCE_MIN_MS &&
+                      negrura(2) > N_ON && !saturado;
+    if (millis() < cruceHasta && !reaparecio) {
       motorIzq(VEL_CRUCE); motorDer(VEL_CRUCE);
       delay(5);
       return;
     }
     cruceHasta = 0;
+    posfGuardiaHasta = millis() + POSF_GUARDIA_MS;
   }
 
   // 5. Curva comprometida: gira hasta que la linea vuelve al trio
