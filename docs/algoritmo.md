@@ -48,13 +48,15 @@ ajustan solos. Detalle en [[calibracion]].
 ## Posición en milímetros
 
 Los pesos de la media ponderada son las coordenadas laterales medidas del
-arreglo (ver [[componente-tcrt5000]]): S0/S4 a ±20 mm, S1/S3 a ±5 mm y S2
+arreglo (ver [[componente-tcrt5000]]): S0/S4 a ±30 mm, S1/S3 a ±15 mm y S2
 al centro. La posición `posF` (filtrada con EMA, `ALPHA = 0.55`) queda en
-milímetros reales, −20 izquierda a +20 derecha.
+milímetros reales, −30 izquierda a +30 derecha.
 
 El montaje tiene una consecuencia medible: la línea de 20 mm cubre ±10 mm
-y los sensores internos están a ±5 mm, así que con el robot hasta ~5 mm
-desplazado los tres internos saturan juntos y no hay señal de posición.
+y con el robot centrado solo S2 la ve, así que hasta ~5 mm de desvío no
+hay señal de posición (S2 pesa cero en la ponderada). Fuera de esa zona
+el paso de 15 mm entre sensores vecinos es menor que el ancho de línea y
+la posición es continua hasta las puntas.
 Corregir sobre esa zona muerta era el bamboleo en recta: el control se
 aplica sobre `posE = posF − signo·DB_MM` (`DB_MM = 6`), que vale cero
 dentro de la banda. Ahí el robot va a `VEL_MAX` pleno, sin corrección — el
@@ -89,9 +91,10 @@ Dos usos:
 
 ## Intersección y curva comprometida
 
-- **Cruce**: avance recto comprometido de `AVANCE_CRUCE_MM` (45 mm = banda
-  de 20 mm + flecha de 14 mm + margen) a `VEL_CRUCE`, sin leer. Se convierte
-  a tiempo con `MM_S_A_CRUCE`, la velocidad real medida en el piso.
+- **Cruce**: avance recto comprometido de `AVANCE_CRUCE_MM` (30 mm = banda
+  de 20 mm que le queda por recorrer a la fila trasera + margen) a
+  `VEL_CRUCE`, sin leer. Se convierte a tiempo con `MM_S_A_CRUCE`, la
+  velocidad real medida en el piso.
 - **Curva cerrada**: si solo un extremo ve la línea durante 3 ciclos, o si
   el todo-negro llegó con historial corrido, entra la curva comprometida:
   rueda externa a `VEL_CURVA_EXT` e interna quieta (aquí sí frena una rueda)
@@ -131,7 +134,7 @@ línea dos ciclos seguidos devuelve al PD con asiento.
 | RUEDA_MIN | 40 | piso de la rueda interna corrigiendo |
 | UMBRAL_LINEA / PERDIDA_MIN_CICLOS | 0.3 / 3 | línea a la vista y debounce de pérdida |
 | N_ON / N_OFF | 0.6 / 0.4 | compuerta de arranque |
-| VEL_CRUCE / AVANCE_CRUCE_MM | 140 / 45 mm | tramo ciego en intersección |
+| VEL_CRUCE / AVANCE_CRUCE_MM | 140 / 30 mm | tramo ciego en intersección |
 | MM_S_A_CRUCE | 224 mm/s | velocidad real a PWM 140 (medir en piso) |
 | VEL_CURVA_EXT / VEL_CURVA_INT | 150 / 0 | ruedas en la curva comprometida |
 | CURVA_MIN_MS / CURVA_MAX_MS | 90 / 500 | giro mínimo y techo de la curva |

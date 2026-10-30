@@ -34,7 +34,7 @@ robot. `firmware/arturito_v2/` (control continuo, v2) y
 | KP / KD / KS | 6.0 / 10.0 / 5.0 |
 | ALPHA / DB_MM / RUEDA_MIN | 0.55 / 6 / 40 |
 | N_ON / N_OFF | 0.6 / 0.4 |
-| VEL_CRUCE / AVANCE_CRUCE_MM | 140 / 45 mm |
+| VEL_CRUCE / AVANCE_CRUCE_MM | 140 / 30 mm |
 | MM_S_A_CRUCE | 224 mm/s (medir) |
 | VEL_CURVA_EXT / INT | 150 / 0 |
 | VEL_ARCO_EXT / INT | 140 / 40 |

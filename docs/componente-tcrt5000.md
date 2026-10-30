@@ -24,27 +24,31 @@ y el fondo para que [[algoritmo]] decida hacia dónde corregir.
 ## Geometría del montaje (medida 2026-10-29)
 
 Arreglo en flecha sobre cartón: S2 adelante, S1/S3 medios, S0/S4 atrás en
-las puntas. Cada módulo mide 10 × 5 mm. Coordenadas tomadas sobre el
-chasis: x lateral (+ derecha del bot), y longitudinal respecto a S2
-(+ adelante). S2 queda 47 mm por delante del eje de las ruedas.
+las puntas. Cada módulo mide 10 × 5 mm. Coordenadas desde el centro del
+sensor (punto medio entre emisor y receptor) al punto medio del eje de
+las ruedas: x lateral (+ derecha del bot), y hacia adelante.
 
 | Sensor | x (mm) | y (mm) |
 |---|---|---|
-| S0 | −20 | −14 |
-| S1 | −5 | −4 |
-| S2 | 0 | 0 |
-| S3 | +5 | −4 |
-| S4 | +20 | −14 |
+| S0 | −30 | +28 |
+| S1 | −15 | +38 |
+| S2 | 0 | +47 |
+| S3 | +15 | +38 |
+| S4 | +30 | +28 |
 
 Fotos del montaje con regla: `imagen/sensores01..03.jpg`.
 
-Dos consecuencias que usa [[algoritmo]]:
+Tres consecuencias que usa [[algoritmo]]:
 
-- Contra la línea de 20 mm (±10 mm), los tres internos a ±5 mm saturan
-  juntos hasta ~5 mm de desvío: hay una zona sin señal de posición y el
-  control la declara zona muerta en vez de corregir a ciegas.
-- El largo total de la flecha es 14 mm < 20 mm: las tres filas caben
-  dentro de la banda de un cruce, así que «todo negro» sí puede leerse —
+- Con la línea de 20 mm centrada solo S2 la ve: S1/S3 a ±15 mm quedan
+  fuera de los ±10 mm de media línea. Hasta ~5 mm de desvío no hay señal
+  de posición y el control la declara zona muerta en vez de corregir
+  a ciegas.
+- El paso lateral entre vecinos es 15 mm < 20 mm de línea: fuera de la
+  zona muerta siempre hay un sensor pisándola, la posición es continua
+  hasta los ±30 mm de las puntas.
+- Las filas traseras (S1/S3 y S0/S4, a 10 mm entre sí) caben dentro de la
+  banda de 20 mm de un cruce, así que «todo negro» sí puede leerse —
   en cruces y también en esquinas de 90°, por eso el historial separa
   una de otra.
 

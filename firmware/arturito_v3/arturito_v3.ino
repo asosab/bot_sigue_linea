@@ -9,13 +9,13 @@
  *
  * Cambios respecto a v2:
  *
- * - Posicion en milimetros reales: pesos {-20,-5,0,+5,+20}
+ * - Posicion en milimetros reales: pesos {-30,-15,0,+15,+30}
  *   segun la geometria medida del arreglo en flecha.
  * - Zona muerta de +-DB_MM: dentro, correccion cero y VEL_MAX
- *   pleno (turbo de recta). Los tres sensores internos caben
- *   saturados dentro de la linea de 20 mm, asi que en esa zona
- *   no hay senal que corregir; corregirla igual era el
- *   bamboleo.
+ *   pleno (turbo de recta). Con la linea de 20 mm centrada solo
+ *   S2 la ve (S1/S3 a +-15 mm quedan fuera) y S2 pesa 0: hasta
+ *   ~5 mm de desvio no hay senal que corregir; corregirla igual
+ *   era el bamboleo.
  * - Rueda interna siempre adelante en el PD (piso RUEDA_MIN):
  *   dobla con diferencial, sin frenar. La rueda a cero o en
  *   reversa queda para la curva comprometida y la busqueda.
@@ -59,7 +59,7 @@
 // --- PARAMETROS DE CONTROL ---
 const int VEL_MAX = 200;    // velocidad centrado (turbo de recta)
 const int VEL_MIN = 80;     // velocidad en correccion fuerte
-const float KP = 6.0;       // PWM por mm de error efectivo
+const float KP = 7.0;       // PWM por mm de error efectivo
 const float KD = 10.0;      // amortiguacion (delta de posF por ciclo)
 const float KS = 5.0;       // cuanto baja la velocidad con el error
 const float ALPHA = 0.55;   // filtro EMA de la posicion (0..1)
@@ -80,11 +80,11 @@ const float UMBRAL_LINEA = 0.3;  // suma de negruras para "linea a la vista"
 const int PERDIDA_MIN_CICLOS = 3; // ciclos sin linea antes de buscar
 
 // Interseccion: avance recto comprometido al ver todo negro.
-// La distancia ciega cubre la banda de 20 mm + el largo de la
-// flecha (14 mm) + margen. Se pasa a tiempo con la velocidad
-// real medida en el piso.
+// El todo-negro se lee cuando la fila trasera (S0/S4) entra a
+// la banda; la distancia ciega cubre esos 20 mm + margen. Se
+// pasa a tiempo con la velocidad real medida en el piso.
 const int VEL_CRUCE = 140;
-const float AVANCE_CRUCE_MM = 45.0;
+const float AVANCE_CRUCE_MM = 30.0;
 const float MM_S_A_CRUCE = 224.0; // velocidad real a PWM 140: MEDIR
 
 // Curva cerrada comprometida (esquina de 90 grados)
@@ -123,9 +123,10 @@ const unsigned long BTN_DEBOUNCE_MS = 50;
 int calMin[5] = {30, 30, 30, 30, 30};
 int calMax[5] = {930, 930, 930, 930, 930};
 
-// Posicion lateral de cada canal en mm (medida sobre el chasis):
-// S2 al centro y adelante; S1/S3 a +-5 mm; S0/S4 a +-20 mm.
-const float X_MM[5] = {-20.0, -5.0, 0.0, 5.0, 20.0};
+// Posicion lateral de cada canal en mm (medida sobre el chasis,
+// centro del sensor al punto medio del eje de ruedas):
+// S1/S3 a +-15 mm; S0/S4 a +-30 mm. Filas a 47/38/28 mm del eje.
+const float X_MM[5] = {-30.0, -15.0, 0.0, 15.0, 30.0};
 const int CANALES[5] = {S0, S1, S2, S3, S4};
 
 // Historial de posiciones validas: anillo, [0] = la mas reciente.
@@ -404,7 +405,7 @@ void loop() {
 
   // 9. Linea a la vista: PD con zona muerta y rueda interna en piso
   if (suma > UMBRAL_LINEA) {
-    float pos = sumaP / suma;            // mm, -20 (izq) .. +20 (der)
+    float pos = sumaP / suma;            // mm, -30 (izq) .. +30 (der)
     posF += ALPHA * (pos - posF);
     float deriv = posF - posPrev;
     posPrev = posF;
