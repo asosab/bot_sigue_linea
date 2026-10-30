@@ -133,15 +133,16 @@ const int POSF_ESQ_CICLOS = 2;    // persistencia del lado extremo
 // la X, 4 curvas falsas en ~3 s, ningun todo-negro real).
 const float NEG_CENTRO_VETO = 0.4; // S2 por encima = la punta ve linea
 
-// Contexto de masa ancha: un extremo solo (o centroide corrido) es
-// "la linea yendose" solo si el contexto reciente era linea fina.
-// Tras un borron (suma alta: encrucijada, esquina ancha, cintas
-// solapadas) el extremo solo es el borde del borron — el PD lo sigue
-// guiado igual y no se gasta un giro comprometido (corrida #14:
-// dos ext falsos tras suma >2.4 -> timeout a blanco). El umbral es
-// alto de verdad: una linea fina barriendo dos canales ya suma ~1.8
-// y con 1.4 el veto tapo la horquilla entera (corrida #16, 0
-// esquinas, paso de largo la primera curva).
+// Contexto de masa ancha: la linea mide 20 mm, no mas — si el
+// arreglo lee mas ancho es que la aborda en diagonal (2 canales,
+// ~1.4-1.8, lo resuelve el PD) o que encontro un camino cruzado
+// (~2.0+, imposible con una sola cinta). Un extremo solo o
+// centroide corrido es "la linea yendose" solo con contexto fino;
+// tras un borron es el borde del borron — el PD lo sigue guiado
+// igual y no se gasta un giro comprometido (corrida #14: dos ext
+// falsos tras suma >2.4 -> timeout a blanco). Y con 1.4 el veto
+// tapo la horquilla entera: una diagonal ya lo alcanzaba (corrida
+// #16, 0 esquinas, paso de largo la primera curva).
 const float MASA_ANCHA = 2.0;          // suma de negruras = borron real
 const unsigned long MASA_VENTANA_MS = 200;
 
