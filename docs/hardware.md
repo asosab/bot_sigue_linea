@@ -16,6 +16,13 @@ Configuración registrada desde `firmware/arturito/arturito.ino`.
 | Pulsador de largada | 1 | D8 | botón momentáneo a GND, pull-up interno, ver [[esquema]] |
 | Rueda loca (bola) | 1 | chasis | apoyo trasero, ver `imagen/bola_trasera.jpg` |
 
+## Medidas del chasis (2026-10-29)
+
+- Ancho de vía `w` = **131 mm** (centro a centro de rueda): 156 mm entre
+  bordes exteriores menos 2 × 25 mm de ancho de rueda.
+- Sensores: arreglo en flecha con S2 a 47 mm del eje, ver
+  [[componente-tcrt5000]] para la tabla de coordenadas.
+
 ## Mapa de pines
 
 | Pin | Uso |

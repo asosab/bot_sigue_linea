@@ -66,5 +66,5 @@ tramo exacto y para. Datos y derivados en [[medicion-velocidad]].
   Con `MODO_PIVOTE = 1`, cada pulsada pivotea en el sitio 3 s. En el
   video se cuentan los cuartos de vuelta. De ahí sale también
   `PIVOTE2_MS` (el doble, el barrido del otro lado).
-- `TRIM_DER = 0.88` provisional por el derrape medido; falta el ancho
-  entre ruedas (`w` de la fórmula) y una corrida de verificación.
+- `TRIM_DER = 0.88` por el derrape medido, calculado con vía
+  `w = 131 mm`; falta una corrida de verificación para confirmar.

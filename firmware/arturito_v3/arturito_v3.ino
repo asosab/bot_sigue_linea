@@ -69,8 +69,9 @@ const int RUEDA_MIN = 40;   // piso de la rueda interna en el PD
 // Trim de motores (1.0 = igual). Si tira a la derecha, bajar TRIM_IZQ
 // o subir TRIM_DER. Se ajusta a mano tras la prueba de recta.
 // Medida 2026-10-29: derrapaba ~30 cm a la izquierda en ~70 cm de
-// avance -> rueda izquierda ~12 % lenta -> TRIM_DER 0.88 provisional,
-// pendiente del ancho entre ruedas y una corrida de verificacion.
+// avance -> rueda izquierda ~12 % lenta -> TRIM_DER 0.88. Calculado
+// con via w = 131 mm y radio de arco ~99 cm; verificar con una
+// corrida recta.
 const float TRIM_IZQ = 1.0;
 const float TRIM_DER = 0.88;
 

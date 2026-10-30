@@ -37,9 +37,10 @@ Dispersión entre corridas: ±1,5 cm sobre 71 → piso de ruido ~±5 %.
   El «tercer segundo más lento» no es desaceleración: es la proyección
   de una velocidad que gira.
 - El rumbo crece ~23° por metro recorrido: la rueda izquierda corre
-  ~12 % menos que la derecha → `TRIM_DER` provisional **0.88**
-  (fórmula `v_izq/v_der ≈ (2R−w)/(2R+w)`, con ancho de ruedas `w`
-  pendiente de medir). Verificar con otra corrida del mismo sketch.
+  ~12 % menos que la derecha → `TRIM_DER` **0.88**. Cálculo con el
+  ancho de vía medido, `w = 131 mm` (156 mm borde a borde menos
+  2 × 25 mm de rueda): `v_izq/v_der = (2R−w)/(2R+w) ≈ 0.876`.
+  Falta una corrida de verificación para confirmar que va recto.
 
 ## Geometría del arreglo de sensores
 
@@ -59,8 +60,8 @@ Detalle en [[componente-tcrt5000]].
 
 - `MM_S_A_CRUCE = 264` — convierte `AVANCE_CRUCE_MM` (30 mm) en ~114 ms
   de tramo ciego de cruce.
-- `TRIM_DER = 0.88` provisional, pendiente del ancho entre ruedas y de
-  una corrida de verificación.
+- `TRIM_DER = 0.88`, calculado con vía medida de 131 mm; queda una
+  corrida de verificación para cerrar el ajuste.
 - `PIVOTE_MS` sigue sin medir: falta la corrida con `MODO_PIVOTE = 1`.
 
 ## Relacionado
