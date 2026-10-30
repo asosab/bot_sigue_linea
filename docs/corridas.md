@@ -40,5 +40,7 @@ mismo episodio), `esquinas` = curvas comprometidas disparadas, `cruces`
 
 | 17 | 7,53 s | 9 | 1 | 0 | perdió la segunda curva: cinta bajo S1(+S2) y el PD viró duro a la izquierda persiguiendo el centroide — la cruzó a la derecha y se fue. Insight del usuario: S1+S2 = diagonal apuntando adelante-derecha → alinear a la derecha. Fix: término de sesgo `K_SESGO·(n1-n3)` en corr |
 
+| 18 | 12,02 s | 6 | 7 | 0 | perdió en la intersección; el usuario notó oscilación al recentrar la cinta — el propio `K_SESGO=70` oscilaba: cada vaivén S1/S3 inyectaba ±40-70 PWM alternos. Fix: K_SESGO=40 + exige asimetría >0,3 |
+
 Las trazas detalladas de cada corrida se pegan en la entrada del día en
 `docs/log/` cuando se leen.
