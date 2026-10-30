@@ -36,18 +36,21 @@
 #define LED 13      // marca del tramo de carrera en el video
 
 // --- PARAMETROS DE LA PRUEBA ---
-const int VEL_PRUEBA = 140;          // PWM de la corrida recta
+// Corrida de lateralidad: el izquierdo fisico (visto de arriba, al
+// frente) va a potencia plena y el derecho queda recortado por el
+// calculo del derrape (v_izq/v_der = 0.876 medido). Diagnostico:
+// - va recto o curva suave a la derecha -> el izquierdo era el lento
+//   y el canal del esquema esta bien
+// - sigue curvando a la izquierda -> los canales estan cruzados o el
+//   derrape original venia de la pose inicial, no del balance
+const int VEL_IZQ = 255;             // izquierdo a maxima potencia
+const int VEL_DER = (int)(VEL_IZQ * 0.876); // derecho controlado
+
 const unsigned long CORRIDA_MS = 3000;  // duracion exacta de la corrida
 const unsigned long PREVIO_MS = 400;    // pausa tras la pulsada (sacar la mano)
 const int MODO_PIVOTE = 0;           // 0 = recta, 1 = pivote en el sitio
 const int VEL_BUSQUEDA = 110;        // PWM del pivote (el de la busqueda)
 const int LADO_PIVOTE = 1;           // +1 derecha, -1 izquierda
-
-// Trim de motores, mismo criterio que el firmware de carrera.
-// TRIM_DER 0.88 sale del derrape medido (via 131 mm, arco ~99 cm):
-// esta corrida verifica si el robot va recto con el ajuste.
-const float TRIM_IZQ = 1.0;
-const float TRIM_DER = 0.88;
 
 const unsigned long BTN_DEBOUNCE_MS = 50;
 
@@ -140,8 +143,8 @@ void loop() {
     motorIzq(LADO_PIVOTE * VEL_BUSQUEDA);
     motorDer(-LADO_PIVOTE * VEL_BUSQUEDA);
 #else
-    motorIzq((int)(VEL_PRUEBA * TRIM_IZQ));
-    motorDer((int)(VEL_PRUEBA * TRIM_DER));
+    motorIzq(VEL_IZQ);
+    motorDer(VEL_DER);
 #endif
   } else {
     detener();
