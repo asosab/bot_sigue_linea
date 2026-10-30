@@ -28,5 +28,7 @@ mismo episodio), `esquinas` = curvas comprometidas disparadas, `cruces`
 | 10 | 10,97 s | 14 | 4 | 0 | mucho mejor: llegó al cruce de 90°, `curva-izq/posf` disparó bien pero el arco con interna=0 barrió el arreglo fuera de la esquina → timeout → rueda fuera del tablero. Fix: rueda interna a reversa (pivote) pasados 250 ms + CURVA_MAX 700 |
 | 11 | 13,50 s | 18 | 9 | 0 | llegó a la intersección en X pero los disparos ext/posf se adelantan al todo-negro: cada brazo de la X dispara esquina como si fuera curva real → camino equivocado. Pivote en reversa confirmado en traza (v150 -110). Fix: veto ext/posf con S2 ≥0,4 (`NEG_CENTRO_VETO`) + TRIM_DER 1,02 |
 
+| 12 | 13,00 s | 16 | 7 | 0 | cruzó la X y llegó a la esquina superior derecha; la línea pasó por el trío interno a ~80 ms de giro pero CURVA_MIN=90 vetó el curva-ok → el arreglo la barrió de largo y el pivote a reversa la alejó → timeout → el rescate armó una reversa de 180° → salió del tablero por arriba. Fix: abortar la curva cuando la masa cruza al lado contrario (`curva-barrida` → PD) |
+
 Las trazas detalladas de cada corrida se pegan en la entrada del día en
 `docs/log/` cuando se leen.

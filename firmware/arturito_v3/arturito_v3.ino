@@ -375,7 +375,9 @@ void imprimirTraza() {
                      abs(t.dato) == 2 ? "posf" : "negro");
         break;
       case T_CURVA_OUT:
-        Serial.print(t.dato ? "curva-timeout" : "curva-ok"); break;
+        Serial.print(t.dato == 0 ? "curva-ok" :
+                     t.dato == 1 ? "curva-timeout" : "curva-barrida");
+        break;
       case T_CRUCE:    Serial.print("cruce"); break;
       case T_BUSQ:     Serial.print(t.dato < 0 ? "busq-izq" : "busq-der"); break;
       case T_BUSQ_RES: Serial.print(t.dato < 0 ? "busq*-izq" : "busq*-der"); break;
@@ -633,14 +635,26 @@ void loop() {
   if (curvaDesde) {
     unsigned long enCurva = millis() - curvaDesde;
     float interna = negrura(1) + negrura(2) + negrura(3);
+    // Masa del lado del giro y del lado contrario: cuando la cola
+    // supera al lider la linea ya barrio de largo el arreglo — salir
+    // y que el PD la recupere guiado. Seguir girando (el pivote a
+    // reversa sobre todo) solo la aleja mas: en la corrida #12 la
+    // esquina paso por el trio a los ~80 ms, el minimo de 90 ms veto
+    // la salida y el pivote la perdio; el rescate armo la reversa
+    // que lo mando fuera del tablero.
+    float lider = (curvaLado > 0) ? negrura(3) + negrura(4)
+                                : negrura(0) + negrura(1);
+    float cola  = (curvaLado > 0) ? negrura(0) + negrura(1)
+                                : negrura(3) + negrura(4);
+    bool volvio = interna > NEG_INTERNA && negrura(2) > 0.4;
+    bool barrida = cola > lider && cola > UMBRAL_LINEA;
     // Salida ok pide el trio interno Y el centro viendo la linea:
     // solo el trio la soltaba sobre otro tramo de cinta en la esquina.
-    if (enCurva >= CURVA_MIN_MS && interna > NEG_INTERNA &&
-        negrura(2) > 0.4) {
+    if (enCurva >= CURVA_MIN_MS && (volvio || barrida)) {
       curvaDesde = 0;
       asientoHasta = millis() + ASIENTO_MS;
       curvaLockoutHasta = millis() + CURVA_LOCKOUT_MS;
-      trazaEvento(T_CURVA_OUT, 0);
+      trazaEvento(T_CURVA_OUT, (barrida && !volvio) ? 2 : 0);
     } else if (enCurva >= CURVA_MAX_MS) {
       curvaDesde = 0;
       curvaLockoutHasta = millis() + CURVA_LOCKOUT_MS;
