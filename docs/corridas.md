@@ -38,5 +38,7 @@ mismo episodio), `esquinas` = curvas comprometidas disparadas, `cruces`
 
 | 16 | 6,32 s | 9 | 0 | 0 | regresión del veto de masa: MASA_ANCHA 1,4 la alcanzaba una línea fina barriendo dos canales (~1,8) → ext/posf vetados toda la horquilla → pasó de largo la primera curva, 0 esquinas. Fix: MASA_ANCHA 2,0 (borrón real) + ventana 200 ms |
 
+| 17 | 7,53 s | 9 | 1 | 0 | perdió la segunda curva: cinta bajo S1(+S2) y el PD viró duro a la izquierda persiguiendo el centroide — la cruzó a la derecha y se fue. Insight del usuario: S1+S2 = diagonal apuntando adelante-derecha → alinear a la derecha. Fix: término de sesgo `K_SESGO·(n1-n3)` en corr |
+
 Las trazas detalladas de cada corrida se pegan en la entrada del día en
 `docs/log/` cuando se leen.

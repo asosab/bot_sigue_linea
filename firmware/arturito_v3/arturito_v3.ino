@@ -66,6 +66,12 @@ const float KD = 10.0;      // amortiguacion (delta de posF por ciclo)
 const float KS = 5.0;       // cuanto baja la velocidad con el error
 const float ALPHA = 0.55;   // filtro EMA de la posicion (0..1)
 const float DB_MM = 6.0;    // zona muerta: dentro, corr = 0 y a fondo
+// Sesgo de direccion por la flecha: cinta bajo S1+S2 es diagonal
+// apuntando adelante-derecha (alinear a la derecha), bajo S2+S3 a
+// la izquierda — el centroide marca donde esta, no hacia donde va
+// (corrida #17: S1 fuerte y el PD virgo duro a la izquierda,
+// cruzo la cinta y la perdio en la segunda curva).
+const float K_SESGO = 70.0; // PWM por negrura de sesgo S1-S3
 const int RUEDA_MIN = 40;   // piso de la rueda interna en el PD
 
 // Trim de motores (1.0 = igual). Si tira a la derecha, bajar TRIM_IZQ
@@ -817,6 +823,7 @@ void loop() {
     if (millis() < asientoHasta && base > VEL_ASIENTO) base = VEL_ASIENTO;
 
     float corr = (fabs(posF) < DB_MM) ? 0 : KP * posF + KD * deriv;
+    if (suma < MASA_ANCHA) corr += K_SESGO * (n[1] - n[3]);
 
     int velIzq = (int)((base + corr) * TRIM_IZQ);
     int velDer = (int)((base - corr) * TRIM_DER);
