@@ -73,8 +73,11 @@ const int RUEDA_MIN = 40;   // piso de la rueda interna en el PD
 // Medida 2026-10-30: ruedas parejas a alta potencia — el derrape fue
 // insensible al trim en dos tandas (deriva ~14° constante), viene de
 // la pose o de algo mecanico. TRIM 1.0 hasta la corrida 255/255.
+// Medida 2026-10-30: el viraje mecanico es ~15 grados a la derecha
+// (insensible al balance PWM: convergencia o bola); subir la derecha
+// ~7 % lo compensa en carrera. Afinar en pista.
 const float TRIM_IZQ = 1.0;
-const float TRIM_DER = 1.0;
+const float TRIM_DER = 1.05;
 
 // Compuerta de arranque (umbrales sobre negrura 0..1)
 const float N_ON = 0.6;    // S2 tiene que ver negro firme
@@ -98,22 +101,24 @@ const int VEL_CURVA_INT = 0;      // rueda interna quieta (aca si frena)
 const unsigned long CURVA_MIN_MS = 90;   // giro comprometido minimo
 const unsigned long CURVA_MAX_MS = 500;  // techo antes de pasar a buscar
 const float NEG_EXT = 0.45;       // negrura para "el extremo ve la linea"
-const float SUMA_OTROS = 0.6;     // techo de los demas canales
-const int EXTREMO_CICLOS = 3;     // persistencia para disparar la curva
+const float SUMA_OTROS = 0.9;     // techo de los demas canales
+const int EXTREMO_CICLOS = 2;     // persistencia para disparar la curva
 const float NEG_INTERNA = 0.6;    // trio interno que confirma la vuelta
 
 // Discriminacion cruce/esquina sobre el historial
 const float POS_ESQ_MM = 8.0;     // |posF| historica que delata esquina
 const int HIST_CRUCE = 12;        // cuantas muestras atras mirar
 
-// Busqueda de linea perdida (arco + pivote acotado)
-const int VEL_ARCO_EXT = 140;
-const int VEL_ARCO_INT = 40;
+// Busqueda de linea perdida: pivote acotado primero — gira sobre el
+// eje sin desplazarse, la rueda no sale de la pista buscando. Los
+// arcos van despues, cortos y cerrados.
+const int VEL_ARCO_EXT = 110;
+const int VEL_ARCO_INT = 25;
 const int VEL_BUSQUEDA = 110;
-const unsigned long ARCO_MS = 600;    // arco hacia el lado de la perdida
 const unsigned long PIVOTE_MS = 280;  // ~90 grados a VEL_BUSQUEDA: medir
-const unsigned long ARCO2_MS = 750;   // arco al lado contrario
+const unsigned long ARCO_MS = 400;    // arco hacia el lado de la perdida
 const unsigned long PIVOTE2_MS = 560; // pivote de vuelta (~-90 grados)
+const unsigned long ARCO2_MS = 500;   // arco al lado contrario
 const int CONFIRMA_CICLOS = 2;        // ciclos con linea para salir
 
 // Asiento tras recuperar la linea: velocidad capada un tramo
@@ -549,20 +554,20 @@ void loop() {
 
   unsigned long enFase = millis() - faseDesde;
   switch (faseBusqueda) {
-    case 0: // arco hacia el lado de la perdida
-      if (enFase < ARCO_MS) arco(ladoBusqueda);
+    case 0: // pivote acotado hacia el lado de la perdida (sin avanzar)
+      if (enFase < PIVOTE_MS) pivote(ladoBusqueda);
       else { faseBusqueda = 1; faseDesde = millis(); }
       break;
-    case 1: // pivote acotado hacia ese lado
-      if (enFase < PIVOTE_MS) pivote(ladoBusqueda);
+    case 1: // arco hacia ese lado
+      if (enFase < ARCO_MS) arco(ladoBusqueda);
       else { faseBusqueda = 2; faseDesde = millis(); }
       break;
-    case 2: // arco al lado contrario
-      if (enFase < ARCO2_MS) arco(-ladoBusqueda);
+    case 2: // pivote acotado de vuelta hacia el otro lado
+      if (enFase < PIVOTE2_MS) pivote(-ladoBusqueda);
       else { faseBusqueda = 3; faseDesde = millis(); }
       break;
-    default: // pivote acotado de vuelta, y se repite el ciclo
-      if (enFase < PIVOTE2_MS) pivote(-ladoBusqueda);
+    default: // arco al otro lado, y se repite el ciclo
+      if (enFase < ARCO2_MS) arco(-ladoBusqueda);
       else { faseBusqueda = 0; faseDesde = millis(); }
       break;
   }

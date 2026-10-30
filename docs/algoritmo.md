@@ -124,11 +124,11 @@ para las corridas de prueba y las tres de la competencia:
 Sin línea durante `PERDIDA_MIN_CICLOS` arranca la búsqueda por fases, con
 el lado que da el historial:
 
-1. Arco hacia adelante hacia ese lado (`ARCO_MS`): ambas ruedas avanzan
-   con diferencial fuerte.
-2. Pivote acotado al mismo lado (`PIVOTE_MS`, calibrado a ~90°).
-3. Arco al lado contrario (`ARCO2_MS`).
-4. Pivote acotado de vuelta (`PIVOTE2_MS`), y se repite el ciclo.
+1. Pivote acotado hacia ese lado (`PIVOTE_MS`, ~90°): gira sobre el eje
+   sin desplazarse — la rueda no sale de la pista buscando.
+2. Arco hacia ese lado (`ARCO_MS`), corto y cerrado.
+3. Pivote acotado de vuelta (`PIVOTE2_MS`).
+4. Arco al lado contrario (`ARCO2_MS`), y se repite el ciclo.
 
 Ninguna fase junta más de ~90° de rumbo respecto al rumbo de carrera, así
 que el robot ya no puede terminar la búsqueda mirando para atrás — el
