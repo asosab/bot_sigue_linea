@@ -54,11 +54,17 @@ zigzag y la salida de curvas. `TRIM_IZQ`/`TRIM_DER` corrigen la deriva en
 recta. `DB_MM` cubre la zona donde los tres internos saturan (~5 mm);
 bajarla si sobra suelto en recta, subirla si sigue bamboleando.
 
-Dos constantes piden medición en el piso:
+Dos constantes piden medición en el piso, con el sketch
+`firmware/calibra_velocidad/` — corre sin USB: cada pulsada ejecuta un
+tramo exacto y para.
 
-- `MM_S_A_CRUCE`: velocidad real en mm/s a PWM 140. Medir el recorrido
-  del robot en unos segundos de recta y dividir; convierte
-  `AVANCE_CRUCE_MM` (45 mm) en el tiempo del tramo ciego.
-- `PIVOTE_MS`: tiempo que tarda el pivote a `VEL_BUSQUEDA` en girar 90°.
-  Medirlo girando sobre una marca en el piso. De ahí salen también
-  `PIVOTE2_MS` (el doble, para el barrido del otro lado).
+- `MM_S_A_CRUCE` (mm/s a PWM 140): con `MODO_PIVOTE = 0`, cada pulsada
+  corre recto a `VEL_PRUEBA` durante 3 s. Filmar con una cinta métrica
+  a lo largo de la ruta; el LED integrado marca en el video el inicio y
+  el fin exactos del tramo. Los tiempos del primer, segundo y tercer
+  tercio del recorrido dan la velocidad media y cuánto tarda en tomar
+  velocidad. Repetir varias pulsadas y promediar.
+- `PIVOTE_MS` (ms para girar 90° a `VEL_BUSQUEDA` = 110): con
+  `MODO_PIVOTE = 1`, cada pulsada pivotea en el sitio 3 s. En el video
+  se cuentan los cuartos de vuelta. De ahí sale también `PIVOTE2_MS`
+  (el doble, el barrido del otro lado).

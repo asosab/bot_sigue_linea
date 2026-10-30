@@ -23,6 +23,9 @@ robot. `firmware/arturito_v2/` (control continuo, v2) y
   con toggle de sleep por serie
 - Diagnóstico de sensores: `firmware/prueba_sensores/` — solo lectura,
   driver dormido por EEP en LOW
+- Calibración de velocidad: `firmware/calibra_velocidad/` — tramo de 3 s
+  a velocidad constante por pulsada (recta o pivote), marca con el LED;
+  sirve `MM_S_A_CRUCE` y `PIVOTE_MS`, ver [[calibracion]]
 - `#define DEBUG 1` imprime `posF`, `base` y `corr` cada 100 ms por
   serie, para afinar en la pista
 
