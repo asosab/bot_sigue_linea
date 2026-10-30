@@ -56,15 +56,15 @@ bajarla si sobra suelto en recta, subirla si sigue bamboleando.
 
 Dos constantes piden medición en el piso, con el sketch
 `firmware/calibra_velocidad/` — corre sin USB: cada pulsada ejecuta un
-tramo exacto y para.
+tramo exacto y para. Datos y derivados en [[medicion-velocidad]].
 
-- `MM_S_A_CRUCE` (mm/s a PWM 140): con `MODO_PIVOTE = 0`, cada pulsada
-  corre recto a `VEL_PRUEBA` durante 3 s. Filmar con una cinta métrica
-  a lo largo de la ruta; el LED integrado marca en el video el inicio y
-  el fin exactos del tramo. Los tiempos del primer, segundo y tercer
-  tercio del recorrido dan la velocidad media y cuánto tarda en tomar
-  velocidad. Repetir varias pulsadas y promediar.
-- `PIVOTE_MS` (ms para girar 90° a `VEL_BUSQUEDA` = 110): con
-  `MODO_PIVOTE = 1`, cada pulsada pivotea en el sitio 3 s. En el video
-  se cuentan los cuartos de vuelta. De ahí sale también `PIVOTE2_MS`
-  (el doble, el barrido del otro lado).
+- `MM_S_A_CRUCE` (mm/s a PWM 140): **medida 2026-10-29 = 264**. Seis
+  corridas de 3 s sobre cinta métrica; el robot describe un arco
+  (~30 cm a la izquierda por ~70 cm proyectados), así que la velocidad
+  sale del largo del arco (~79 cm), no de la proyección de la regla.
+- `PIVOTE_MS` (ms para girar 90° a `VEL_BUSQUEDA` = 110): pendiente.
+  Con `MODO_PIVOTE = 1`, cada pulsada pivotea en el sitio 3 s. En el
+  video se cuentan los cuartos de vuelta. De ahí sale también
+  `PIVOTE2_MS` (el doble, el barrido del otro lado).
+- `TRIM_DER = 0.88` provisional por el derrape medido; falta el ancho
+  entre ruedas (`w` de la fórmula) y una corrida de verificación.

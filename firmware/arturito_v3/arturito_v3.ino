@@ -68,8 +68,11 @@ const int RUEDA_MIN = 40;   // piso de la rueda interna en el PD
 
 // Trim de motores (1.0 = igual). Si tira a la derecha, bajar TRIM_IZQ
 // o subir TRIM_DER. Se ajusta a mano tras la prueba de recta.
+// Medida 2026-10-29: derrapaba ~30 cm a la izquierda en ~70 cm de
+// avance -> rueda izquierda ~12 % lenta -> TRIM_DER 0.88 provisional,
+// pendiente del ancho entre ruedas y una corrida de verificacion.
 const float TRIM_IZQ = 1.0;
-const float TRIM_DER = 1.0;
+const float TRIM_DER = 0.88;
 
 // Compuerta de arranque (umbrales sobre negrura 0..1)
 const float N_ON = 0.6;    // S2 tiene que ver negro firme
@@ -85,7 +88,7 @@ const int PERDIDA_MIN_CICLOS = 3; // ciclos sin linea antes de buscar
 // pasa a tiempo con la velocidad real medida en el piso.
 const int VEL_CRUCE = 140;
 const float AVANCE_CRUCE_MM = 30.0;
-const float MM_S_A_CRUCE = 224.0; // velocidad real a PWM 140: MEDIR
+const float MM_S_A_CRUCE = 264.0; // medida 2026-10-29: ~79 cm de arco en 3 s
 
 // Curva cerrada comprometida (esquina de 90 grados)
 const int VEL_CURVA_EXT = 150;    // rueda externa

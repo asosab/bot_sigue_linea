@@ -135,7 +135,7 @@ línea dos ciclos seguidos devuelve al PD con asiento.
 | UMBRAL_LINEA / PERDIDA_MIN_CICLOS | 0.3 / 3 | línea a la vista y debounce de pérdida |
 | N_ON / N_OFF | 0.6 / 0.4 | compuerta de arranque |
 | VEL_CRUCE / AVANCE_CRUCE_MM | 140 / 30 mm | tramo ciego en intersección |
-| MM_S_A_CRUCE | 224 mm/s | velocidad real a PWM 140 (medir en piso) |
+| MM_S_A_CRUCE | 264 mm/s | velocidad real a PWM 140 ([[medicion-velocidad]]) |
 | VEL_CURVA_EXT / VEL_CURVA_INT | 150 / 0 | ruedas en la curva comprometida |
 | CURVA_MIN_MS / CURVA_MAX_MS | 90 / 500 | giro mínimo y techo de la curva |
 | EXTREMO_CICLOS / NEG_EXT | 3 / 0.45 | persistencia del solo-extremo |

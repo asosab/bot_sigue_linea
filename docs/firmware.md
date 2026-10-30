@@ -38,12 +38,12 @@ robot. `firmware/arturito_v2/` (control continuo, v2) y
 | ALPHA / DB_MM / RUEDA_MIN | 0.55 / 6 / 40 |
 | N_ON / N_OFF | 0.6 / 0.4 |
 | VEL_CRUCE / AVANCE_CRUCE_MM | 140 / 30 mm |
-| MM_S_A_CRUCE | 224 mm/s (medir) |
+| MM_S_A_CRUCE | 264 mm/s (medida) |
 | VEL_CURVA_EXT / INT | 150 / 0 |
 | VEL_ARCO_EXT / INT | 140 / 40 |
 | VEL_BUSQUEDA / PIVOTE_MS | 110 / 280 ms |
 | ASIENTO_MS / VEL_ASIENTO | 250 / 120 |
-| TRIM_IZQ / TRIM_DER | 1.0 / 1.0 |
+| TRIM_IZQ / TRIM_DER | 1.0 / 0.88 (prov.) |
 
 Compilar y subir: [[toolchain]]. La subida a la placa siempre pide
 confirmación.

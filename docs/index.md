@@ -25,6 +25,7 @@ Punto de entrada a la documentación del proyecto. Navegación por enlaces, no p
 
 - [[toolchain]] — arduino-cli, MCP `arduino`, cómo compilar y subir
 - [[calibracion]] — umbrales de sensores y ajuste de ganancias
+- [[medicion-velocidad]] — corridas filmadas a PWM 140: velocidad real, derrape y trim
 
 ## Sesiones
 
