@@ -13,7 +13,8 @@ Punto de entrada a la documentación del proyecto. Navegación por enlaces, no p
 - [[firmware]] — estructura del sketch, parámetros y versión en curso
 - [[algoritmo]] — estrategia de control (lectura de sensores → consigna de motores)
 - [[manual-programa]] — manual imprimible del firmware para el equipo (PDF en `pdfs/`)
-- [[pista]] — características de la línea y la pista de pruebas
+- [[pista]] — características de la línea, la pista de pruebas y su recorrido
+- [[corridas]] — archivo de corridas en pista (antes vivía en la EEPROM)
 - [[concurso]] — 1.er Concurso Distrital de Robótica 2026: fechas, reglas y homologación
 - [[premios]] — premios del concurso y la hoja que los actualiza
 - [[precios]] — compras del robot (factura ECROBOTICS)

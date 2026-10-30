@@ -105,6 +105,15 @@ const float SUMA_OTROS = 0.6;     // techo de los demas canales
 const int EXTREMO_CICLOS = 2;     // persistencia para disparar la curva
 const float NEG_INTERNA = 0.6;    // trio interno que confirma la vuelta
 
+// Segunda via a la curva comprometida: centroide pasado el trio
+// interno con la linea a la vista. La via extremo-solo necesita que
+// el canal de la punta quede solo, ventana que en una horquilla
+// redondeada a velocidad de recta puede no existir — la linea se va
+// por el borde pisando dos canales y el robot pasa de largo
+// (corrida #6: 0 esquinas en un 180).
+const float POSF_ESQ = 20.0;      // mm: centroide fuera del trio interno
+const int POSF_ESQ_CICLOS = 2;    // persistencia del lado extremo
+
 // Discriminacion cruce/esquina sobre el historial
 const float POS_ESQ_MM = 8.0;     // |posF| historica que delata esquina
 const int HIST_CRUCE = 12;        // cuantas muestras atras mirar
@@ -154,22 +163,47 @@ float hist[HIST_N];
 int histLen = 0;
 
 // --- MEMORIA PERSISTENTE (EEPROM, sobrevive al apagado) ---
-// Registro de carreras: calibracion aprendida en la pista real y
-// hasta 8 tiempos con sus contadores. Al parar con el pulsador se
-// guarda la corrida; al encender se recarga la calibracion y se
-// imprime la tabla de tiempos por serie.
-struct Registro {
-  byte magic;                  // 0xA7 si hay datos validos
-  byte corridas;               // total de corridas guardadas
+// En fase de pruebas la EEPROM entera es la traza de la ultima
+// corrida: cabecera con resumen y calibracion + anillo de eventos.
+// El historial entre corridas se archiva en el vault (docs/), no en
+// la placa — la memoria completa queda para datos del test.
+//
+// La traza se arma en RAM (EEPROM.write tarda ~3 ms por byte, no se
+// escribe en carrera) y se vuelca al detener. Anillo de eventos con
+// los 5 canales en crudo (ADC/4), posF y comandos de rueda, mas un
+// evento por cada decision: curva, cruce, busqueda, pausa, salidas.
+#define TRAZA_N 64
+struct Traza {
+  unsigned int dt;        // (millis - largada) / 10, da hasta ~10 min
+  byte tipo;
+  signed char dato;       // lado o subtipo, segun el evento
+  signed char posFmm;     // posF en mm en ese instante
+  signed char velI;       // comando rueda izq / 2
+  signed char velD;       // comando rueda der / 2
+  byte lect[5];           // ADC / 4 (reconstruir x4)
+};
+const byte T_MUESTRA = 0, T_CURVA = 1, T_CURVA_OUT = 2, T_CRUCE = 3,
+           T_BUSQ = 4, T_BUSQ_RES = 5, T_PAUSA = 6, T_LARGADA = 7,
+           T_STOP = 8;
+Traza traza[TRAZA_N];
+byte trazaIdx = 0;        // proxima escritura = la mas vieja si esta lleno
+byte trazaLen = 0;
+unsigned long muestraProx = 0;
+const unsigned long MUESTRA_MS = 100;
+int velIcmd = 0, velDcmd = 0;   // ultimo comando enviado a cada rueda
+
+// Cabecera EEPROM en offset 0; los eventos van justo despues.
+struct TrazaHead {
+  byte magic;                   // TRAZA_MAGIC si hay datos validos
+  unsigned long tiempo;         // ms largada -> parada
+  byte perdidas, esquinas, cruces;
   int calMin[5];
   int calMax[5];
-  unsigned long tiempos[8];    // ms largada -> parada
-  byte perdidas[8];            // entradas a busqueda por corrida
-  byte esquinas[8];            // curvas comprometidas
-  byte cruces[8];              // todo-negro resuelto como cruce
+  byte n;                       // eventos validos en el anillo
+  byte start;                   // indice del evento mas viejo
 };
-const byte EEPROM_MAGIC = 0xA7;
-Registro reg;
+const byte TRAZA_MAGIC = 0xC1;
+
 unsigned long largadaDesde = 0;
 byte perdRun = 0, esqRun = 0, cruceRun = 0;
 
@@ -180,6 +214,8 @@ int ultimoLado = 0;                 // -1 izquierda, +1 derecha
 int perdidaConteo = 0;
 int extremoConteo = 0;
 int extremoLado = 0;
+int posfConteo = 0;
+int posfLado = 0;
 bool arrancado = false;
 bool btnPrev = HIGH;
 bool btnBloqueado = false;
@@ -201,6 +237,7 @@ bool enLinea = false;               // histeresis: el PD la suelta solo si se ap
 
 // --- MOTORES (velocidad con signo: + adelante, - atras) ---
 void motorIzq(int vel) {
+  velIcmd = vel;
   vel = constrain(vel, -255, 255);
   if (vel >= 0) {
     analogWrite(IN1, vel);
@@ -212,6 +249,7 @@ void motorIzq(int vel) {
 }
 
 void motorDer(int vel) {
+  velDcmd = vel;
   vel = constrain(vel, -255, 255);
   if (vel >= 0) {
     analogWrite(IN3, vel);
@@ -270,27 +308,93 @@ float histGet(int k) {
   return hist[k];
 }
 
+// --- TRAZA: registrar un evento en el anillo ---
+void trazaEvento(byte tipo, signed char dato) {
+  Traza &t = traza[trazaIdx];
+  t.dt = (unsigned int)((millis() - largadaDesde) / 10);
+  t.tipo = tipo;
+  t.dato = dato;
+  t.posFmm = (signed char)constrain((int)posF, -127, 127);
+  t.velI = (signed char)(velIcmd / 2);
+  t.velD = (signed char)(velDcmd / 2);
+  for (int i = 0; i < 5; i++) t.lect[i] = lecturas[i] / 4;
+  trazaIdx = (trazaIdx + 1) % TRAZA_N;
+  if (trazaLen < TRAZA_N) trazaLen++;
+}
+
+// Imprime la traza persistida: una linea por evento, del mas viejo
+// al mas nuevo.
+void imprimirTraza() {
+  TrazaHead th;
+  EEPROM.get(0, th);
+  if (th.magic != TRAZA_MAGIC || th.n > TRAZA_N) {
+    Serial.println("Sin traza guardada.");
+    return;
+  }
+  Serial.print("Ultima corrida: "); Serial.print(th.tiempo / 1000.0);
+  Serial.print(" s | perdidas "); Serial.print(th.perdidas);
+  Serial.print(" esquinas "); Serial.print(th.esquinas);
+  Serial.print(" cruces "); Serial.println(th.cruces);
+  Serial.println("Traza (t | evento | posF | velI velD | s0..s4):");
+  for (int i = 0; i < th.n; i++) {
+    Traza t;
+    EEPROM.get(sizeof(TrazaHead) +
+               ((th.start + i) % TRAZA_N) * sizeof(Traza), t);
+    Serial.print("  +"); Serial.print(t.dt / 100.0, 2);
+    Serial.print(' ');
+    switch (t.tipo) {
+      case T_CURVA:
+        Serial.print(t.dato < 0 ? "curva-izq/" : "curva-der/");
+        Serial.print(abs(t.dato) == 1 ? "ext" :
+                     abs(t.dato) == 2 ? "posf" : "negro");
+        break;
+      case T_CURVA_OUT:
+        Serial.print(t.dato ? "curva-timeout" : "curva-ok"); break;
+      case T_CRUCE:    Serial.print("cruce"); break;
+      case T_BUSQ:     Serial.print(t.dato < 0 ? "busq-izq" : "busq-der"); break;
+      case T_BUSQ_RES: Serial.print(t.dato < 0 ? "busq*-izq" : "busq*-der"); break;
+      case T_PAUSA:    Serial.print("pausa"); break;
+      case T_LARGADA:  Serial.print("largada"); break;
+      case T_STOP:     Serial.print("stop"); break;
+      default:         Serial.print("mue"); break;
+    }
+    Serial.print(" | p"); Serial.print(t.posFmm);
+    Serial.print(" | v"); Serial.print(t.velI * 2);
+    Serial.print(' '); Serial.print(t.velD * 2);
+    Serial.print(" |");
+    for (int k = 0; k < 5; k++) {
+      Serial.print(' '); Serial.print(t.lect[k] * 4);
+    }
+    Serial.println();
+  }
+}
+
 // --- MANEJADORES DE MANIOBRA COMPROMETIDA ---
 void entrarCruce() {
   cruceRun++;
+  trazaEvento(T_CRUCE, 0);
   cruceHasta = millis() +
     (unsigned long)(AVANCE_CRUCE_MM * 1000.0 / MM_S_A_CRUCE);
   posF = posPrev = 0;
   perdidaConteo = 0;
   extremoConteo = 0;
+  posfConteo = 0;
   faseBusqueda = -1;
   pausaFase = -1;
   enLinea = false;
   motorIzq(VEL_CRUCE); motorDer(VEL_CRUCE);
 }
 
-// lado: -1 izquierda, +1 derecha
-void entrarCurva(int lado) {
+// lado: -1 izquierda, +1 derecha. via: 1 extremo-solo, 2 posF, 3
+// todo-negro — queda en la traza para saber que camino disparo.
+void entrarCurva(int lado, int via) {
   esqRun++;
+  trazaEvento(T_CURVA, lado * via);
   curvaDesde = millis();
   curvaLado = lado;
   perdidaConteo = 0;
   extremoConteo = 0;
+  posfConteo = 0;
   faseBusqueda = -1;
   pausaFase = -1; // la curva cambia el marco: la pausa ya no aplica
   enLinea = false;
@@ -303,6 +407,7 @@ void entrarCurva(int lado) {
 // (asiento), como hacia la salida por confirmacion.
 void pausarBusqueda() {
   if (faseBusqueda >= 0) {
+    trazaEvento(T_PAUSA, 0);
     pausaFase = faseBusqueda;
     pausaLado = ladoBusqueda;
     pausaEnFase = millis() - faseDesde;
@@ -320,6 +425,7 @@ void arrancarBusqueda() {
     ladoBusqueda = pausaLado;
     faseBusqueda = pausaFase;
     faseDesde = millis() - pausaEnFase;
+    trazaEvento(T_BUSQ_RES, ladoBusqueda);
     return;
   }
   pausaFase = -1;
@@ -331,6 +437,7 @@ void arrancarBusqueda() {
   else ladoBusqueda = (ultimoLado != 0) ? ultimoLado : 1;
   faseBusqueda = 0;
   faseDesde = millis();
+  trazaEvento(T_BUSQ, ladoBusqueda);
 }
 
 // Arco hacia adelante: las dos ruedas avanzan, diferencial fuerte
@@ -361,31 +468,19 @@ void setup() {
   Serial.println("===== ARTURITO v3 =====");
   Serial.println("Esperando: apoyar sobre la linea y pulsar largada.");
 
-  // Recargar el registro persistente: si es valido, la calibracion
-  // de la ultima pista arranca sembrada y la tabla de tiempos sale
-  // por serie para consultarla con cable despues de las corridas.
-  EEPROM.get(0, reg);
-  if (reg.magic != EEPROM_MAGIC) {
-    reg.magic = EEPROM_MAGIC;
-    reg.corridas = 0;
-    memset(reg.tiempos, 0, sizeof(reg.tiempos));
-    memset(reg.perdidas, 0, sizeof(reg.perdidas));
-    memset(reg.esquinas, 0, sizeof(reg.esquinas));
-    memset(reg.cruces, 0, sizeof(reg.cruces));
-  } else {
+  // Recargar la traza persistida: si es valida, la calibracion de la
+  // ultima pista arranca sembrada y el detalle de la corrida sale por
+  // serie para archivarlo al conectar con cable.
+  TrazaHead th;
+  EEPROM.get(0, th);
+  if (th.magic == TRAZA_MAGIC) {
     for (int i = 0; i < 5; i++) {
-      calMin[i] = reg.calMin[i];
-      calMax[i] = reg.calMax[i];
+      calMin[i] = th.calMin[i];
+      calMax[i] = th.calMax[i];
     }
-    Serial.print("Corridas guardadas: ");
-    Serial.println(reg.corridas);
-    for (int i = 0; i < reg.corridas && i < 8; i++) {
-      Serial.print("  #"); Serial.print(i + 1);
-      Serial.print(": "); Serial.print(reg.tiempos[i] / 1000.0);
-      Serial.print(" s | perdidas "); Serial.print(reg.perdidas[i]);
-      Serial.print(" esquinas "); Serial.print(reg.esquinas[i]);
-      Serial.print(" cruces "); Serial.println(reg.cruces[i]);
-    }
+    imprimirTraza();
+  } else {
+    Serial.println("Sin traza guardada.");
   }
 }
 
@@ -417,12 +512,17 @@ void loop() {
       posF = posPrev = 0;
       histLen = 0;
       perdidaConteo = 0;
+      extremoConteo = 0;
+      posfConteo = 0;
       cruceHasta = 0;
       curvaDesde = 0;
       faseBusqueda = -1;
       pausaFase = -1;
       enLinea = false;
       asientoHasta = 0;
+      trazaIdx = trazaLen = 0;
+      muestraProx = millis() + MUESTRA_MS;
+      trazaEvento(T_LARGADA, 0);
       Serial.println("LARGADA: arrancando.");
     } else {
       detener();
@@ -435,23 +535,35 @@ void loop() {
     arrancado = false;
     btnBloqueado = true;
     detener();
-    // Guardar la corrida en EEPROM: tiempo, contadores y calibracion
-    int slot = reg.corridas % 8;
-    reg.tiempos[slot] = millis() - largadaDesde;
-    reg.perdidas[slot] = perdRun;
-    reg.esquinas[slot] = esqRun;
-    reg.cruces[slot] = cruceRun;
+    // Volcar la corrida a EEPROM: cabecera con resumen y calibracion
+    // + el anillo de eventos tal cual (start apunta al mas viejo).
+    trazaEvento(T_STOP, 0);
+    TrazaHead th;
+    th.magic = TRAZA_MAGIC;
+    th.tiempo = millis() - largadaDesde;
+    th.perdidas = perdRun;
+    th.esquinas = esqRun;
+    th.cruces = cruceRun;
     for (int i = 0; i < 5; i++) {
-      reg.calMin[i] = calMin[i];
-      reg.calMax[i] = calMax[i];
+      th.calMin[i] = calMin[i];
+      th.calMax[i] = calMax[i];
     }
-    reg.corridas++;
-    EEPROM.put(0, reg);
+    th.n = trazaLen;
+    th.start = (trazaIdx + TRAZA_N - trazaLen) % TRAZA_N;
+    EEPROM.put(0, th);
+    EEPROM.put(sizeof(TrazaHead), traza);
     Serial.print("DETENIDO: ");
-    Serial.print(reg.tiempos[slot] / 1000.0);
+    Serial.print(th.tiempo / 1000.0);
     Serial.println(" s guardados. Esperando nueva largada.");
     delay(5);
     return;
+  }
+
+  // Traza: muestra periodica con los 5 canales en crudo, posF y
+  // comandos — cubre tambien los tramos de maniobra comprometida.
+  if (millis() >= muestraProx) {
+    muestraProx = millis() + MUESTRA_MS;
+    trazaEvento(T_MUESTRA, 0);
   }
 
   // 4. Cruce comprometido: recto sin leer hasta que venza el tramo
@@ -473,8 +585,10 @@ void loop() {
     if (enCurva >= CURVA_MIN_MS && interna > NEG_INTERNA) {
       curvaDesde = 0;
       asientoHasta = millis() + ASIENTO_MS;
+      trazaEvento(T_CURVA_OUT, 0);
     } else if (enCurva >= CURVA_MAX_MS) {
       curvaDesde = 0;
+      trazaEvento(T_CURVA_OUT, 1);
       arrancarBusqueda();
     } else {
       if (curvaLado > 0) { motorIzq(VEL_CURVA_EXT); motorDer(VEL_CURVA_INT); }
@@ -500,8 +614,8 @@ void loop() {
   //    girar; si venia centrada, es un cruce y se atraviesa recto.
   if (todoNegro) {
     float posRef = histGet(HIST_CRUCE);
-    if (posRef > POS_ESQ_MM) entrarCurva(1);
-    else if (posRef < -POS_ESQ_MM) entrarCurva(-1);
+    if (posRef > POS_ESQ_MM) entrarCurva(1, 3);
+    else if (posRef < -POS_ESQ_MM) entrarCurva(-1, 3);
     else entrarCruce();
     delay(5);
     return;
@@ -515,13 +629,34 @@ void loop() {
   int ladoExt = extIzq ? -1 : (extDer ? 1 : 0);
   if (ladoExt != 0 && ladoExt == extremoLado) {
     if (++extremoConteo >= EXTREMO_CICLOS) {
-      entrarCurva(ladoExt);
+      entrarCurva(ladoExt, 1);
       delay(5);
       return;
     }
   } else {
     extremoConteo = 0;
     extremoLado = ladoExt;
+  }
+
+  // 8b. Centroide sobre una punta: comprometer el giro sin pedir que
+  //     el extremo este solo. Cubre las curvas donde la linea se va
+  //     por el borde pisando varios canales (horquilla, corrida #6).
+  if (suma > UMBRAL_LINEA) {
+    float posAhora = sumaP / suma;
+    int ladoPos = (posAhora > POSF_ESQ) ? 1 :
+                  (posAhora < -POSF_ESQ) ? -1 : 0;
+    if (ladoPos != 0 && ladoPos == posfLado) {
+      if (++posfConteo >= POSF_ESQ_CICLOS) {
+        entrarCurva(ladoPos, 2);
+        delay(5);
+        return;
+      }
+    } else {
+      posfConteo = 0;
+      posfLado = ladoPos;
+    }
+  } else {
+    posfConteo = 0;
   }
 
   // 9. Linea a la vista: PD con zona muerta y rueda interna en piso.

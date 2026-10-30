@@ -24,15 +24,17 @@ Lo que hay que saber sin investigar de nuevo cada vez.
 - **Sketch activo**: `firmware/arturito_v3/`. Arranca quieto esperando
   el pulsador de largada; no imprime nada más hasta que se pulsa.
 
-## Leer la tabla EEPROM de corridas
+## Leer la traza EEPROM de la última corrida
 
-El sketch imprime la tabla **solo al arrancar**. Abrir el puerto resetea
-el UNO por DTR, así que basta abrir una sesión: la tabla sale sola, sin
-tocar la placa.
+Desde el 2026-10-30 la EEPROM entera es la traza de la **última**
+corrida (ya no hay tabla de historial: se archiva en
+`docs/corridas.md` al leerla). El sketch imprime el resumen y los
+eventos **solo al arrancar**. Abrir el puerto resetea el UNO por DTR,
+así que basta abrir una sesión: todo sale solo, sin tocar la placa.
 
 1. `serial_open_session` — `port: "COM5"`, `baudRate: 9600`,
    `ttlMs: 60000`. Devuelve un `sessionId`.
-2. Esperar ~3 s (el boot tarda un poco).
+2. Esperar ~6-8 s (la traza son hasta 64 líneas, tarda en salir).
 3. `serial_read` — `sessionId`. Devuelve todo lo del boot.
 4. `serial_close_session` — `sessionId`. Si da `SESSION_NOT_FOUND` es
    que el TTL venció solo y el puerto ya quedó libre; no es error grave.
@@ -41,24 +43,37 @@ tocar la placa.
 a veces sale antes de capturar el arranque y devuelve vacío. El camino
 fiable es la sesión.
 
-### Formato de la tabla
+### Formato de salida
 
 ```
 ===== ARTURITO v3 =====
 Esperando: apoyar sobre la linea y pulsar largada.
-Corridas guardadas: 5
-  #1: 6.14 s | perdidas 11 esquinas 1 cruces 0
+Ultima corrida: 6.11 s | perdidas 5 esquinas 0 cruces 0
+Traza (t | evento | posF | velI velD | s0..s4):
+  +0.00 largada | p0 | v0 0 | 30 30 850 30 30
+  +0.10 mue | p3 | v200 200 | 40 820 860 35 28
+  +1.23 curva-izq/posf | p-24 | v150 0 | 760 60 40 30 30
+  ...
 ```
 
-- `tiempos`: de la largada a la parada con el pulsador, en segundos.
-- `perdidas`: **entradas** a la búsqueda, no pérdidas discretas — una
-  misma pérdida que flapie cuenta varias (ver la corrida #5 del
-  2026-10-30: 117 entradas por un reinicio de fase que hoy está
-  corregido).
-- `esquinas`: curvas comprometidas disparadas.
-- `cruces`: todo-negro resuelto como cruce.
-- Son 8 slots que rotan (`corridas % 8`); `Corridas guardadas` es el
-  total acumulado, no el de slots libres.
+- Resumen: tiempo largada→parada, `perdidas` = entradas a la búsqueda
+  (incluye reentradas del mismo episodio), `esquinas` = curvas
+  comprometidas, `cruces` = todo-negro resuelto como cruce.
+- Eventos: `mue` = muestra periódica (cada 100 ms); `curva-lado/via`
+  con via `ext` (extremo solo), `posf` (centroide extremo), `negro`
+  (todo-negro con historial corrido); `curva-ok`/`curva-timeout`;
+  `cruce`; `busq-`/`busq*-` (arranque nuevo / retoma de pausa);
+  `pausa`; `largada`; `stop`.
+- `s0..s4` son los ADC ×4 (reconstruidos, ±2 LSB). `velI velD` son los
+  comandos a ruedas (±255).
+- El anillo guarda los **últimos 64 eventos**: en corridas largas se
+  pierde el principio, queda la cola donde pasan los problemas.
+
+### Al leer resultados
+
+Archivar la corrida: nueva fila en `docs/corridas.md` y la traza en la
+entrada del día de `docs/log/` (o `docs/trazas/` si es larga). La
+siguiente corrida pisa la EEPROM sola — no hay que borrar nada.
 
 ## Escribir al puerto
 
