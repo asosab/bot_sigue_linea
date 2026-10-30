@@ -46,5 +46,7 @@ mismo episodio), `esquinas` = curvas comprometidas disparadas, `cruces`
 
 | 20 | 6,50 s | 9 | 0 | 0 | oscilación por sobrepaso: la cinta alternaba S3→S1→S3 (cada virada la cruzaba), ping-pong PD↔búsqueda. Dos causas: `deriv` picaba ±300 PWM en cada reenganche (comparaba contra posF pre-pérdida) y la banda media viraba demasiado cerrado. Fixes: deriv=0 al reenganchar + tope suave `CORR_SUAVE=45` con interno dominante |
 
+| 21 | 6,29 s | 8 | 0 | 0 | mismo ciclo límite: enganche débil, viraje a la derecha sostenido 700 ms sobre S3 sin converger, cruce a la izquierda, búsqueda. Nueva perspectiva: el problema desde #14 no es decisión sino ciclo límite del control — la virada no frena al converger. Fix: `FRENO_RETORNO` (corr ×0,4 al converger en banda media), reemplaza `CORR_SUAVE` |
+
 Las trazas detalladas de cada corrida se pegan en la entrada del día en
 `docs/log/` cuando se leen.

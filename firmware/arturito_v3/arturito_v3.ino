@@ -80,11 +80,12 @@ const float SESGO_MIN = 0.3;       // asimetria n1-n3 minima, o nada
 // la cinta una y otra vez (vaiven al recentrar, corridas #18-19:
 // perseguia lecturas de 0.3-0.4 de masa a 200+ PWM de diferencial).
 const float SUMA_CONFIANZA = 0.7;  // suma >= esto = correccion plena
-// Cinta dominada por un interno (S1 o S3 sin extremos): correccion
-// suave tope. El arco proporcional cruza la cinta y el error pica
-// de lado a lado (corrida #20: S3=764 -> virada que la paso a S1,
-// y asi en ping-pong hasta perderla).
-const float CORR_SUAVE = 45.0;
+// Freno de retorno: mientras el error converge (posF decrece) la
+// correccion se amortigua — sin freno la virada cruza la cinta y el
+// error pica de lado a lado, el vaiven de todas las corridas desde
+// la #14 (S3->S1->S3, "oscila retornando la linea al centro" #18).
+// Divergiendo va a ganancia plena; convergiendo se suelta temprano.
+const float FRENO_RETORNO = 0.4;   // factor de corr al converger
 const int RUEDA_MIN = 40;   // piso de la rueda interna en el PD
 
 // Trim de motores (1.0 = igual). Si tira a la derecha, bajar TRIM_IZQ
@@ -842,14 +843,9 @@ void loop() {
     if (suma < MASA_ANCHA && fabs(n[1] - n[3]) > SESGO_MIN)
       corr += K_SESGO * (n[1] - n[3]);
     if (suma < SUMA_CONFIANZA) corr *= suma / SUMA_CONFIANZA;
-    // Banda suave: con la cinta dominada por un interno y sin
-    // extremos el tope evita cruzarla de una virada.
-    float intMayor = (n[1] > n[3]) ? n[1] : n[3];
-    float intMenor = (n[1] > n[3]) ? n[3] : n[1];
-    bool internoDomina = intMayor > 2.0 * intMenor &&
-                         n[0] < 0.3 && n[4] < 0.3;
-    if (internoDomina && fabs(corr) > CORR_SUAVE)
-      corr = (corr > 0) ? CORR_SUAVE : -CORR_SUAVE;
+    // Convergiendo en banda media se frena el retorno: el resto del
+    // arco cierra sola sin cruzar la cinta.
+    if (deriv * posF < 0 && fabs(posF) <= 15.0) corr *= FRENO_RETORNO;
 
     int velIzq = (int)((base + corr) * TRIM_IZQ);
     int velDer = (int)((base - corr) * TRIM_DER);
