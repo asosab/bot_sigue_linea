@@ -152,13 +152,13 @@ línea dos ciclos seguidos devuelve al PD con asiento.
 | MM_S_A_CRUCE | 264 mm/s | velocidad real a PWM 140 ([[medicion-velocidad]]) |
 | VEL_CURVA_EXT / VEL_CURVA_INT | 150 / 0 | ruedas en la curva comprometida |
 | CURVA_MIN_MS / CURVA_MAX_MS | 90 / 500 | giro mínimo y techo de la curva |
-| EXTREMO_CICLOS / NEG_EXT | 3 / 0.45 | persistencia del solo-extremo |
+| EXTREMO_CICLOS / NEG_EXT | 2 / 0.45 | persistencia del solo-extremo |
 | POS_ESQ_MM / HIST_CRUCE | 8 mm / 12 | historial que separa esquina de cruce |
-| VEL_ARCO_EXT / VEL_ARCO_INT | 140 / 40 | ruedas del arco de búsqueda |
+| VEL_ARCO_EXT / VEL_ARCO_INT | 110 / 25 | ruedas del arco de búsqueda |
 | VEL_BUSQUEDA / PIVOTE_MS | 110 / 280 ms | pivote acotado (~90°, medir) |
-| ARCO_MS / ARCO2_MS / PIVOTE2_MS | 600 / 750 / 560 | fases de la búsqueda |
+| ARCO_MS / ARCO2_MS / PIVOTE2_MS | 400 / 500 / 560 | fases de la búsqueda |
 | ASIENTO_MS / VEL_ASIENTO | 250 / 120 | velocidad capada tras recuperar |
-| TRIM_IZQ / TRIM_DER | 1.0 / 1.0 | ruedas parejas ([[medicion-velocidad]]) |
+| TRIM_IZQ / TRIM_DER | 1.0 / 1.05 | compensa viraje derecha ([[medicion-velocidad]]) |
 
 El simulador del sitio (`web/assets/js/track.js`) porta el algoritmo de la
 v2; falta migrarlo a esta versión (posición en mm, zona muerta, historial,
