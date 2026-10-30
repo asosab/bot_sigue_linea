@@ -76,8 +76,11 @@ const int RUEDA_MIN = 40;   // piso de la rueda interna en el PD
 // Medida 2026-10-30: el viraje mecanico es ~15 grados a la derecha
 // (insensible al balance PWM: convergencia o bola); subir la derecha
 // ~7 % lo compensa en carrera. Afinar en pista.
+// Ajuste 2026-10-30: con 1.05 el posF quedo clavado +7/+9 en las
+// rectas de las corridas #8 y #11 — sobre-compensa y virga a la
+// izquierda; 1.02 deja un resto chico contra el viraje medido.
 const float TRIM_IZQ = 1.0;
-const float TRIM_DER = 1.05;
+const float TRIM_DER = 1.02;
 
 // Compuerta de arranque (umbrales sobre negrura 0..1)
 const float N_ON = 0.6;    // S2 tiene que ver negro firme
@@ -119,6 +122,14 @@ const float NEG_INTERNA = 0.6;    // trio interno que confirma la vuelta
 // (corrida #6: 0 esquinas en un 180).
 const float POSF_ESQ = 16.0;      // mm: centroide fuera del trio interno
 const int POSF_ESQ_CICLOS = 2;    // persistencia del lado extremo
+
+// Guardia del cruce en X: un brazo diagonal asoma por un extremo
+// mientras la linea propia sigue bajo la punta S2. En una esquina
+// real la linea que se va ya dejo a S2 en claro cuando el centroide
+// supera POSF_ESQ o el extremo queda solo — comprometer el giro con
+// S2 sobre cinta es seguir una linea ajena (corrida #11: pinball en
+// la X, 4 curvas falsas en ~3 s, ningun todo-negro real).
+const float NEG_CENTRO_VETO = 0.4; // S2 por encima = la punta ve linea
 
 // Discriminacion cruce/esquina sobre el historial
 const float POS_ESQ_MM = 8.0;     // |posF| historica que delata esquina
@@ -670,9 +681,13 @@ void loop() {
 
   // 8. Solo un extremo ve la linea: esquina que arranca. Pide
   //    persistencia de unos ciclos para no morder en un cruce
-  //    ladeado (una banda lateral alcanza a los dos extremos).
-  bool extIzq = (n[0] > NEG_EXT) && (suma - n[0] < SUMA_OTROS);
-  bool extDer = (n[4] > NEG_EXT) && (suma - n[4] < SUMA_OTROS);
+  //    ladeado (una banda lateral alcanza a los dos extremos) y la
+  //    punta libre de cinta (un brazo de la X con S2 sobre la linea
+  //    propia tambien deja un extremo casi solo).
+  bool extIzq = (n[0] > NEG_EXT) && (n[2] < NEG_CENTRO_VETO) &&
+                (suma - n[0] < SUMA_OTROS);
+  bool extDer = (n[4] > NEG_EXT) && (n[2] < NEG_CENTRO_VETO) &&
+                (suma - n[4] < SUMA_OTROS);
   int ladoExt = extIzq ? -1 : (extDer ? 1 : 0);
   if (ladoExt != 0 && ladoExt == extremoLado) {
     if (++extremoConteo >= EXTREMO_CICLOS) {
@@ -688,19 +703,26 @@ void loop() {
   // 8b. Centroide sobre una punta: comprometer el giro sin pedir que
   //     el extremo este solo. Cubre las curvas donde la linea se va
   //     por el borde pisando varios canales (horquilla, corrida #6).
+  //     Veto con la punta sobre cinta: en la X el brazo cruza por un
+  //     extremo mientras S2 sigue sobre la linea propia — ahi no se
+  //     esta yendo la linea, esta cruzando otra (corrida #11).
   if (suma > UMBRAL_LINEA) {
-    float posAhora = sumaP / suma;
-    int ladoPos = (posAhora > POSF_ESQ) ? 1 :
-                  (posAhora < -POSF_ESQ) ? -1 : 0;
-    if (ladoPos != 0 && ladoPos == posfLado) {
-      if (++posfConteo >= POSF_ESQ_CICLOS) {
-        entrarCurva(ladoPos, 2);
-        delay(5);
-        return;
+    if (n[2] < NEG_CENTRO_VETO) {
+      float posAhora = sumaP / suma;
+      int ladoPos = (posAhora > POSF_ESQ) ? 1 :
+                    (posAhora < -POSF_ESQ) ? -1 : 0;
+      if (ladoPos != 0 && ladoPos == posfLado) {
+        if (++posfConteo >= POSF_ESQ_CICLOS) {
+          entrarCurva(ladoPos, 2);
+          delay(5);
+          return;
+        }
+      } else {
+        posfConteo = 0;
+        posfLado = ladoPos;
       }
     } else {
       posfConteo = 0;
-      posfLado = ladoPos;
     }
   } else {
     posfConteo = 0;
