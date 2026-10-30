@@ -43,9 +43,11 @@ const int MODO_PIVOTE = 0;           // 0 = recta, 1 = pivote en el sitio
 const int VEL_BUSQUEDA = 110;        // PWM del pivote (el de la busqueda)
 const int LADO_PIVOTE = 1;           // +1 derecha, -1 izquierda
 
-// Trim de motores, mismo criterio que el firmware de carrera
+// Trim de motores, mismo criterio que el firmware de carrera.
+// TRIM_DER 0.88 sale del derrape medido (via 131 mm, arco ~99 cm):
+// esta corrida verifica si el robot va recto con el ajuste.
 const float TRIM_IZQ = 1.0;
-const float TRIM_DER = 1.0;
+const float TRIM_DER = 0.88;
 
 const unsigned long BTN_DEBOUNCE_MS = 50;
 
