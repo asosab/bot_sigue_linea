@@ -44,5 +44,7 @@ mismo episodio), `esquinas` = curvas comprometidas disparadas, `cruces`
 
 | 19 | 5,09 s | 6 | 1 | 0 | nunca enganchó firme: parpadeo S2 224→804→84→680, perdió a los 80 ms, `posf` comprometió sobre masa 0,36 → blanco → fuera. Fix: `corr` se atenúa con la confianza de la lectura (`suma < 0,7` → proporcional) |
 
+| 20 | 6,50 s | 9 | 0 | 0 | oscilación por sobrepaso: la cinta alternaba S3→S1→S3 (cada virada la cruzaba), ping-pong PD↔búsqueda. Dos causas: `deriv` picaba ±300 PWM en cada reenganche (comparaba contra posF pre-pérdida) y la banda media viraba demasiado cerrado. Fixes: deriv=0 al reenganchar + tope suave `CORR_SUAVE=45` con interno dominante |
+
 Las trazas detalladas de cada corrida se pegan en la entrada del día en
 `docs/log/` cuando se leen.

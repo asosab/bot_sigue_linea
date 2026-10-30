@@ -80,6 +80,11 @@ const float SESGO_MIN = 0.3;       // asimetria n1-n3 minima, o nada
 // la cinta una y otra vez (vaiven al recentrar, corridas #18-19:
 // perseguia lecturas de 0.3-0.4 de masa a 200+ PWM de diferencial).
 const float SUMA_CONFIANZA = 0.7;  // suma >= esto = correccion plena
+// Cinta dominada por un interno (S1 o S3 sin extremos): correccion
+// suave tope. El arco proporcional cruza la cinta y el error pica
+// de lado a lado (corrida #20: S3=764 -> virada que la paso a S1,
+// y asi en ping-pong hasta perderla).
+const float CORR_SUAVE = 45.0;
 const int RUEDA_MIN = 40;   // piso de la rueda interna en el PD
 
 // Trim de motores (1.0 = igual). Si tira a la derecha, bajar TRIM_IZQ
@@ -813,7 +818,10 @@ void loop() {
     // actual es la mejor estima: el EMA arrastraba el valor viejo un
     // tramo y corregia al lado equivocado tras las maniobras.
     posF = estabaEnLinea ? posF + ALPHA * (pos - posF) : pos;
-    float deriv = posF - posPrev;
+    // deriv sobre un salto de tiempo no mide nada: al reenganchar
+    // comparaba posF con el valor de antes de la perdida y KD metia
+    // picos de +-300 PWM en cada pausa de busqueda (corrida #20).
+    float deriv = estabaEnLinea ? (posF - posPrev) : 0;
     posPrev = posF;
     histPush(posF);
 
@@ -834,6 +842,14 @@ void loop() {
     if (suma < MASA_ANCHA && fabs(n[1] - n[3]) > SESGO_MIN)
       corr += K_SESGO * (n[1] - n[3]);
     if (suma < SUMA_CONFIANZA) corr *= suma / SUMA_CONFIANZA;
+    // Banda suave: con la cinta dominada por un interno y sin
+    // extremos el tope evita cruzarla de una virada.
+    float intMayor = (n[1] > n[3]) ? n[1] : n[3];
+    float intMenor = (n[1] > n[3]) ? n[3] : n[1];
+    bool internoDomina = intMayor > 2.0 * intMenor &&
+                         n[0] < 0.3 && n[4] < 0.3;
+    if (internoDomina && fabs(corr) > CORR_SUAVE)
+      corr = (corr > 0) ? CORR_SUAVE : -CORR_SUAVE;
 
     int velIzq = (int)((base + corr) * TRIM_IZQ);
     int velDer = (int)((base - corr) * TRIM_DER);
