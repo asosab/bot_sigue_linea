@@ -60,10 +60,10 @@ Detalle en [[componente-tcrt5000]].
 
 Mismo sketch, otra configuración: `VEL_IZQ = 255` a plena potencia y
 `VEL_DER = 224` (255 × 0.876, la primera estimación). Protocolo nuevo
-sin video: frente en 0 cm y 8 cm de separación al borde derecho; se
-mide distancia recorrida y separación final.
+sin video: frente en 0 cm y 8 cm de separación al **borde izquierdo**;
+se mide distancia recorrida y separación final al borde.
 
-| Prueba | cm recorridos (3 s) | separación final a la derecha |
+| Prueba | cm recorridos (3 s) | separación final al borde izq. |
 |---|---|---|
 | 1 | 94.8 | 31.7 |
 | 2 | 96.0 | 28.0 |
@@ -75,25 +75,23 @@ mide distancia recorrida y separación final.
 
 ## Derivado
 
-- Separación al borde derecho creció de 8 a ~31 cm: siguió curvando a
-  la izquierda ~23 cm por 95 cm — menos que en la primera tanda
-  (0,24 contra 0,42 cm/cm), el recorte ayudó pero quedó corto.
-- Arco: radio ~208 cm → `v_L/v_R = 0.939` a PWM 255/224 →
-  `e_izq/e_der = 0.825` a esta potencia, cuando a 140 era 0.876.
-  La rueda izquierda es la lenta y su desventaja crece con el PWM:
-  no hay un solo trim que valga para todo el rango.
+- Separación al borde izquierdo creció de 8 a ~31 cm: se fue a la
+  **derecha** ~23 cm por 95 cm. El recorte de 12 % fue excesivo.
+- Arco: radio ~205 cm → `v_L/v_R = 1.066` a PWM 255/224 →
+  `e_izq/e_der = 0.936`: la rueda izquierda es solo ~6 % lenta.
+- Esto reconcilia las tres observaciones: el déficit real es chico,
+  los ~30 cm de la primera tanda venían inflados por la pose inicial
+  sin controlar (no se midió el borde ni el ángulo de salida), y el
+  TRIM 0.88 a PWM 140 sobre-corrigió — por eso curvó «mucho más».
 - Velocidad a 255: ~95 cm proyectados en 3 s → ~32 cm/s proyectados,
   ~34 cm/s de arco (~340 mm/s).
-- La lectura intermedia (TRIM 0.88 a PWM 140 «empeoró» a ojo) queda
-  reconciliada: el valor era insuficiente, no de lado equivocado.
 
 ## Decisiones que salen de acá
 
 - `MM_S_A_CRUCE = 264` — convierte `AVANCE_CRUCE_MM` (30 mm) en ~114 ms
   de tramo ciego de cruce.
-- `TRIM_DER = 0.85` en la v3: compromiso del rango de carrera
-  (140–255). La verificación fina corre con `VEL_DER = 210`
-  (255 × 0.825).
+- `TRIM_DER = 0.93` en la v3. La verificación fina corre con
+  `VEL_DER = 238` (255 × 0.936); si queda residual, ajustar alrededor.
 - `PIVOTE_MS` sigue sin medir: falta la corrida con `MODO_PIVOTE = 1`.
 
 ## Relacionado
