@@ -243,6 +243,62 @@
     regla simple: cada elemento que se suma a un sistema es un punto más
     donde puede fallar. El botón y dos cables fue todo lo que hizo
     falta.</p>
+
+    <h3>Cronometrar sin cables</h3>
+    <p>Para afinar la velocidad hacía falta un número que el robot no da:
+    cuánto recorre en un tiempo conocido. No tiene encoders y la prueba no
+    puede llevar USB, así que le escribimos un programa aparte: al pulsar el
+    botón espera medio segundo para que saquemos la mano, enciende su LED
+    integrado, corre tres segundos exactos a velocidad constante y para. El
+    LED queda como marca en el video: entre que prende y apaga pasaron
+    exactamente tres segundos. Se filma sobre una cinta métrica, se repite
+    la pulsada unas cuantas veces y se promedian las lecturas.</p>
+
+    <h3>La regla miente cuando el robot curva</h3>
+    <p>La primera tanda dijo unos 70 cm en tres segundos, pero con una
+    particularidad: todas las corridas se desviaban unos 30 cm hacia la
+    izquierda. La cinta mide proyección, no camino: si el robot describe un
+    arco, el trecho real es más largo que lo que marca la regla. Con la
+    geometría del arco —radio de casi un metro— salieron unos 79 cm
+    recorridos: 26 cm/s a esa potencia, más de lo que sugería la lectura
+    ingenua. Y el desvío parecía delatar una rueda más lenta que la otra,
+    así que ajustamos el trim en consecuencia.</p>
+
+    <h3>Tres corridas y el trim que no era</h3>
+    <p>El primer ajuste empeoró la curva en vez de corregirla. Para
+    descartar la pose de salida cambiamos el protocolo: marcas en el piso
+    en vez de video, midiendo distancia recorrida y separación final a un
+    borde de la pista. Con el protocolo fino corrimos tres configuraciones
+    de potencia entre ruedas —224, 238 y 255 en el derecho contra 255 en el
+    izquierdo— y las tres dieron la misma apertura al mismo lado, unos
+    25 cm por metro recorrido. El desvío no respondía al balance de
+    motores: respondía a otra cosa. Veredicto provisional: las ruedas
+    están parejas y el viraje es mecánico — el ángulo de montaje de una
+    rueda, la bola del desodorante descentrada o algo que roza el piso. Se
+    compensa por software mientras se busca el punto físico.</p>
+
+    <h3>El robot que se acuerda</h3>
+    <p>El concurso son tres corridas y cuenta la mejor, así que hacía falta
+    saber cómo corrió cada una sin llevar la compu al costado de la pista.
+    La placa tiene una memoria que sobrevive al apagado —la EEPROM— y
+    ahora cada corrida terminada con el pulsador guarda su tiempo de
+    largada a parada, cuántas veces perdió la línea, cuántas esquinas y
+    cruces resolvió, y la calibración de blanco y negro que aprendió en esa
+    pista. Al prenderlo de nuevo ya sale calibrado con los valores reales,
+    y la tabla de corridas sale por el monitor serie cuando lo
+    conectamos.</p>
+
+    <h3>Primera vuelta en la pista de práctica</h3>
+    <p>Los datos de la primera tanda en pista dolieron un poco: entre ocho
+    y once pérdidas de línea por corrida. El reporte era que al buscar la
+    línea la rueda se salía del cartón antes de encontrarla. La causa: la
+    búsqueda empezaba con un arco hacia adelante que lo llevaba unos
+    15 cm mientras giraba; para cuando encontraba la línea, la rueda ya
+    estaba fuera. El arreglo fue invertir el orden: primero un giro en el
+    sitio, acotado a unos 90°, que no desplaza al robot ni puede dejarlo
+    mirando para atrás, y los arcos después, más cortos y cerrados. El
+    detector de esquinas también quedó más sensible, y el trim quedó
+    compensando el viraje mecánico a la derecha.</p>
   </section>
 
   <div class="track-anchor" id="t3"></div>
