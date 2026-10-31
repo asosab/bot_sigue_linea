@@ -30,16 +30,21 @@ Lo que hay que saber sin investigar de nuevo cada vez.
 Desde el 2026-10-30 la EEPROM entera es la traza de la **última**
 corrida (ya no hay tabla de historial: se archiva en
 `docs/corridas.md` al leerla). En v2.5 la traza se imprime **solo al
-enviar `t` por serie** (el boot solo imprime el banner): pedir
-confirmación al usuario antes de escribir al puerto.
+enviar `t` por serie** (el boot solo imprime el banner).
+
+**El envío de `t` está autorizado de forma permanente** (decisión del
+usuario, 2026-10-30): no pedir confirmación para ese byte y, si la
+sesión expira en medio, reabrirla y reenviar `t` sin interrumpir al
+usuario. El procedimiento completo con reintentos está en el skill
+`corrida-analisis`.
 
 1. `serial_open_session` — `port: "COM5"`, `baudRate: 9600`,
-   `ttlMs: 120000`. Devuelve un `sessionId`. Abrir resetea el UNO por
+   `ttlMs: 180000`. Devuelve un `sessionId`. Abrir resetea el UNO por
    DTR: esperar ~1 s a que salga el banner.
-2. `serial_write` — `sessionId`, `data: "t"` (pedir confirmación
-   primero: es escritura al puerto).
+2. `serial_write` — `sessionId`, `data: "t"`.
 3. Esperar ~4-5 s (la traza son hasta 64 líneas).
 4. `serial_read` — `sessionId`. Devuelve banner + traza.
+   `SESSION_NOT_FOUND` = TTL vencido: reabrir y reenviar `t`.
 5. `serial_close_session` — `sessionId`. Si da `SESSION_NOT_FOUND` es
    que el TTL venció solo y el puerto ya quedó libre; no es error
    grave, pero habrá que reabrir para escribir.
@@ -86,7 +91,9 @@ siguiente corrida pisa la EEPROM sola — no hay que borrar nada.
 ## Escribir al puerto
 
 - **Pide confirmación del usuario siempre** (regla del proyecto: la
-  placa es hardware real). Igual que `upload_sketch`.
+  placa es hardware real). Igual que `upload_sketch`. Única excepción:
+  el byte `t` (vuelca la traza EEPROM) está autorizado de forma
+  permanente — enviarlo y reenviarlo sin preguntar.
 - `serial_write` corre un `safety_preflight`; no usar
   `unsafeSkipPreflight` salvo que el usuario lo pida en texto.
 
