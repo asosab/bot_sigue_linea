@@ -15,14 +15,18 @@ de largada y misma batería. Mínimo 3 vueltas por nivel:
 
 Para cada corrida anotar el `MUESTRA_MS` usado y detener con el
 pulsador justo después de la zona de interés. **Estado**: `MUESTRA_MS =
-1000` fijo en las tres tandas; la placa quedó en nivel B
-(`EXT_MARCHA 1`) tras cerrar A1-A3 el 2026-10-30.
+1000` fijo en las tres tandas; la placa quedó en nivel C
+(`EXT_MARCHA 2`) tras cerrar B1-B3 el 2026-10-30 — el nivel 2 sí
+registra los eventos `ext-veto-izq/der` en la traza.
 
 | # | Nivel | `MUESTRA_MS` | Tiempo | Perdidas | Curvas ext falsas | Curvas ext reales | Veto a masa ajena | Veto a esquina real | Timeouts de curva | Notas |
 |---|---|---|---|---|---|---|---|---|---|---|
 | A1 | 0 | 1000 | 14,67 s | 24 | — | — | — | — | — | 2 disparos ext: +2,21 (e3=12 → habría vetado) salió `curva-ok`; +10,04 (e3=6 → pasaba) salió `curva-barrida`. Clasificación real/falsa pendiente del humano |
 | A2 | 0 | 1000 | 9,14 s | 12 | — | — | — | — | — | 2 disparos ext, ambos `curva-ok`: +2,25 (e3=31 → habría vetado) y +5,83 (e3=46 → habría vetado). Si son esquinas reales, la marcha las hubiera bloqueado a las dos. Clasificación pendiente |
 | A3 | 0 | 1000 | 6,32 s | 11 | — | — | — | — | — | 1 disparo ext +1,07 (e3=39 → habría vetado), salió `curva-barrida`. Terminó buscando en vacío. Clasificación pendiente |
+| B1 | 1 | 1000 | 14,46 s | 28 | — | — | — | — | 1 | Solo 1 disparo ext en toda la corrida (+5,37, s4=820, e3=1 → pasó) y terminó `curva-timeout`. El nivel 1 vetó el resto en silencio — el evento `ext-veto` solo se registra en nivel 2. Mismo ping-pong busq/pausa que en A |
+| B2 | 1 | 1000 | 11,37 s | 13 | — | — | — | — | 1 | 1 disparo ext +2,20 (s4=864, e3=7 → pasó) → `curva-timeout`. Vetos silenciosos en punta sola con e3 alto. **Físico: pasó el desvío ligero, atravesó la X y se perdió antes de los tres giros a la izquierda** |
+| B3 | 1 | 1000 | 14,42 s | 29 | — | — | — | — | 1 | 1 disparo ext +12,97 (s4=700, e3=2 → pasó) → `curva-timeout`. **Físico: atravesó la X y su lazo; en el cruce siguiente a la derecha se perdió y volvió en dirección contraria, perdiéndose dentro del lazo de la X** |
 
 ```text
 A1 (nivel 0): Ultima corrida: 14.67 s | perdidas 24 esquinas 2 cruces 0 | pista 8-793 (vistos 0-866)
@@ -165,6 +169,185 @@ A3 (nivel 0): Ultima corrida: 6.32 s | perdidas 11 esquinas 1 cruces 0 | pista 1
   +5.00 mue | p-27 | v24 110 | 8 20 24 12 8 | e1 255 e3 255
   +6.01 mue | p-27 | v110 24 | 16 16 0 8 8 | e1 255 e3 255
   +6.31 stop | p-27 | v0 0 | 16 24 8 12 8 | e1 255 e3 255
+```
+
+```text
+B1 (nivel 1): Ultima corrida: 14.46 s | perdidas 28 esquinas 1 cruces 0 | pista 13-738 (vistos 0-886)
+  +0.67 busq*-izq | p-12 | v40 214 | 36 16 36 20 12 | e1 3 e3 255
+  +0.72 pausa | p14 | v-110 110 | 20 24 8 412 8 | e1 11 e3 0
+  +0.85 busq*-der | p14 | v160 80 | 12 16 20 28 12 | e1 32 e3 3
+  +0.86 pausa | p28 | v110 24 | 12 16 8 20 260 | e1 35 e3 6
+  +1.00 mue | p27 | v254 0 | 12 12 16 36 40 | e1 57 e3 28
+  +1.00 busq*-der | p27 | v254 0 | 16 16 16 32 32 | e1 58 e3 29
+  +1.26 pausa | p28 | v110 24 | 12 16 12 20 288 | e1 101 e3 72
+  +1.61 busq*-der | p12 | v170 108 | 0 8 156 32 12 | e1 160 e3 3
+  +1.63 pausa | p1 | v110 24 | 12 16 272 48 16 | e1 162 e3 5
+  +1.80 busq*-izq | p-10 | v96 144 | 16 32 20 44 24 | e1 3 e3 34
+  +1.83 pausa | p-22 | v24 110 | 296 16 20 44 24 | e1 7 e3 38
+  +2.00 mue | p-25 | v0 254 | 452 16 16 32 24 | e1 35 e3 67
+  +2.31 busq*-izq | p-12 | v50 230 | 16 152 40 32 12 | e1 0 e3 118
+  +2.33 pausa | p4 | v24 110 | 4 276 72 516 16 | e1 0 e3 0
+  +2.61 busq*-der | p26 | v254 0 | 12 8 16 44 20 | e1 33 e3 24
+  +3.00 mue | p26 | v-110 110 | 12 16 12 28 16 | e1 98 e3 89
+  +3.61 pausa | p-26 | v24 110 | 256 16 12 32 12 | e1 201 e3 192
+  +3.86 busq*-izq | p0 | v120 122 | 16 24 8 44 16 | e1 6 e3 232
+  +3.86 pausa | p14 | v110 24 | 16 24 12 340 16 | e1 7 e3 0
+  +3.97 busq*-der | p14 | v160 80 | 8 12 20 32 76 | e1 25 e3 3
+  +3.98 pausa | p28 | v24 110 | 8 4 12 36 292 | e1 26 e3 4
+  +4.00 mue | p28 | v254 0 | 12 20 20 44 672 | e1 30 e3 8
+  +4.09 busq*-der | p28 | v254 0 | 8 8 16 32 24 | e1 45 e3 23
+  +4.28 pausa | p26 | v110 -110 | 16 24 20 28 320 | e1 76 e3 54
+  +4.56 busq*-der | p28 | v254 0 | 12 8 16 24 28 | e1 124 e3 101
+  +4.71 pausa | p28 | v110 -110 | 12 8 16 28 352 | e1 148 e3 126
+  +5.00 mue | p14 | v166 84 | 4 8 16 824 16 | e1 197 e3 0
+  +5.37 curva-der/ext | p21 | v254 0 | 12 16 20 48 820 | e1 14 e3 1
+  +6.07 curva-timeout | p21 | v150 -70 | 8 8 24 496 388 | e1 131 e3 0
+  +6.07 busq-izq | p21 | v150 -70 | 8 8 24 496 388 | e1 131 e3 0
+  +6.07 mue | p21 | v150 -70 | 8 8 24 496 388 | e1 131 e3 0
+  +6.07 pausa | p14 | v150 -70 | 8 8 24 496 388 | e1 131 e3 0
+  +6.20 busq*-der | p12 | v154 86 | 24 20 36 24 8 | e1 152 e3 3
+  +6.26 pausa | p-12 | v110 -110 | 12 292 20 36 24 | e1 0 e3 13
+  +6.33 busq*-izq | p-11 | v92 150 | 16 52 16 24 16 | e1 3 e3 24
+  +6.43 pausa | p-13 | v-110 110 | 16 260 12 24 20 | e1 0 e3 41
+  +6.48 busq*-izq | p-13 | v84 158 | 16 0 16 20 16 | e1 3 e3 50
+  +6.56 pausa | p-14 | v-110 110 | 8 320 8 16 8 | e1 0 e3 64
+  +6.64 busq*-izq | p-14 | v40 234 | 36 32 12 16 8 | e1 3 e3 77
+  +6.70 pausa | p-13 | v24 110 | 8 280 32 16 8 | e1 0 e3 87
+  +6.79 busq*-izq | p-12 | v86 156 | 16 4 28 20 12 | e1 3 e3 101
+  +6.86 pausa | p0 | v24 110 | 4 16 340 24 8 | e1 15 e3 113
+  +6.95 busq*-izq | p0 | v120 122 | 12 16 36 16 16 | e1 29 e3 128
+  +7.00 pausa | p15 | v24 110 | 8 8 12 412 16 | e1 38 e3 0
+  +7.08 mue | p14 | v224 40 | 8 12 16 708 420 | e1 50 e3 0
+  +7.15 busq*-der | p26 | v254 0 | 8 8 16 16 24 | e1 64 e3 5
+  +8.08 mue | p26 | v24 110 | 8 0 12 20 12 | e1 217 e3 158
+  +9.08 mue | p26 | v110 24 | 52 24 12 24 12 | e1 255 e3 255
+  +9.99 pausa | p-30 | v24 110 | 284 4 12 12 8 | e1 255 e3 255
+  +10.05 busq*-izq | p-28 | v0 254 | 60 12 12 12 12 | e1 255 e3 255
+  +10.08 mue | p-28 | v110 24 | 24 20 8 8 8 | e1 255 e3 255
+  +10.36 pausa | p-28 | v110 24 | 288 16 8 20 8 | e1 255 e3 255
+  +10.45 busq*-izq | p-25 | v0 254 | 108 8 12 16 16 | e1 255 e3 255
+  +10.53 pausa | p-14 | v-110 110 | 16 316 8 16 8 | e1 0 e3 255
+  +10.60 busq*-izq | p-14 | v80 162 | 16 16 20 16 4 | e1 3 e3 255
+  +10.65 pausa | p-13 | v-110 110 | 20 288 32 12 8 | e1 0 e3 255
+  +10.75 busq*-izq | p0 | v120 122 | 16 20 28 28 16 | e1 14 e3 255
+  +10.79 pausa | p14 | v-110 110 | 16 24 12 408 4 | e1 20 e3 0
+  +11.08 mue | p29 | v254 0 | 12 8 12 24 336 | e1 69 e3 25
+  +11.46 busq-der | p15 | v230 16 | 8 8 16 28 4 | e1 11 e3 3
+  +12.09 mue | p15 | v110 24 | 16 24 16 36 16 | e1 115 e3 106
+  +13.09 mue | p15 | v24 110 | 0 4 12 28 20 | e1 255 e3 255
+  +14.09 mue | p15 | v-110 110 | 24 0 4 20 16 | e1 255 e3 255
+  +14.46 stop | p15 | v0 0 | 12 16 8 28 16 | e1 255 e3 255
+```
+
+```text
+B2 (nivel 1): Ultima corrida: 11.37 s | perdidas 13 esquinas 1 cruces 0 | pista 14-806 (vistos 0-882)
+  +0.08 busq-der | p0 | v198 202 | 16 40 36 20 8 | e1 190 e3 190
+  +0.11 pausa | p1 | v110 -110 | 20 36 284 64 0 | e1 196 e3 196
+  +0.24 busq*-der | p0 | v120 122 | 12 12 40 52 20 | e1 217 e3 217
+  +0.27 pausa | p1 | v110 -110 | 12 16 528 80 32 | e1 222 e3 222
+  +0.68 busq*-der | p14 | v230 40 | 8 20 16 48 184 | e1 38 e3 3
+  +0.69 pausa | p24 | v110 -110 | 32 32 20 32 432 | e1 39 e3 4
+  +1.00 mue | p14 | v166 86 | 12 12 16 860 32 | e1 91 e3 0
+  +1.10 busq*-der | p13 | v166 94 | 0 4 40 40 8 | e1 108 e3 3
+  +1.19 pausa | p-13 | v110 -110 | 24 612 24 40 8 | e1 0 e3 18
+  +1.27 busq*-izq | p-15 | v6 236 | 4 48 16 16 20 | e1 3 e3 31
+  +1.35 pausa | p-14 | v-110 110 | 16 284 16 20 16 | e1 0 e3 43
+  +1.41 busq*-izq | p-14 | v40 228 | 40 20 4 12 8 | e1 3 e3 54
+  +1.46 pausa | p-15 | v-110 110 | 12 288 8 8 16 | e1 0 e3 63
+  +1.65 busq*-izq | p-14 | v40 236 | 40 20 28 12 8 | e1 3 e3 94
+  +1.79 pausa | p15 | v24 110 | 4 8 8 364 16 | e1 26 e3 0
+  +2.00 mue | p14 | v160 80 | 12 16 20 768 16 | e1 61 e3 0
+  +2.20 curva-der/ext | p29 | v254 0 | 12 16 16 28 864 | e1 15 e3 7
+  +2.90 curva-timeout | p29 | v150 -70 | 8 12 32 24 60 | e1 43 e3 50
+  +2.90 busq-izq | p29 | v150 -70 | 8 12 32 24 60 | e1 43 e3 50
+  +3.00 mue | p29 | v-110 110 | 12 20 4 8 8 | e1 60 e3 68
+  +4.00 mue | p29 | v110 -110 | 12 24 8 12 8 | e1 227 e3 234
+  +4.92 pausa | p-29 | v-110 110 | 280 16 4 16 16 | e1 255 e3 255
+  +5.01 mue | p-27 | v0 254 | 264 16 16 16 20 | e1 255 e3 255
+  +5.20 busq*-izq | p-25 | v0 254 | 24 16 20 24 20 | e1 21 e3 255
+  +6.01 mue | p-25 | v110 -110 | 36 8 0 8 4 | e1 155 e3 255
+  +7.01 mue | p-25 | v-110 110 | 140 12 4 20 20 | e1 255 e3 255
+  +7.33 pausa | p14 | v24 110 | 0 4 20 324 16 | e1 21 e3 0
+  +7.67 busq*-der | p14 | v166 84 | 8 16 28 76 12 | e1 77 e3 3
+  +7.68 pausa | p15 | v110 24 | 12 8 8 336 16 | e1 80 e3 0
+  +8.01 mue | p14 | v166 84 | 12 12 20 736 20 | e1 134 e3 0
+  +8.12 busq*-der | p0 | v198 202 | 12 16 40 12 8 | e1 152 e3 9
+  +8.23 pausa | p-5 | v110 24 | 12 172 296 16 8 | e1 0 e3 27
+  +8.25 busq*-izq | p-7 | v42 200 | 28 100 16 20 28 | e1 1 e3 31
+  +8.32 pausa | p-26 | v24 110 | 292 20 12 24 20 | e1 2 e3 43
+  +8.36 busq*-izq | p-26 | v0 254 | 16 12 16 24 16 | e1 8 e3 49
+  +9.01 mue | p-26 | v110 -110 | 12 12 8 52 16 | e1 116 e3 158
+  +10.01 mue | p-26 | v-110 110 | 8 16 12 44 12 | e1 255 e3 255
+  +11.02 mue | p-26 | v110 -110 | 12 16 8 36 24 | e1 255 e3 255
+  +11.37 stop | p-26 | v0 0 | 16 32 4 36 24 | e1 255 e3 255
+```
+
+```text
+B3 (nivel 1): Ultima corrida: 14.42 s | perdidas 29 esquinas 1 cruces 0 | pista 13-792 (vistos 0-892)
+  +1.26 busq*-der | p1 | v194 196 | 16 16 44 48 16 | e1 136 e3 7
+  +1.31 pausa | p-12 | v110 -110 | 8 668 12 64 16 | e1 0 e3 15
+  +1.45 busq*-izq | p-12 | v40 214 | 32 20 16 28 8 | e1 3 e3 38
+  +1.48 pausa | p-25 | v-110 110 | 288 24 8 36 12 | e1 8 e3 43
+  +1.59 busq*-izq | p-19 | v0 206 | 28 16 20 40 24 | e1 26 e3 62
+  +1.66 pausa | p-12 | v24 110 | 16 292 12 36 12 | e1 0 e3 73
+  +1.88 busq*-izq | p-6 | v120 120 | 16 24 84 28 12 | e1 4 e3 109
+  +1.97 pausa | p15 | v24 110 | 12 4 8 344 8 | e1 20 e3 0
+  +2.00 mue | p14 | v160 80 | 8 16 20 556 4 | e1 25 e3 0
+  +2.28 busq*-der | p26 | v254 0 | 8 16 16 48 20 | e1 15 e3 14
+  +3.01 mue | p26 | v-110 110 | 16 8 8 28 8 | e1 137 e3 136
+  +3.24 pausa | p28 | v24 110 | 0 4 12 44 272 | e1 175 e3 174
+  +3.49 busq*-der | p12 | v212 40 | 40 8 92 60 8 | e1 217 e3 3
+  +3.55 pausa | p-11 | v24 110 | 16 296 8 56 12 | e1 0 e3 12
+  +3.67 busq*-izq | p-9 | v102 140 | 24 28 16 48 12 | e1 3 e3 32
+  +3.69 pausa | p-23 | v110 24 | 284 32 12 44 16 | e1 6 e3 35
+  +3.95 busq*-izq | p-25 | v0 254 | 24 4 12 28 12 | e1 49 e3 79
+  +4.01 mue | p-25 | v110 24 | 12 16 8 24 8 | e1 60 e3 89
+  +4.59 pausa | p-23 | v-110 110 | 276 12 12 52 16 | e1 156 e3 186
+  +4.94 busq*-izq | p0 | v196 200 | 12 8 24 24 12 | e1 13 e3 244
+  +4.97 pausa | p14 | v-110 110 | 16 20 4 364 8 | e1 18 e3 0
+  +5.01 mue | p14 | v158 80 | 24 24 28 800 8 | e1 25 e3 0
+  +5.11 busq*-der | p14 | v160 80 | 28 8 20 52 16 | e1 40 e3 3
+  +5.12 pausa | p27 | v110 -110 | 12 8 28 76 408 | e1 42 e3 5
+  +5.31 busq*-izq | p-10 | v94 148 | 68 36 16 44 20 | e1 3 e3 13
+  +5.31 pausa | p-24 | v-110 110 | 308 28 4 44 16 | e1 4 e3 14
+  +5.41 busq*-izq | p-22 | v0 238 | 28 16 20 36 24 | e1 20 e3 30
+  +5.88 pausa | p-20 | v110 -110 | 280 20 24 56 28 | e1 98 e3 108
+  +6.01 mue | p14 | v218 40 | 224 16 48 672 332 | e1 120 e3 0
+  +6.55 busq-der | p14 | v166 90 | 108 16 16 32 20 | e1 29 e3 3
+  +6.57 pausa | p6 | v110 -110 | 196 24 12 24 316 | e1 32 e3 6
+  +6.73 busq*-der | p28 | v254 0 | 8 8 16 40 32 | e1 59 e3 33
+  +6.79 pausa | p28 | v110 -110 | 4 8 8 60 328 | e1 69 e3 42
+  +7.01 mue | p29 | v254 0 | 8 8 16 156 412 | e1 106 e3 0
+  +7.17 busq*-der | p9 | v162 142 | 8 4 48 48 24 | e1 132 e3 3
+  +7.23 pausa | p-11 | v110 -110 | 12 372 20 60 20 | e1 0 e3 14
+  +7.30 busq*-izq | p-11 | v92 150 | 4 40 8 56 16 | e1 3 e3 25
+  +7.65 pausa | p-12 | v24 110 | 12 292 8 36 8 | e1 0 e3 84
+  +7.98 busq*-der | p27 | v254 0 | 12 8 12 56 20 | e1 16 e3 12
+  +8.02 mue | p27 | v110 24 | 12 16 12 52 12 | e1 22 e3 18
+  +9.03 mue | p27 | v24 110 | 12 4 12 36 16 | e1 190 e3 185
+  +10.03 mue | p27 | v110 24 | 8 24 8 44 8 | e1 255 e3 255
+  +10.52 pausa | p-25 | v-110 110 | 344 20 8 36 16 | e1 255 e3 255
+  +10.68 busq*-izq | p-19 | v0 226 | 20 12 16 40 20 | e1 255 e3 255
+  +10.84 pausa | p-29 | v110 24 | 276 16 8 8 0 | e1 255 e3 255
+  +11.03 mue | p-27 | v0 254 | 300 12 16 16 16 | e1 255 e3 255
+  +11.07 busq*-izq | p-25 | v0 254 | 16 36 20 20 12 | e1 255 e3 255
+  +11.11 pausa | p-15 | v110 24 | 16 308 8 12 8 | e1 0 e3 255
+  +11.21 busq*-izq | p-13 | v84 156 | 20 124 12 12 12 | e1 3 e3 255
+  +11.26 pausa | p-14 | v110 24 | 16 284 28 12 8 | e1 0 e3 255
+  +11.32 busq*-izq | p-1 | v120 122 | 12 16 36 16 16 | e1 6 e3 255
+  +11.44 pausa | p14 | v110 24 | 12 16 12 376 12 | e1 26 e3 0
+  +12.03 mue | p-2 | v186 188 | 16 316 44 20 28 | e1 0 e3 3
+  +12.07 busq-izq | p-12 | v46 230 | 24 12 36 16 20 | e1 3 e3 10
+  +12.10 pausa | p-27 | v-110 110 | 280 28 24 8 4 | e1 7 e3 14
+  +12.25 busq*-izq | p0 | v120 122 | 16 16 36 16 4 | e1 32 e3 39
+  +12.33 pausa | p0 | v-110 110 | 16 20 312 20 16 | e1 45 e3 52
+  +12.39 busq*-izq | p0 | v120 122 | 12 16 12 56 16 | e1 56 e3 63
+  +12.43 pausa | p15 | v-110 110 | 20 12 4 372 4 | e1 62 e3 0
+  +12.97 curva-der/ext | p22 | v254 0 | 12 12 16 28 700 | e1 152 e3 2
+  +13.67 curva-timeout | p22 | v150 -70 | 32 0 24 28 16 | e1 255 e3 119
+  +13.67 busq-izq | p22 | v150 -70 | 32 0 24 28 16 | e1 255 e3 119
+  +13.67 mue | p22 | v150 -70 | 32 0 24 28 16 | e1 255 e3 119
+  +14.41 stop | p22 | v0 0 | 20 28 12 32 24 | e1 255 e3 242
 ```
 
 Pendiente de corridas. Debajo de cada fila va la traza completa tal
