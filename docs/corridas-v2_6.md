@@ -27,6 +27,7 @@ registra los eventos `ext-veto-izq/der` en la traza.
 | B1 | 1 | 1000 | 14,46 s | 28 | — | — | — | — | 1 | Solo 1 disparo ext en toda la corrida (+5,37, s4=820, e3=1 → pasó) y terminó `curva-timeout`. El nivel 1 vetó el resto en silencio — el evento `ext-veto` solo se registra en nivel 2. Mismo ping-pong busq/pausa que en A |
 | B2 | 1 | 1000 | 11,37 s | 13 | — | — | — | — | 1 | 1 disparo ext +2,20 (s4=864, e3=7 → pasó) → `curva-timeout`. Vetos silenciosos en punta sola con e3 alto. **Físico: pasó el desvío ligero, atravesó la X y se perdió antes de los tres giros a la izquierda** |
 | B3 | 1 | 1000 | 14,42 s | 29 | — | — | — | — | 1 | 1 disparo ext +12,97 (s4=700, e3=2 → pasó) → `curva-timeout`. **Físico: atravesó la X y su lazo; en el cruce siguiente a la derecha se perdió y volvió en dirección contraria, perdiéndose dentro del lazo de la X** |
+| C1 | 2 | 1000 | 12,39 s | 40 | — | — | ~28 | 1 | 0 | Tormenta de `ext-veto-izq` de +8,81 a +9,38 (~28 vetos en 570 ms): s0 leía 250-470 con trío vacío y e1 alto. **Físico: siguió de largo tras el segundo giro a la izquierda — la punta veía la línea real de la tercera esquina del lazo, vetada por la marcha y enmascarada del centroide → no volvió. Veto a esquina real + recuperación cegada.** El anillo se saturó y borró el inicio |
 
 ```text
 A1 (nivel 0): Ultima corrida: 14.67 s | perdidas 24 esquinas 2 cruces 0 | pista 8-793 (vistos 0-866)
@@ -348,6 +349,74 @@ B3 (nivel 1): Ultima corrida: 14.42 s | perdidas 29 esquinas 1 cruces 0 | pista 
   +13.67 busq-izq | p22 | v150 -70 | 32 0 24 28 16 | e1 255 e3 119
   +13.67 mue | p22 | v150 -70 | 32 0 24 28 16 | e1 255 e3 119
   +14.41 stop | p22 | v0 0 | 20 28 12 32 24 | e1 255 e3 242
+```
+
+```text
+C1 (nivel 2): Ultima corrida: 12.39 s | perdidas 40 esquinas 1 cruces 0 | pista 15-821 (vistos 0-926)
+  +8.81 ext-veto-izq | p-28 | v0 254 | 304 12 32 24 28 | e1 53 e3 63
+  +8.82 busq*-izq | p-28 | v0 254 | 296 16 20 24 24 | e1 55 e3 65
+  +8.84 pausa | p-28 | v24 110 | 368 8 16 20 16 | e1 59 e3 68
+  +8.84 ext-veto-izq | p-28 | v0 254 | 436 12 20 24 24 | e1 60 e3 69
+  +8.86 busq*-izq | p-28 | v0 254 | 192 12 16 20 20 | e1 62 e3 71
+  +8.92 pausa | p-28 | v110 -110 | 356 48 0 8 8 | e1 72 e3 81
+  +8.92 ext-veto-izq | p-28 | v0 254 | 288 16 20 28 24 | e1 73 e3 82
+  +8.93 busq*-izq | p-28 | v0 254 | 336 12 20 24 24 | e1 75 e3 84
+  +8.94 pausa | p-29 | v110 -110 | 380 32 0 12 8 | e1 76 e3 85
+  +8.95 ext-veto-izq | p-29 | v0 254 | 344 12 20 24 24 | e1 77 e3 86
+  +8.96 busq*-izq | p-29 | v0 254 | 344 8 24 28 24 | e1 79 e3 88
+  +8.97 pausa | p-27 | v110 -110 | 420 88 0 12 12 | e1 80 e3 89
+  +8.97 ext-veto-izq | p-27 | v0 254 | 340 16 20 24 24 | e1 81 e3 90
+  +8.98 busq*-izq | p-27 | v0 254 | 316 12 20 24 20 | e1 83 e3 92
+  +8.99 pausa | p-30 | v110 -110 | 356 0 0 12 8 | e1 84 e3 93
+  +9.00 ext-veto-izq | p-30 | v0 254 | 316 20 20 20 20 | e1 85 e3 94
+  +9.01 busq*-izq | p-30 | v0 254 | 320 12 20 20 24 | e1 87 e3 96
+  +9.01 pausa | p-30 | v110 -110 | 412 0 4 12 8 | e1 88 e3 97
+  +9.02 ext-veto-izq | p-30 | v0 254 | 292 12 16 24 24 | e1 89 e3 98
+  +9.03 busq*-izq | p-30 | v0 254 | 268 16 20 20 20 | e1 91 e3 100
+  +9.07 pausa | p-26 | v110 -110 | 300 32 24 28 0 | e1 97 e3 106
+  +9.07 ext-veto-izq | p-26 | v0 254 | 320 16 20 20 20 | e1 98 e3 107
+  +9.09 busq*-izq | p-26 | v0 254 | 380 12 20 20 20 | e1 100 e3 109
+  +9.09 pausa | p-26 | v110 -110 | 384 40 36 28 0 | e1 101 e3 110
+  +9.10 ext-veto-izq | p-26 | v0 254 | 368 16 20 24 20 | e1 102 e3 111
+  +9.11 busq*-izq | p-26 | v0 254 | 388 16 24 24 24 | e1 104 e3 113
+  +9.12 pausa | p-28 | v110 -110 | 456 40 20 0 0 | e1 105 e3 114
+  +9.12 ext-veto-izq | p-28 | v0 254 | 416 16 24 24 24 | e1 106 e3 115
+  +9.14 mue | p-28 | v0 254 | 380 16 20 24 16 | e1 108 e3 118
+  +9.14 busq*-izq | p-28 | v0 254 | 380 16 20 24 16 | e1 108 e3 118
+  +9.14 pausa | p-27 | v110 -110 | 432 40 32 0 0 | e1 109 e3 119
+  +9.15 ext-veto-izq | p-27 | v0 254 | 384 12 20 20 20 | e1 110 e3 120
+  +9.16 busq*-izq | p-27 | v0 254 | 280 12 16 16 20 | e1 112 e3 122
+  +9.17 pausa | p-24 | v110 -110 | 304 32 72 0 0 | e1 113 e3 123
+  +9.17 ext-veto-izq | p-24 | v0 254 | 252 12 16 16 20 | e1 114 e3 124
+  +9.18 busq*-izq | p-24 | v0 254 | 296 12 16 20 20 | e1 116 e3 126
+  +9.19 pausa | p-24 | v110 -110 | 344 20 8 32 32 | e1 117 e3 127
+  +9.20 ext-veto-izq | p-24 | v0 254 | 404 16 28 28 24 | e1 118 e3 128
+  +9.21 busq*-izq | p-24 | v0 254 | 460 16 20 28 28 | e1 120 e3 130
+  +9.22 pausa | p-23 | v110 -110 | 420 24 8 40 40 | e1 122 e3 131
+  +9.22 ext-veto-izq | p-23 | v0 252 | 392 16 20 28 28 | e1 123 e3 132
+  +9.23 busq*-izq | p-23 | v0 252 | 392 16 20 28 24 | e1 125 e3 134
+  +9.24 pausa | p-23 | v110 -110 | 356 24 20 40 36 | e1 126 e3 135
+  +9.25 ext-veto-izq | p-23 | v0 250 | 324 16 20 28 28 | e1 127 e3 136
+  +9.26 busq*-izq | p-23 | v0 250 | 304 16 20 28 28 | e1 129 e3 138
+  +9.26 pausa | p-23 | v110 -110 | 304 12 28 40 24 | e1 130 e3 139
+  +9.27 ext-veto-izq | p-23 | v0 250 | 316 12 20 28 28 | e1 131 e3 140
+  +9.28 busq*-izq | p-23 | v0 250 | 356 12 20 36 24 | e1 133 e3 142
+  +9.29 pausa | p-23 | v110 -110 | 380 32 32 44 24 | e1 134 e3 143
+  +9.29 ext-veto-izq | p-23 | v0 252 | 380 16 24 28 24 | e1 135 e3 144
+  +9.31 busq*-izq | p-23 | v0 252 | 376 12 36 20 28 | e1 137 e3 146
+  +9.31 pausa | p-29 | v110 -110 | 404 16 8 16 16 | e1 138 e3 147
+  +9.32 ext-veto-izq | p-29 | v0 254 | 448 16 20 28 24 | e1 139 e3 148
+  +9.33 busq*-izq | p-29 | v0 254 | 388 12 20 28 28 | e1 141 e3 150
+  +9.34 pausa | p-29 | v110 -110 | 372 16 8 16 12 | e1 142 e3 151
+  +9.34 ext-veto-izq | p-29 | v0 254 | 348 12 20 20 24 | e1 143 e3 152
+  +9.36 busq*-izq | p-29 | v0 254 | 412 12 16 20 20 | e1 145 e3 154
+  +9.36 pausa | p-29 | v110 -110 | 460 16 8 12 8 | e1 146 e3 155
+  +9.37 ext-veto-izq | p-29 | v0 254 | 472 12 12 20 20 | e1 147 e3 156
+  +9.38 busq*-izq | p-29 | v0 254 | 256 12 20 20 20 | e1 149 e3 158
+  +10.14 mue | p-29 | v110 24 | 16 16 4 12 8 | e1 255 e3 255
+  +11.14 mue | p-29 | v24 110 | 4 24 36 16 32 | e1 255 e3 255
+  +12.15 mue | p-29 | v-110 110 | 16 32 32 20 20 | e1 255 e3 255
+  +12.38 stop | p-29 | v0 0 | 24 20 16 4 8 | e1 255 e3 255
 ```
 
 Pendiente de corridas. Debajo de cada fila va la traza completa tal
