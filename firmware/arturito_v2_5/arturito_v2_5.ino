@@ -583,7 +583,6 @@ void loop() {
   // umbrales deducidos del rango medido en la largada.
   int exc[5];
   bool sobre[5];
-  float suma = 0, sumaP = 0;
   int nSobre = 0, nFuerte = 0, maxLect = 0;
   for (int i = 0; i < 5; i++) {
     int e = lecturas[i] - blancoRef;
@@ -593,10 +592,20 @@ void loop() {
     if (sobre[i]) nSobre++;
     if (lecturas[i] > umbralFuerte) nFuerte++;
     if (lecturas[i] > maxLect) maxLect = lecturas[i];
-    suma += e;
-    sumaP += X_MM[i] * e;
   }
   bool todoNegro = (nFuerte == 5);
+
+  // Centroide: con la linea bajo el trio interno las puntas no
+  // votan — un brazo de la X bajo S0/S4 arrastraba el posF y el PD
+  // giraba hacia el brazo soltando la marcha recta (corrida #25).
+  // Solo cuando el trio queda vacio cuentan las puntas.
+  float suma = 0, sumaP = 0;
+  bool trioEnLinea = sobre[1] || sobre[2] || sobre[3];
+  int iIni = trioEnLinea ? 1 : 0, iFin = trioEnLinea ? 3 : 4;
+  for (int i = iIni; i <= iFin; i++) {
+    suma += exc[i];
+    sumaP += X_MM[i] * exc[i];
+  }
 
   // 4. Cruce comprometido: recto hasta que la punta reencuentra el
   //    patron de linea o vence el techo.
