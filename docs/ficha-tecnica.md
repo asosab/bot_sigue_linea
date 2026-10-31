@@ -7,7 +7,8 @@ created: 2026-10-30
 # Ficha técnica de Arturito
 
 Documento para entregar junto al sketch
-`firmware/arturito_v2_5/arturito_v2_5.ino`: la geometría, las
+`firmware/arturito_v2_6/arturito_v2_6.ino` (vigente; v2.5 queda de
+respaldo): la geometría, las
 medidas en piso y las decisiones mecánicas que el código asume.
 Sirve para que un revisor — persona o IA — evalúe la estrategia de
 control con los datos reales y no con supuestos.
@@ -29,6 +30,9 @@ control con los datos reales y no con supuestos.
 
 - **Ancho de vía `w` = 131 mm** (centro a centro de rueda): 156 mm
   entre bordes exteriores menos 2 × 25 mm de ancho de rueda.
+  **VERIFICAR: medir centro a centro con calibre** — la cuenta escrita
+  da 106 mm, no 131; `w` entra en las estimaciones de giro
+  (`PIVOTE_MS`, curvas).
 - Tracción diferencial: cada rueda tiene su canal PWM del driver;
   girar se hace por diferencia de velocidad, no por dirección.
 - Diámetro de rueda sin registrar: la velocidad se midió en piso,

@@ -19,6 +19,7 @@ Punto de entrada a la documentación del proyecto. Navegación por enlaces, no p
 - [[analisis-v2-v3]] — comparación v2/v3, por qué fallaba v3 y diseño de la v2.5
 - [[ficha-tecnica]] — geometría, velocidades y deriva medidas; para entregar junto al sketch a un revisor externo
 - [[propuesta-ext-marcha]] — propuesta de marcha de canales para el disparo `ext`, con el sketch completo, para consulta externa
+- [[corridas-v2_6]] — registro de las corridas de prueba de la regla de marcha (v2.6)
 - [[concurso]] — 1.er Concurso Distrital de Robótica 2026: fechas, reglas y homologación
 - [[premios]] — premios del concurso y la hoja que los actualiza
 - [[precios]] — compras del robot (factura ECROBOTICS)

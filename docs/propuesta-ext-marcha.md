@@ -969,3 +969,8 @@ void loop() {
   }
 }
 ```
+
+## Resultado de revisión
+
+Registro de corridas: [[corridas-v2_6]]. Decisión según los criterios
+de aceptación: **pendiente de corridas**.
