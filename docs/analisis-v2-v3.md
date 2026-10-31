@@ -124,6 +124,22 @@ medir.
 - Menos entradas a búsqueda que en las corridas #11–#22 y, cuando
   entra, retoma en la misma vuelta sin derivar fuera del tablero.
 
+## Ajustes tras la corrida #23 (primera de v2.5)
+
+La corrida #23 confirmó que heredar la calibración de la EEPROM es
+una trampa cuando la superficie cambia: línea ~300-600 ADC contra
+el ~930 de la cinta, la negrura quedó comprimida a 0,3-0,7 y el
+PD osciló clavando posF en el peso del canal que leía. Cambios:
+
+- La compuerta de largada ya no usa negrura: pide que S2 supere a
+  ambos extremos en `MARGEN_LARGADA` (200 ADC). Relativa, sirve en
+  cualquier superficie.
+- `sembrarPista` siembra el rango real: negro = lectura de S2 en la
+  pose, blanco = canal más claro. La EEPROM ya no restaura
+  `calMin`/`calMax`; sigue guardando solo la traza.
+- La traza no se imprime al boot (eran ~4 s con el botón sordo);
+  sale con el comando `t` por serie, solo en espera.
+
 ## Relacionado
 
 - [[algoritmo]] — estrategia de control vigente

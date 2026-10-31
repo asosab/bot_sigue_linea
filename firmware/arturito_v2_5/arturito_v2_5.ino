@@ -77,9 +77,11 @@ const int RUEDA_MIN = 40;   // piso de la rueda interna en el PD
 const float TRIM_IZQ = 1.0;
 const float TRIM_DER = 1.02;
 
-// Compuerta de arranque (umbrales sobre negrura 0..1)
-const float N_ON = 0.6;    // S2 tiene que ver negro firme
-const float N_OFF = 0.4;   // S0 y S4 tienen que ver blanco
+// Compuerta de arranque: S2 tiene que leer bastante mas oscuro que
+// los dos extremos. Relativa y sin calibracion — sirve en cualquier
+// superficie (las pistas de prueba no se repiten).
+const int MARGEN_LARGADA = 200;   // ADC: S2 supera a S0 y S4 por esto
+const float N_ON = 0.6;    // S2 sobre negro firme (salida del cruce)
 
 // Lectura de linea
 const float UMBRAL_LINEA = 0.3;  // suma de negruras para "linea a la vista"
@@ -275,13 +277,19 @@ float negrura(int i) {
   return n;
 }
 
-// Al apoyarlo sobre la linea, la posicion de salida siembra la
-// pista real: canal sobre negro -> su calMax, sobre blanco -> calMin
+// Al soltar el pulsador, la pose de salida siembra la pista real:
+// S2 esta sobre la linea por la compuerta y da el negro de
+// referencia; el canal mas claro da el blanco. Cada canal queda
+// calibrado con esta superficie, no con la de una corrida vieja.
 void sembrarPista() {
+  int negro = lecturas[2];
+  int blanco = 1023;
+  for (int i = 0; i < 5; i++)
+    if (lecturas[i] < blanco) blanco = lecturas[i];
+  int medio = (negro + blanco) / 2;
   for (int i = 0; i < 5; i++) {
-    int medio = (calMin[i] + calMax[i]) / 2;
-    if (lecturas[i] > medio) calMax[i] = lecturas[i];
-    else calMin[i] = lecturas[i];
+    if (lecturas[i] > medio) { calMax[i] = lecturas[i]; calMin[i] = blanco; }
+    else                     { calMin[i] = lecturas[i]; calMax[i] = negro; }
     Serial.print("S"); Serial.print(i);
     Serial.print(": "); Serial.print(calMin[i]);
     Serial.print("-"); Serial.println(calMax[i]);
@@ -467,24 +475,22 @@ void setup() {
   Serial.begin(9600);
   Serial.println("===== ARTURITO v2.5 =====");
   Serial.println("Esperando: apoyar sobre la linea, apretar y soltar.");
+  Serial.println("Enviar 't' para ver la traza de la ultima corrida.");
 
-  // Recargar la traza persistida: si es valida, la calibracion de
-  // la ultima pista arranca sembrada y el detalle sale por serie.
-  TrazaHead th;
-  EEPROM.get(0, th);
-  if (th.magic == TRAZA_MAGIC) {
-    for (int i = 0; i < 5; i++) {
-      calMin[i] = th.calMin[i];
-      calMax[i] = th.calMax[i];
-    }
-    imprimirTraza();
-  } else {
-    Serial.println("Sin traza guardada.");
-  }
+  // La traza queda en EEPROM pero NO se imprime aca: eran ~4 s de
+  // salida serie antes del loop y un apretar-soltar en esa ventana
+  // se perdia entero. Tampoco se hereda la calibracion: las pistas
+  // de prueba no se repiten y una cal vieja desvia la negrura.
 }
 
 void loop() {
   leerSensores();
+
+  // Comando por serie: 't' imprime la traza guardada. Solo en
+  // espera — imprimir en carrera dejaria el robot ciego un rato.
+  if (!arrancado && Serial.available() > 0 && Serial.read() == 't') {
+    imprimirTraza();
+  }
 
   // 1. Pulsador: flancos con antirrebote. Apretar prepara la
   //    largada, soltar la ejecuta; en carrera, apretar detiene.
@@ -505,11 +511,10 @@ void loop() {
     if (flancoBajo) preparado = true;
     if (flancoAlto && preparado) {
       preparado = false;
-      // Compuerta: negrura normal o lectura cruda de respaldo, por si
-      // la calibracion persistida de otra pista comprime la escala.
-      if ((negrura(2) > N_ON || lecturas[2] > 650) &&
-          (negrura(0) < N_OFF || lecturas[0] < 350) &&
-          (negrura(4) < N_OFF || lecturas[4] < 350)) {
+      // Compuerta relativa: S2 sobre la linea lee bastante mas
+      // oscuro que ambos extremos. Vale en cualquier superficie.
+      if (lecturas[2] > lecturas[0] + MARGEN_LARGADA &&
+          lecturas[2] > lecturas[4] + MARGEN_LARGADA) {
         sembrarPista();
         arrancado = true;
         largadaDesde = millis();
@@ -531,6 +536,8 @@ void loop() {
         asientoHasta = 0;
         trazaIdx = trazaLen = 0;
         Serial.println("LARGADA: arrancando.");
+      } else {
+        Serial.println("NO LARGA: S2 no destaca sobre los extremos.");
       }
     }
     if (!arrancado) {
