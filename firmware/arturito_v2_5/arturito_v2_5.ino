@@ -152,6 +152,15 @@ const unsigned long BTN_DEBOUNCE_MS = 50;
 int calMin[5] = {30, 30, 30, 30, 30};
 int calMax[5] = {930, 930, 930, 930, 930};
 
+// Adaptacion compartida del rango: cuando un canal ve un extremo
+// nuevo de la pista, los demas heredan la referencia dentro de la
+// variabilidad entre modulos TCRT5000. En la largada solo S2 ve la
+// linea — los demas arrancan estimados y refinan al verla.
+const int VAR_NEGRO = 90;    // ADC: tolerancia hacia abajo del negro
+const int VAR_BLANCO = 30;   // ADC: tolerancia hacia arriba del blanco
+int negroVisto = 0;          // mayor lectura vista sobre la pista
+int blancoVisto = 1023;      // menor lectura vista
+
 // Posicion lateral de cada canal en mm (medida sobre el chasis):
 // S1/S3 a +-15 mm; S0/S4 a +-30 mm.
 const float X_MM[5] = {-30.0, -15.0, 0.0, 15.0, 30.0};
@@ -267,6 +276,18 @@ void leerSensores() {
     lecturas[i] = v;
     if (v < calMin[i]) calMin[i] = v;
     if (v > calMax[i]) calMax[i] = v;
+    if (v < blancoVisto) blancoVisto = v;
+    if (v > negroVisto) negroVisto = v;
+  }
+  // Los canales que aun no midieron su propio extremo reciben el
+  // rango visto por los demas, con tolerancia entre sensores. El
+  // negro propio siempre manda: el piso compartido solo levanta a
+  // los que no lo vieron todavia.
+  int pisoNegro = negroVisto - VAR_NEGRO;
+  int techoBlanco = blancoVisto + VAR_BLANCO;
+  for (int i = 0; i < 5; i++) {
+    if (calMax[i] < pisoNegro) calMax[i] = pisoNegro;
+    if (calMin[i] > techoBlanco) calMin[i] = techoBlanco;
   }
 }
 
@@ -287,6 +308,8 @@ void sembrarPista() {
   for (int i = 0; i < 5; i++)
     if (lecturas[i] < blanco) blanco = lecturas[i];
   int medio = (negro + blanco) / 2;
+  negroVisto = negro;
+  blancoVisto = blanco;
   for (int i = 0; i < 5; i++) {
     if (lecturas[i] > medio) { calMax[i] = lecturas[i]; calMin[i] = blanco; }
     else                     { calMin[i] = lecturas[i]; calMax[i] = negro; }
