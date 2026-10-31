@@ -135,12 +135,49 @@
   <div class="track-anchor" id="t2b"></div>
 
   <section id="diagnostico">
-    <h2>Cuando no quiso andar</h2>
-    <p>La primera vez que lo encendimos con todo conectado, Arturito prendió
-    todas sus luces y no movió una rueda. Estos fueron los fallos que
-    aparecieron, en el orden en que salieron, y cómo se resolvió cada uno.</p>
+    <h2>Diario de puesta a punto</h2>
+    <p>Del armado a la víspera del concurso, esto es lo que le pasó a
+    Arturito por orden de fechas: qué falló, qué medimos y qué cambió en
+    el código cada vez.</p>
 
-    <h3>Las ruedas no giraban</h3>
+    <div class="dia">
+      <time datetime="2026-10">Durante el armado</time>
+      <h3>Los sensores van en punta de flecha</h3>
+      <p>Lo normal en estos robots es poner los sensores en una fila recta.
+      Nosotros los pusimos en punta de flecha: el del centro va adelantado y
+      los otros cuatro van más atrás, en las orillas. Al entrar en una curva
+      el de adelante la ve antes que los de atrás, y el robot sabe para qué
+      lado dobla la línea antes de llegar a ella; es casi una lectura en
+      profundidad, no en una sola línea. Con la fila recta todos los
+      sensores se enteran a la vez y la corrección llega tarde.</p>
+      <p>También cuenta dónde cae la formación: cuanto más cerca estén los
+      sensores del punto donde gira el robot, entre las dos ruedas, más fiel
+      es lo que leen. Si quedan muy adelante, un giro chico los corre mucho
+      y el robot corrige de más; pegados al eje, lo que ven se parece a lo
+      que el robot gira de verdad.</p>
+    </div>
+
+    <div class="dia">
+      <time datetime="2026-10">Durante el armado</time>
+      <h3>La rueda loca es la bola de un desodorante</h3>
+      <p>La tercera rueda de Arturito no es una rueda: es la bolita de un
+      desodorante roll-on, encajada en su propia tapa de rosca montada al
+      revés en la parte trasera del chasis. Desliza mucho mejor que un taco
+      fijo y cuesta lo que cuesta un desodorante cuando ya está de tirar a
+      la basura. La gracia está en la
+      rosca: al enroscarla más o menos, la punta delantera del chasis sube
+      o baja un poco, y así ajustamos la altura de los sensores sobre el
+      suelo sin desarmar nada.</p>
+      <p>Eso trajo el problema que tenemos hoy: los sensores van por debajo
+      del chasis y el aire que queda hasta el suelo es poco. En recta no se
+      nota, pero a veces le cuesta tomar una curva, como si algo rozara.
+      Falta ganar unos milímetros de altura, ya sea subiendo la bola en su
+      rosca o montando los sensores de otra forma.</p>
+    </div>
+
+    <div class="dia">
+      <time datetime="2026-10-28">Miércoles 28 de octubre</time>
+      <h3>Las ruedas no giraban</h3>
     <p>Encendían las luces del Arduino, las de los cinco sensores y la del
     driver de motores, y los motores andaban bien conectados directo a las
     pilas. El faltante estaba en el driver: tiene una pata llamada EEP que
@@ -153,15 +190,21 @@
     se frenaba al instante y volvía a girar al repetir la orden. El chip
     estaba sano; solo había que despertarlo. Solución: el cable D4→EEP
     quedó fijo y el código del robot lo pone en alto apenas arranca.</p>
+    </div>
 
-    <h3>Cada rueda giraba para su lado</h3>
+    <div class="dia">
+      <time datetime="2026-10-28">Miércoles 28 de octubre</time>
+      <h3>Cada rueda giraba para su lado</h3>
     <p>Ya despierto el driver, en la prueba de avance una rueda iba al frente
     y la otra para atrás: el motor izquierdo venía con los cables
     invertidos. Estos motores no traen marca de polaridad, así que se
     corrige en el conector intercambiando sus dos cables. Al repetir la
     prueba las dos giraron juntas.</p>
+    </div>
 
-    <h3>Se movía sin parar sobre el blanco</h3>
+    <div class="dia">
+      <time datetime="2026-10-28">Miércoles 28 de octubre</time>
+      <h3>Se movía sin parar sobre el blanco</h3>
     <p>Con las ruedas en el aire y una hoja blanca debajo, el robot no
     paraba de moverse. Sospechamos de los sensores leídos al revés, pero el
     monitor contaba otra historia: tres canales clavados en el valor
@@ -173,8 +216,11 @@
     solo lee los sensores sin tocar motores, mostró qué canales estaban
     muertos; alimentando un módulo directo desde la placa confirmamos que
     los sensores estaban sanos y el problema era la corriente.</p>
+    </div>
 
-    <h3>¿Los sensores quedaron al revés?</h3>
+    <div class="dia">
+      <time datetime="2026-10-28">Miércoles 28 de octubre</time>
+      <h3>¿Los sensores quedaron al revés?</h3>
     <p>Con los cinco encendidos llegó la prueba definitiva: pasar una cinta
     negra por debajo de cada sensor, de izquierda a derecha mirando el
     robot de frente, y anotar qué canal respondía. El orden salió
@@ -188,43 +234,11 @@
     guardados en el repositorio. Y una nota práctica: los cables dupont se
     aflojan solos. Dos de los fallos de esa tarde fueron cables que se
     habían salido al mover otros.</p>
+    </div>
 
-    <h3>Los sensores van en punta de flecha</h3>
-    <p>Lo normal en estos robots es poner los sensores en una fila recta.
-    Nosotros los pusimos en punta de flecha: el del centro va adelantado y
-    los otros cuatro van más atrás, en las orillas. Al entrar en una curva
-    el de adelante la ve antes que los de atrás, y el robot sabe para qué
-    lado dobla la línea antes de llegar a ella; es casi una lectura en
-    profundidad, no en una sola línea. Con la fila recta todos los
-    sensores se enteran a la vez y la corrección llega tarde.</p>
-    <p>También cuenta dónde cae la formación: cuanto más cerca estén los
-    sensores del punto donde gira el robot, entre las dos ruedas, más fiel
-    es lo que leen. Si quedan muy adelante, un giro chico los corre mucho
-    y el robot corrige de más; pegados al eje, lo que ven se parece a lo
-    que el robot gira de verdad.</p>
-
-    <h3>La rueda loca es la bola de un desodorante</h3>
-    <p>La tercera rueda de Arturito no es una rueda: es la bolita de un
-    desodorante roll-on, encajada en su propia tapa de rosca montada al
-    revés en la parte trasera del chasis. Desliza mucho mejor que un taco
-    fijo y cuesta lo que cuesta un desodorante cuando ya está de tirar a
-    la basura. La gracia está en la
-    rosca: al enroscarla más o menos, la punta delantera del chasis sube
-    o baja un poco, y así ajustamos la altura de los sensores sobre el
-    suelo sin desarmar nada.</p>
-    <p>Eso trajo el problema que tenemos hoy: los sensores van por debajo
-    del chasis y el aire que queda hasta el suelo es poco. En recta no se
-    nota, pero a veces le cuesta tomar una curva, como si algo rozara.
-    Falta ganar unos milímetros de altura, ya sea subiendo la bola en su
-    rosca o montando los sensores de otra forma.</p>
-
-    <h3>A dos días del concurso</h3>
-    <p>Lo que falta ya no es que ande: es que ande rápido y no se
-    equivoque. Queda mejorar la velocidad y resolver las intersecciones,
-    que todavía le cuestan: en los cruces no siempre toma el camino
-    correcto.</p>
-
-    <h3>Un pulsador para largar</h3>
+    <div class="dia">
+      <time datetime="2026-10-29">Jueves 29 de octubre</time>
+      <h3>Un pulsador para largar</h3>
     <p>Hablando con el jurado quedó acordado que el bot largue con un
     interruptor visible: un pulsador propio, aparte del de encendido. El
     robot se enciende antes de la ronda y espera quieto ya apoyado en la
@@ -243,8 +257,11 @@
     regla simple: cada elemento que se suma a un sistema es un punto más
     donde puede fallar. El botón y dos cables fue todo lo que hizo
     falta.</p>
+    </div>
 
-    <h3>Cronometrar sin cables</h3>
+    <div class="dia">
+      <time datetime="2026-10-29">Jueves 29 de octubre</time>
+      <h3>Cronometrar sin cables</h3>
     <p>Para afinar la velocidad hacía falta un número que el robot no da:
     cuánto recorre en un tiempo conocido. No tiene encoders y la prueba no
     puede llevar USB, así que le escribimos un programa aparte: al pulsar el
@@ -253,8 +270,11 @@
     LED queda como marca en el video: entre que prende y apaga pasaron
     exactamente tres segundos. Se filma sobre una cinta métrica, se repite
     la pulsada unas cuantas veces y se promedian las lecturas.</p>
+    </div>
 
-    <h3>La regla miente cuando el robot curva</h3>
+    <div class="dia">
+      <time datetime="2026-10-29">Jueves 29 de octubre</time>
+      <h3>La regla miente cuando el robot curva</h3>
     <p>La primera tanda dijo unos 70 cm en tres segundos, pero con una
     particularidad: todas las corridas se desviaban unos 30 cm hacia la
     izquierda. La cinta mide proyección, no camino: si el robot describe un
@@ -263,8 +283,20 @@
     recorridos: 26 cm/s a esa potencia, más de lo que sugería la lectura
     ingenua. Y el desvío parecía delatar una rueda más lenta que la otra,
     así que ajustamos el trim en consecuencia.</p>
+    </div>
 
-    <h3>Tres corridas y el trim que no era</h3>
+    <div class="dia">
+      <time datetime="2026-10-29">Jueves 29 de octubre</time>
+      <h3>A dos días del concurso</h3>
+      <p>Lo que falta ya no es que ande: es que ande rápido y no se
+      equivoque. Queda mejorar la velocidad y resolver las intersecciones,
+      que todavía le cuestan: en los cruces no siempre toma el camino
+      correcto.</p>
+    </div>
+
+    <div class="dia">
+      <time datetime="2026-10-30">Viernes 30 de octubre</time>
+      <h3>Tres corridas y el trim que no era</h3>
     <p>El primer ajuste empeoró la curva en vez de corregirla. Para
     descartar la pose de salida cambiamos el protocolo: marcas en el piso
     en vez de video, midiendo distancia recorrida y separación final a un
@@ -276,8 +308,11 @@
     están parejas y el viraje es mecánico (el ángulo de montaje de una
     rueda, la bola del desodorante descentrada o algo que roza el piso). Se
     compensa por software mientras se busca el punto físico.</p>
+    </div>
 
-    <h3>El robot que se acuerda</h3>
+    <div class="dia">
+      <time datetime="2026-10-30">Viernes 30 de octubre</time>
+      <h3>El robot que se acuerda</h3>
     <p>El concurso son tres corridas y cuenta la mejor, así que hacía falta
     saber cómo corrió cada una sin llevar la compu al costado de la pista.
     La placa tiene una memoria que sobrevive al apagado (la EEPROM) y
@@ -287,8 +322,11 @@
     pista. Al prenderlo de nuevo ya sale calibrado con los valores reales,
     y la tabla de corridas sale por el monitor serie cuando lo
     conectamos.</p>
+    </div>
 
-    <h3>Primera vuelta en la pista de práctica</h3>
+    <div class="dia">
+      <time datetime="2026-10-30">Viernes 30 de octubre</time>
+      <h3>Primera vuelta en la pista de práctica</h3>
     <p>Los datos de la primera tanda en pista dolieron un poco: entre ocho
     y once pérdidas de línea por corrida. El reporte era que al buscar la
     línea la rueda se salía del cartón antes de encontrarla. La causa: la
@@ -299,6 +337,81 @@
     mirando para atrás, y los arcos después, más cortos y cerrados. El
     detector de esquinas también quedó más sensible, y el trim quedó
     compensando el viraje mecánico a la derecha.</p>
+    </div>
+
+    <div class="dia">
+      <time datetime="2026-10-30">Viernes 30 de octubre</time>
+      <h3>La v3 creció demasiado: nace la v2.5</h3>
+      <p>Después de 22 corridas de prueba la cuenta era fea: casi cada
+      arreglo de la versión 3 generaba el fallo siguiente. Las piezas
+      funcionaban; lo que fallaba era la estrategia. Maniobras a ciegas
+      que se disparaban con dos lecturas y giraban hasta 700 ms sin mirar,
+      un controlador que nunca quedó estable debajo de todo eso, y 45
+      constantes para ajustar con tandas de veinte segundos de pista. No
+      alcanzaba.</p>
+      <p>La v2.5 se queda con lo que de verdad funcionó y suelta lo que
+      parchaba síntomas. Conserva la posición en milímetros con su zona
+      muerta, la traza en EEPROM que deja diagnosticar cada corrida, la
+      búsqueda por fases que no puede dar la vuelta completa y la salida
+      del cruce cuando el sensor delantero reencuentra la línea. Fuera
+      quedaron el disparo por centroide, el sesgo, la atenuación por
+      confianza y los vetos de masa: si la línea está bajo los sensores,
+      seguirla es trabajo del controlador, no de una maniobra.</p>
+      <p>El pulsador cambió en las tres versiones: apretar arma y soltar
+      larga. El dedo ya está fuera cuando arranca, así que la espera de
+      700 ms sobró. El sketch bajó de 904 a unas 580 líneas.</p>
+    </div>
+
+    <div class="dia">
+      <time datetime="2026-10-30">Viernes 30 de octubre</time>
+      <h3>La calibración traía la pista equivocada</h3>
+      <p>Las primeras corridas de la v2.5 salieron mal y enseñaron algo.
+      La EEPROM sembraba la calibración aprendida en otra superficie: el
+      negro de la cinta nueva era distinto, la negrura quedaba comprimida
+      y el robot oscilaba sobre lecturas marginales sin enganchar nunca.
+      Dos corridas seguidas con el mismo síntoma.</p>
+      <p>La salida fue renunciar a la calibración heredada. Los umbrales
+      se deducen de la pose de largada: la regla ya garantiza el sensor
+      del centro sobre la línea y los extremos sobre el blanco, y con esos
+      dos datos sale la escala de esa pista, con esa luz, ese día. La
+      EEPROM sigue guardando la traza de cada corrida, pero ya no se
+      imprime al encender: sale con el comando <code>t</code> por el
+      monitor serie y el botón queda libre desde el primer instante.</p>
+    </div>
+
+    <div class="dia">
+      <time datetime="2026-10-30">Viernes 30 de octubre</time>
+      <h3>Las puntas dejaron de votar</h3>
+      <p>La corrida 25 cayó en la intersección otra vez, pero por una
+      puerta distinta: el brazo transversal de la X entró bajo una punta,
+      el centroide se clavó a ese lado y el robot giró hacia el brazo como
+      si fuera la línea. El arreglo fueron tres líneas de código: mientras
+      el trío del centro tenga la línea, las puntas no cuentan en el
+      cálculo; solo votan cuando el trío quedó vacío, que es cuando la
+      línea se va de verdad.</p>
+      <p>La 26, en una pista nueva con una horquilla en U, mostró el mismo
+      vicio por otro lado: los dos brazos de la U caben a la vez en el
+      ancho de los sensores y la punta leyó el brazo vecino como si fuera
+      la curva. Queda pendiente: la lectura del momento no separa la línea
+      propia de un tramo paralelo; lo que las distingue es la historia de
+      hacia dónde venía la línea, y ese criterio es el siguiente
+      cambio.</p>
+    </div>
+
+    <div class="dia">
+      <time datetime="2026-10-30">Viernes 30 de octubre, la víspera</time>
+      <h3>La víspera del concurso</h3>
+      <p>De noche el sketch pasó una revisión externa con la ficha técnica
+      del robot en la mano. Se aplicó todo lo corregible por software: la
+      memoria RAM bajó de 85 a 57 % (los textos del monitor pasaron a
+      flash), la búsqueda quedó acotada por vuelta, el lazo corre a
+      periodo fijo y cada canal se lee dos veces para descartar lecturas
+      de arrastre.</p>
+      <p>Mañana corre la v2.5. Se sabe lo que le cuesta: la horquilla en U
+      y las intersecciones todavía le ganan a veces. Es lo que hay, y es
+      mucho más de lo que había el miércoles, cuando ni siquiera giraban
+      las ruedas.</p>
+    </div>
   </section>
 
   <div class="track-anchor" id="t3"></div>
@@ -309,15 +422,27 @@
     del 1.er Concurso Distrital de Robótica 2026, que organiza la Dirección
     Distrital de Educación Santa Cruz 1.</p>
     <ul>
-      <li>Sábado 31 de octubre de 2026, de 9:00 a 13:00 (acreditación de 7:30 a 8:30).</li>
-      <li>Colegio Internacional San Marcos, Santa Cruz de la Sierra.</li>
+      <li>Sábado 31 de octubre de 2026, Colegio Internacional San Marcos,
+      Santa Cruz de la Sierra.</li>
+      <li>Ingreso desde las 7:30; hasta las 8:00 las pistas quedan libres
+      para pruebas.</li>
+      <li>De 8:00 a 8:50, homologación de cada robot por categoría, a cargo
+      de los jurados.</li>
+      <li>A las 9:00 desfilan los competidores y, tras el acto de apertura,
+      se hacen los sorteos y arranca la competencia.</li>
       <li>Pista de línea negra de 2 cm sobre fondo blanco, de 10 a 30 metros,
       con curvas de 90° o más abiertas, cruces y bifurcaciones.</li>
       <li>Dos minutos para completar el recorrido. Cada robot corre dos o tres
       rondas y cuenta el mejor tiempo.</li>
       <li>Si el robot se sale de la línea, tiene que reingresar a menos de
       30 cm de donde se perdió. Los atajos no valen.</li>
+      <li>La entrada cuesta 5 Bs por persona. Pueden ir familiares,
+      compañeros y barras: hay premios sorpresa para el público.</li>
     </ul>
+    <p>Todos los inscritos presentes se llevan certificado de
+    participación. El programa oficial con el horario completo, para
+    imprimir o tener en el celular:
+    <a href="assets/pdf/programa-del-evento.pdf">programa-del-evento.pdf</a>.</p>
   </section>
 
   <div class="track-anchor" id="t4"></div>
@@ -355,6 +480,8 @@
     <p>El esquema de conexión de las partes, con las fotos de la placa y
     el driver señalando cada pin, en un PDF para imprimir o tener a mano
     el día del concurso: <a href="assets/pdf/arturito-esquema.pdf">arturito-esquema.pdf</a>.</p>
+    <p>El programa oficial del concurso, con el horario del sábado:
+    <a href="assets/pdf/programa-del-evento.pdf">programa-del-evento.pdf</a>.</p>
 
     <h3>Por qué hay una versión 2</h3>
     <p>La primera versión decidía todo con una tabla de casos: según qué
@@ -384,8 +511,8 @@
       <li>Trae un ajuste fino por motor (TRIM) para corregir la deriva en
       recta, porque ningún par de motores gira exactamente igual.</li>
     </ul>
-    <p>El código de las dos versiones no se publica hasta después del
-    concurso; el día de la carrera llevamos ambas impresas aparte.</p>
+    <p>El código no se publica hasta después del concurso; el día de la
+    carrera lo llevamos impreso.</p>
   </section>
 
   <div class="track-anchor" id="t5b"></div>

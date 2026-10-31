@@ -8,9 +8,11 @@ created: 2026-10-28
 Organiza la Dirección Distrital de Educación Santa Cruz 1. Categoría de
 Arturito: **seguidor de línea amateur**.
 
-Fuentes: `documentos_concurso/CONVOCATORIA ROBOTICA 2026.pdf` (reglamento)
-y `documentos_concurso/Guia_Imprimible_Seguidor_de_Linea.pdf` (resumen
-para llevar a pista). La lista de inscritos está en
+Fuentes: `documentos_concurso/CONVOCATORIA ROBOTICA 2026.pdf` (reglamento),
+`documentos_concurso/Guia_Imprimible_Seguidor_de_Linea.pdf` (resumen
+para llevar a pista) y `documentos_concurso/PROGRAMA DEL EVENTO.pdf`
+(programa horario del 31 oct; copia web en `web/assets/pdf/programa-del-evento.pdf`).
+La lista de inscritos está en
 `documentos_concurso/LISTA OFICIAL DE PARTICIPANTES.xlsx`; el equipo
 «Arturito» figura en seguidor de línea. Premios en [[premios]].
 
@@ -20,7 +22,28 @@ para llevar a pista). La lista de inscritos está en
 |---|---|---|
 | Capacitación | 17 oct 2026, 8:00–11:30 | Colegio Internacional San Marcos |
 | Armado y prueba | 24 oct 2026, 8:00–11:30 | Colegio Internacional San Marcos |
-| Evento | 31 oct 2026, acreditación 7:30–8:30, evento 9:00–13:00 | Colegio Internacional San Marcos |
+| Evento | 31 oct 2026: ingreso 7:30, pistas libres 7:30–8:00, homologación 8:00–8:50, acto y competencia desde 9:00 | Colegio Internacional San Marcos |
+
+## Programa del evento
+
+Del PDF oficial (`documentos_concurso/PROGRAMA DEL EVENTO.pdf`):
+
+- 7:30 — ingreso de público general y participantes, dividido por
+  categorías (carrera de insectos, sumo RC y seguidor de línea).
+- 7:30–8:00 — las pistas quedan libres para pruebas, con los cuidados
+  necesarios.
+- 8:00–8:50 — homologación por categorías, a cargo de los jurados.
+- 9:00 — apertura: desfile de competidores, oración a cargo del padre
+  Hedra, himno nacional, palabras de la directora distrital Lic. Dora
+  Leonor Siles Alvarez (Educación Santa Cruz 1), himno a Santa Cruz y
+  desconcentración con inicio de la competencia.
+- Los sorteos se hacen en ese momento y los organizadores dan las
+  instrucciones; quien compite en dos o más categorías debe avisar para
+  que no choquen los horarios.
+- Al final: certificados de participación a todos los inscritos
+  presentes por categoría, premiación y foto del recuerdo.
+- Entrada: Bs 5 por persona. Familiares, compañeros y barras son
+  bienvenidos; hay premios sorpresa para el público general.
 
 ## Pista
 

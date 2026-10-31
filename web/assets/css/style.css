@@ -295,6 +295,25 @@ h3 { font-size: 1.15rem; }
 
 .track-anchor { height: 70px; }
 
+/* el diario de puesta a punto: cada día es una entrada con la fecha en
+   ámbar sobre el título y una guía amarilla al margen */
+.dia {
+  border-left: 3px solid #f4c91f;
+  padding-left: 16px;
+  margin: 28px 0;
+}
+
+.dia time {
+  display: block;
+  font-size: .8rem;
+  font-weight: 700;
+  color: #b78f00;
+}
+
+.dia h3 {
+  margin: .2em 0 .5em;
+}
+
 p, li { line-height: 1.65; }
 
 ul { padding-left: 1.2em; }
