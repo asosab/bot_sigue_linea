@@ -33,7 +33,8 @@
  *   sobre el blanco visto (estable entre superficies); el negro
  *   varia demasiado para calibrarlo (corridas #23-#24).
  * - Traza EEPROM: anillo de eventos con canales crudos, posF y
- *   comandos; se lee por serie con el comando 't'.
+ *   comandos, mas muestra periodica; se lee por serie con 't'.
+ *   Se vuelca al detener o si la busqueda supera 3 s seguidos.
  *
  * Hardware: UNO + 5xTCRT5000 (A0..A4, flecha: S2 adelante,
  * S1/S3 medios, S0/S4 atras en las puntas) + DRV8833 (IN1..IN4
@@ -68,6 +69,8 @@ const float KD = 10.0;      // amortiguacion (delta de posF por ciclo)
 const float KS = 5.0;       // cuanto baja la velocidad con el error
 const float ALPHA = 0.55;   // filtro EMA de la posicion (0..1)
 const float DB_MM = 6.0;    // zona muerta: dentro, corr = 0 y a fondo
+const float LADO_MM = 6.0;  // |posF| que fija lado recordado y lado de busqueda
+const float BANDA_MM = 15.0; // banda media: freno de retorno y piso de rueda
 // Freno de retorno: con el error convergiendo en banda media la
 // correccion se amortigua; sin freno la virada cruzaba la cinta y
 // el error picaba de lado a lado (corridas #14-#21, estabilizo #22).
@@ -96,7 +99,8 @@ int blancoRef = 0;      // blanco de la pose (min de S0/S4)
 int negroRef = 0;       // negro de la pose (lectura de S2)
 int umbralLinea = 0;    // blancoRef + rango/3
 int umbralFuerte = 0;   // blancoRef + rango*2/3
-int umbralDebil = 0;    // blancoRef + rango/6 (piso de histeresis)
+int umbralDebil = 0;    // blancoRef + max(rango/6, 30): piso contra ruido
+                        // en superficies de poco contraste
 const int PERDIDA_MIN_CICLOS = 3; // ciclos sin linea antes de buscar
 
 // Interseccion: avance recto que sale cuando la punta S2
@@ -137,8 +141,14 @@ const int VEL_ARCO_INT = 25;
 const int VEL_BUSQUEDA = 110;
 const unsigned long PIVOTE_MS = 280;  // ~90 grados a VEL_BUSQUEDA: medir
 const unsigned long ARCO_MS = 400;    // arco hacia el lado de la perdida
-const unsigned long PIVOTE2_MS = 560; // pivote de vuelta (~-90 grados)
-const unsigned long ARCO2_MS = 500;   // arco al lado contrario
+const unsigned long PIVOTE2_MS = 560; // pivote de vuelta: el doble de la ida
+const unsigned long ARCO2_MS = 400;   // arco al lado contrario, igual que ARCO_MS
+// Desde la segunda vuelta del barrido la fase 0 tambien dura PIVOTE2_MS:
+// con fase 0 de PIVOTE_MS el giro neto por vuelta era -theta - a2 y se
+// acumulaba, y el robot terminaba mirando para atras.
+// Busqueda que supera este plazo seguido = perdida real: parada de
+// seguridad con volcado a EEPROM (la corrida no se pierde al cortar).
+const unsigned long BUSQ_MAX_MS = 3000;
 
 // Si la linea asoma un instante en plena busqueda, el PD la agarra
 // y el barrido queda en pausa: al perderla otra vez retoma donde
@@ -153,8 +163,8 @@ const int VEL_ASIENTO = 120;
 const unsigned long BTN_DEBOUNCE_MS = 50;
 
 // Referencias del piso de la pista, se actualizan solas con cada
-// lectura. El blanco es la base de toda la deteccion; el negro
-// queda solo para la estadistica de la traza.
+// lectura. Solo alimentan la estadistica de la traza (refs[2..3]);
+// la deteccion usa blancoRef/negroRef fijados en la pose de largada.
 int negroVisto = 0;
 int blancoVisto = 1023;
 
@@ -191,7 +201,7 @@ Traza traza[TRAZA_N];
 byte trazaIdx = 0;        // proxima escritura = la mas vieja si esta lleno
 byte trazaLen = 0;
 unsigned long muestraProx = 0;
-const unsigned long MUESTRA_MS = 100;
+const unsigned long MUESTRA_MS = 250; // muestra periodica de la traza
 int velIcmd = 0, velDcmd = 0;   // ultimo comando enviado a cada rueda
 
 // Cabecera EEPROM en offset 0; los eventos van justo despues.
@@ -233,6 +243,8 @@ unsigned long asientoHasta = 0;
 int faseBusqueda = -1;              // -1 = no esta buscando
 int ladoBusqueda = 0;
 unsigned long faseDesde = 0;
+int ciclosBusq = 0;                 // vueltas del barrido (0 = primera)
+unsigned long busqDesde = 0;        // arranque del episodio: parada de seguridad
 int pausaFase = -1;                 // fase pausada por un asomo (-1 = sin pausa)
 int pausaLado = 0;
 unsigned long pausaEnFase = 0;
@@ -274,6 +286,8 @@ void detener() {
 // en ADC sobre el blanco, que es estable entre superficies.
 void leerSensores() {
   for (int i = 0; i < 5; i++) {
+    // doble lectura: descarta la carga residual del multiplexor ADC
+    analogRead(CANALES[i]);
     int v = analogRead(CANALES[i]);
     lecturas[i] = v;
     if (v < blancoVisto) blancoVisto = v;
@@ -315,45 +329,45 @@ void imprimirTraza() {
   TrazaHead th;
   EEPROM.get(0, th);
   if (th.magic != TRAZA_MAGIC || th.n > TRAZA_N) {
-    Serial.println("Sin traza guardada.");
+    Serial.println(F("Sin traza guardada."));
     return;
   }
-  Serial.print("Ultima corrida: "); Serial.print(th.tiempo / 1000.0);
-  Serial.print(" s | perdidas "); Serial.print(th.perdidas);
-  Serial.print(" esquinas "); Serial.print(th.esquinas);
-  Serial.print(" cruces "); Serial.print(th.cruces);
-  Serial.print(" | pista "); Serial.print(th.refs[0]);
-  Serial.print("-"); Serial.print(th.refs[1]);
-  Serial.print(" (vistos "); Serial.print(th.refs[2]);
-  Serial.print("-"); Serial.print(th.refs[3]);
-  Serial.println(")");
-  Serial.println("Traza (t | evento | posF | velI velD | s0..s4):");
+  Serial.print(F("Ultima corrida: ")); Serial.print(th.tiempo / 1000.0);
+  Serial.print(F(" s | perdidas ")); Serial.print(th.perdidas);
+  Serial.print(F(" esquinas ")); Serial.print(th.esquinas);
+  Serial.print(F(" cruces ")); Serial.print(th.cruces);
+  Serial.print(F(" | pista ")); Serial.print(th.refs[0]);
+  Serial.print(F("-")); Serial.print(th.refs[1]);
+  Serial.print(F(" (vistos ")); Serial.print(th.refs[2]);
+  Serial.print(F("-")); Serial.print(th.refs[3]);
+  Serial.println(F(")"));
+  Serial.println(F("Traza (t | evento | posF | velI velD | s0..s4):"));
   for (int i = 0; i < th.n; i++) {
     Traza t;
     EEPROM.get(sizeof(TrazaHead) +
                ((th.start + i) % TRAZA_N) * sizeof(Traza), t);
-    Serial.print("  +"); Serial.print(t.dt / 100.0, 2);
+    Serial.print(F("  +")); Serial.print(t.dt / 100.0, 2);
     Serial.print(' ');
     switch (t.tipo) {
       case T_CURVA:
-        Serial.print(t.dato < 0 ? "curva-izq/" : "curva-der/");
-        Serial.print(abs(t.dato) == 1 ? "ext" :
-                     abs(t.dato) == 2 ? "posf" : "negro");
+        Serial.print(t.dato < 0 ? F("curva-izq/") : F("curva-der/"));
+        Serial.print(abs(t.dato) == 1 ? F("ext") :
+                     abs(t.dato) == 2 ? F("posf") : F("negro"));
         break;
       case T_CURVA_OUT:
-        Serial.print(t.dato == 0 ? "curva-ok" :
-                     t.dato == 1 ? "curva-timeout" : "curva-barrida");
+        Serial.print(t.dato == 0 ? F("curva-ok") :
+                     t.dato == 1 ? F("curva-timeout") : F("curva-barrida"));
         break;
-      case T_CRUCE:    Serial.print("cruce"); break;
-      case T_BUSQ:     Serial.print(t.dato < 0 ? "busq-izq" : "busq-der"); break;
-      case T_BUSQ_RES: Serial.print(t.dato < 0 ? "busq*-izq" : "busq*-der"); break;
-      case T_PAUSA:    Serial.print("pausa"); break;
-      case T_LARGADA:  Serial.print("largada"); break;
-      case T_STOP:     Serial.print("stop"); break;
-      default:         Serial.print("mue"); break;
+      case T_CRUCE:    Serial.print(F("cruce")); break;
+      case T_BUSQ:     Serial.print(t.dato < 0 ? F("busq-izq") : F("busq-der")); break;
+      case T_BUSQ_RES: Serial.print(t.dato < 0 ? F("busq*-izq") : F("busq*-der")); break;
+      case T_PAUSA:    Serial.print(F("pausa")); break;
+      case T_LARGADA:  Serial.print(F("largada")); break;
+      case T_STOP:     Serial.print(F("stop")); break;
+      default:         Serial.print(F("mue")); break;
     }
-    Serial.print(" | p"); Serial.print(t.posFmm);
-    Serial.print(" | v"); Serial.print(t.velI * 2);
+    Serial.print(F(" | p")); Serial.print(t.posFmm);
+    Serial.print(F(" | v")); Serial.print(t.velI * 2);
     Serial.print(' '); Serial.print(t.velD * 2);
     Serial.print(" |");
     for (int k = 0; k < 5; k++) {
@@ -369,6 +383,7 @@ void entrarCruce() {
   trazaEvento(T_CRUCE, 0);
   cruceDesde = millis();
   cruceHasta = millis() + CRUCE_MAX_MS;
+  histLen = 0;            // el historial de antes del cruce no decide el siguiente
   posF = posPrev = 0;
   perdidaConteo = 0;
   extremoConteo = 0;
@@ -389,6 +404,7 @@ void entrarCurva(int lado, int via) {
   trazaEvento(T_CURVA, lado * via);
   curvaDesde = millis();
   curvaLado = lado;
+  histLen = 0;            // idem: el historial que disparo la curva no se reusa
   perdidaConteo = 0;
   extremoConteo = 0;
   faseBusqueda = -1;
@@ -415,6 +431,7 @@ void pausarBusqueda() {
 
 void arrancarBusqueda() {
   perdRun++;
+  busqDesde = millis(); // la pausa la vio la linea: el plazo seguido reinicia
   // Pausa reciente: mismo episodio, retomar la fase sin reiniciar
   // el pivote. Pausa vieja o inexistente: episodio nuevo desde cero.
   if (pausaFase >= 0 && millis() - pausaDesde <= PAUSA_MAX_MS) {
@@ -427,11 +444,12 @@ void arrancarBusqueda() {
     return;
   }
   pausaFase = -1;
+  ciclosBusq = 0;
   // Direccion: promedio de las ultimas posiciones validas; si no
   // alcanza, el ultimo lado grande; si no, la derecha.
   float p = (histGet(0) + histGet(1) + histGet(2)) / 3.0;
-  if (p > 6.0) ladoBusqueda = 1;
-  else if (p < -6.0) ladoBusqueda = -1;
+  if (p > LADO_MM) ladoBusqueda = 1;
+  else if (p < -LADO_MM) ladoBusqueda = -1;
   else ladoBusqueda = (ultimoLado != 0) ? ultimoLado : 1;
   faseBusqueda = 0;
   faseDesde = millis();
@@ -450,6 +468,29 @@ void pivote(int lado) {
   motorDer(-lado * VEL_BUSQUEDA);
 }
 
+// Para la corrida y vuelca la traza a EEPROM. La llama el pulsador
+// y la parada de seguridad de busqueda agotada.
+void detenerYGuardar() {
+  arrancado = false;
+  detener();
+  trazaEvento(T_STOP, 0);
+  TrazaHead th;
+  th.magic = TRAZA_MAGIC;
+  th.tiempo = millis() - largadaDesde;
+  th.perdidas = perdRun;
+  th.esquinas = esqRun;
+  th.cruces = cruceRun;
+  for (int i = 0; i < 10; i++) th.refs[i] = 0;
+  th.refs[0] = blancoRef;
+  th.refs[1] = negroRef;
+  th.refs[2] = blancoVisto;
+  th.refs[3] = negroVisto;
+  th.n = trazaLen;
+  th.start = (trazaIdx + TRAZA_N - trazaLen) % TRAZA_N;
+  EEPROM.put(0, th);
+  EEPROM.put(sizeof(TrazaHead), traza);
+}
+
 void setup() {
   pinMode(IN1, OUTPUT);
   pinMode(IN2, OUTPUT);
@@ -463,9 +504,9 @@ void setup() {
   pinMode(BTN, INPUT_PULLUP); // presionado = LOW
 
   Serial.begin(9600);
-  Serial.println("===== ARTURITO v2.5 =====");
-  Serial.println("Esperando: apoyar sobre la linea, apretar y soltar.");
-  Serial.println("Enviar 't' para ver la traza de la ultima corrida.");
+  Serial.println(F("===== ARTURITO v2.5 ====="));
+  Serial.println(F("Esperando: apoyar sobre la linea, apretar y soltar."));
+  Serial.println(F("Enviar 't' para ver la traza de la ultima corrida."));
 
   // La traza queda en EEPROM pero NO se imprime aca: eran ~4 s de
   // salida serie antes del loop y un apretar-soltar en esa ventana
@@ -474,6 +515,12 @@ void setup() {
 }
 
 void loop() {
+  // Periodo fijo de lazo: el trabajo ya hecho cuenta en el plazo,
+  // asi KD actua sobre un dt constante en todas las ramas.
+  static unsigned long tLazo = 0;
+  while (millis() - tLazo < 6) {}
+  tLazo = millis();
+
   leerSensores();
 
   // Comando por serie: 't' imprime la traza guardada. Solo en
@@ -503,21 +550,26 @@ void loop() {
       preparado = false;
       // Compuerta relativa: S2 sobre la linea lee bastante mas
       // oscuro que ambos extremos. Vale en cualquier superficie.
-      if (lecturas[2] > lecturas[0] + MARGEN_LARGADA &&
-          lecturas[2] > lecturas[4] + MARGEN_LARGADA) {
+      // Promedio de 8 lecturas: una sola muestra sesga la escala.
+      int l0 = 0, l2 = 0, l4 = 0;
+      for (int i = 0; i < 8; i++) {
+        l0 += analogRead(S0); l2 += analogRead(S2); l4 += analogRead(S4);
+      }
+      l0 /= 8; l2 /= 8; l4 /= 8;
+      if (l2 > l0 + MARGEN_LARGADA && l2 > l4 + MARGEN_LARGADA) {
         // La pose da la escala de la corrida: S2 es el negro de
         // referencia y el peor de los extremos el blanco.
-        blancoRef = (lecturas[0] < lecturas[4]) ? lecturas[0] : lecturas[4];
-        negroRef = lecturas[2];
+        blancoRef = (l0 < l4) ? l0 : l4;
+        negroRef = l2;
         int rango = negroRef - blancoRef;
         umbralLinea = blancoRef + rango / 3;
         umbralFuerte = blancoRef + rango * 2 / 3;
-        umbralDebil = blancoRef + rango / 6;
+        umbralDebil = blancoRef + max(rango / 6, 30);
         blancoVisto = blancoRef;
         negroVisto = negroRef;
-        Serial.print("Pista: blanco "); Serial.print(blancoRef);
-        Serial.print(" negro "); Serial.print(negroRef);
-        Serial.print(" umbral "); Serial.println(umbralLinea);
+        Serial.print(F("Pista: blanco ")); Serial.print(blancoRef);
+        Serial.print(F(" negro ")); Serial.print(negroRef);
+        Serial.print(F(" umbral ")); Serial.println(umbralLinea);
         arrancado = true;
         largadaDesde = millis();
         muestraProx = millis() + MUESTRA_MS;
@@ -537,42 +589,24 @@ void loop() {
         enLinea = false;
         asientoHasta = 0;
         trazaIdx = trazaLen = 0;
-        Serial.println("LARGADA: arrancando.");
+        Serial.println(F("LARGADA: arrancando."));
       } else {
-        Serial.println("NO LARGA: S2 no destaca sobre los extremos.");
+        Serial.println(F("NO LARGA: S2 no destaca sobre los extremos."));
       }
     }
     if (!arrancado) {
       detener();
-      delay(5);
       return;
     }
   }
   // 3. En carrera: apretar detiene, vuelca la corrida a EEPROM y
   //    devuelve a la espera.
   else if (flancoBajo) {
-    arrancado = false;
-    detener();
-    trazaEvento(T_STOP, 0);
-    TrazaHead th;
-    th.magic = TRAZA_MAGIC;
-    th.tiempo = millis() - largadaDesde;
-    th.perdidas = perdRun;
-    th.esquinas = esqRun;
-    th.cruces = cruceRun;
-    for (int i = 0; i < 10; i++) th.refs[i] = 0;
-    th.refs[0] = blancoRef;
-    th.refs[1] = negroRef;
-    th.refs[2] = blancoVisto;
-    th.refs[3] = negroVisto;
-    th.n = trazaLen;
-    th.start = (trazaIdx + TRAZA_N - trazaLen) % TRAZA_N;
-    EEPROM.put(0, th);
-    EEPROM.put(sizeof(TrazaHead), traza);
-    Serial.print("DETENIDO: ");
-    Serial.print(th.tiempo / 1000.0);
-    Serial.println(" s guardados. Esperando nueva largada.");
-    delay(5);
+    unsigned long tCarrera = millis() - largadaDesde;
+    detenerYGuardar();
+    Serial.print(F("DETENIDO: "));
+    Serial.print(tCarrera / 1000.0);
+    Serial.println(F(" s guardados. Esperando nueva largada."));
     return;
   }
 
@@ -614,7 +648,6 @@ void loop() {
                       sobre[2] && !todoNegro;
     if (millis() < cruceHasta && !reaparecio) {
       motorIzq(VEL_CRUCE); motorDer(VEL_CRUCE);
-      delay(5);
       return;
     }
     cruceHasta = 0;
@@ -629,7 +662,10 @@ void loop() {
     int interna = sobre[1] + sobre[2] + sobre[3];
     int lider = (curvaLado > 0) ? exc[3] + exc[4] : exc[0] + exc[1];
     int cola  = (curvaLado > 0) ? exc[0] + exc[1] : exc[3] + exc[4];
-    bool volvio = sobre[2] && interna >= 2;
+    // Con todo-negro aun no "volvio" la linea: es el cuadrado de la
+    // esquina. Sin esta guardia la curva salia a los 60 ms y el
+    // ultimo comando quedaba sosteniendo el giro sin registro.
+    bool volvio = sobre[2] && interna >= 2 && !todoNegro;
     bool barrida = cola > lider && cola > (umbralLinea - blancoRef);
     if (enCurva >= CURVA_MIN_MS && (volvio || barrida)) {
       curvaDesde = 0;
@@ -645,24 +681,24 @@ void loop() {
                      ? VEL_PIVOTE_INT : VEL_CURVA_INT;
       if (curvaLado > 0) { motorIzq(VEL_CURVA_EXT); motorDer(ruedaInt); }
       else               { motorIzq(ruedaInt); motorDer(VEL_CURVA_EXT); }
-      delay(5);
       return;
     }
   }
 
-  // 7. Todo negro: cruce o esquina. El historial decide: si antes
+  // 6. Todo negro: cruce o esquina. El historial decide: si antes
   //    del negro la linea venia corrida, era una esquina y hay que
   //    girar; si venia centrada, es un cruce y se atraviesa recto.
+  //    Si la guardia veta el compromiso, se sostiene el ultimo
+  //    comando (el giro en curso) hasta que el cuadrado se despeje.
   if (todoNegro) {
     float posRef = histGet(HIST_CRUCE);
     if (posRef > POS_ESQ_MM) entrarCurva(1, 3);
     else if (posRef < -POS_ESQ_MM) entrarCurva(-1, 3);
     else entrarCruce();
-    delay(5);
     return;
   }
 
-  // 8. Solo un extremo ve la linea: la cinta se salio del arreglo
+  // 7. Solo un extremo ve la linea: la cinta se salio del arreglo
   //    y el PD ya no tiene que medir — ahi si se compromete el
   //    giro. Persistencia de unos ciclos, punta libre de cinta
   //    (veto del brazo de la X) y guardia de rearmado.
@@ -671,18 +707,26 @@ void loop() {
   bool extDer = sobre[4] && !sobre[3] && !sobre[2] &&
                 !sobre[1] && !sobre[0] && millis() >= rearmadoHasta;
   int ladoExt = extIzq ? -1 : (extDer ? 1 : 0);
-  if (ladoExt != 0 && ladoExt == extremoLado) {
+  if (ladoExt != 0) {
+    if (ladoExt != extremoLado) { extremoLado = ladoExt; extremoConteo = 0; }
     if (++extremoConteo >= EXTREMO_CICLOS) {
       entrarCurva(ladoExt, 1);
-      delay(5);
       return;
     }
   } else {
     extremoConteo = 0;
-    extremoLado = ladoExt;
+    extremoLado = 0;
   }
 
-  // 9. Linea a la vista: PD con zona muerta y rueda interna en
+  // Muestra periodica de la traza: canales, posF y comandos cada
+  // MUESTRA_MS, con linea o sin ella (en maniobra no llega: los
+  // eventos ya cuentan esa historia).
+  if (millis() >= muestraProx) {
+    muestraProx = millis() + MUESTRA_MS;
+    trazaEvento(T_MUESTRA, 0);
+  }
+
+  // 8. Linea a la vista: PD con zona muerta y rueda interna en
   //    piso. Histeresis: entra con un canal sobre el umbral y no
   //    la suelta hasta que todo baja del piso debil.
   bool estabaEnLinea = enLinea;
@@ -697,8 +741,8 @@ void loop() {
     posPrev = posF;
     histPush(posF);
 
-    if (posF > 6.0) ultimoLado = 1;
-    else if (posF < -6.0) ultimoLado = -1;
+    if (posF > LADO_MM) ultimoLado = 1;
+    else if (posF < -LADO_MM) ultimoLado = -1;
     perdidaConteo = 0;
     pausarBusqueda();
 
@@ -711,13 +755,13 @@ void loop() {
     float corr = (fabs(posF) < DB_MM) ? 0 : KP * posF + KD * deriv;
     // Convergiendo en banda media se frena el retorno: el resto del
     // arco cierra sola sin cruzar la cinta.
-    if (deriv * posF < 0 && fabs(posF) <= 15.0) corr *= FRENO_RETORNO;
+    if (deriv * posF < 0 && fabs(posF) <= BANDA_MM) corr *= FRENO_RETORNO;
 
     int velIzq = (int)((base + corr) * TRIM_IZQ);
     int velDer = (int)((base - corr) * TRIM_DER);
     // Piso de la rueda interna: 40 en correccion normal, 0 en error
     // grande — el freno completo queda para el caso extremo.
-    int piso = (fabs(posF) > 15.0) ? 0 : RUEDA_MIN;
+    int piso = (fabs(posF) > BANDA_MM) ? 0 : RUEDA_MIN;
     if (velIzq < piso) velIzq = piso;
     if (velDer < piso) velDer = piso;
     if (velIzq > 255) velIzq = 255;
@@ -734,23 +778,31 @@ void loop() {
       Serial.print(" corr "); Serial.println(corr);
     }
 #endif
-    delay(5);
     return;
   }
 
-  // 10. Linea perdida: debounce corto y luego busqueda por fases.
+  // 9. Linea perdida: debounce corto y luego busqueda por fases.
   //     Reaparece -> asiento; no reaparece -> pivote acotado,
   //     arco, pivote contrario, arco contrario, y se repite.
   if (++perdidaConteo < PERDIDA_MIN_CICLOS) {
-    delay(5);
     return;
   }
   if (faseBusqueda < 0) arrancarBusqueda();
 
+  // Parada de seguridad: buscar mas de BUSQ_MAX_MS seguidos es una
+  // perdida real — detiene y guarda la traza antes de vagar.
+  if (millis() - busqDesde > BUSQ_MAX_MS) {
+    detenerYGuardar();
+    Serial.println(F("DETENIDO: busqueda agotada, traza guardada."));
+    return;
+  }
+
   unsigned long enFase = millis() - faseDesde;
   switch (faseBusqueda) {
     case 0: // pivote acotado hacia el lado de la perdida (sin avanzar)
-      if (enFase < PIVOTE_MS) pivote(ladoBusqueda);
+      // 1a vuelta: PIVOTE_MS; desde la 2a: PIVOTE2_MS, que cierra el
+      // barrido — con PIVOTE_MS el giro neto se acumulaba por vuelta.
+      if (enFase < (ciclosBusq == 0 ? PIVOTE_MS : PIVOTE2_MS)) pivote(ladoBusqueda);
       else { faseBusqueda = 1; faseDesde = millis(); }
       break;
     case 1: // arco hacia ese lado
@@ -763,8 +815,7 @@ void loop() {
       break;
     default: // arco al otro lado, y se repite el ciclo
       if (enFase < ARCO2_MS) arco(-ladoBusqueda);
-      else { faseBusqueda = 0; faseDesde = millis(); }
+      else { faseBusqueda = 0; faseDesde = millis(); ciclosBusq++; }
       break;
   }
-  delay(5);
 }
