@@ -146,3 +146,20 @@ PD osciló clavando posF en el peso del canal que leía. Cambios:
 - [[flujo-arturito-v3]] — máquina de estados de v3 con sus costuras
 - [[corridas]] — archivo de pruebas en pista
 - [[calibracion]] — umbrales y ganancias
+
+## Epílogo: v2.6 — marcha del vecino en `ext` (decisión 2026-10-30)
+
+Sobre v2.5 se probó la regla de marcha de canales (`EXT_MARCHA`) para
+vetar los disparos `ext` sobre masa ajena — la punta sola encendida sin
+historia en el canal vecino. Tres niveles, 9 corridas en
+[[corridas-v2_6]]:
+
+- **Nivel 2 (veto + enmascarado de la punta)**: rechazado por veto a
+  una esquina real — en C1 bloqueó la tercera esquina del lazo y le
+  sacó al centroide la única señal para volver.
+- **Nivel 1 (solo veto)**: quedó vigente — atravesó la X y su lazo en
+  dos corridas sin que el veto costara una esquina real.
+- Alcance: la masa ajena casi no apareció en estas corridas; el nivel 1
+  queda por no dañar, no por mejorar mediblemente. La ganancia real de
+  v2.6 es la edad `e1`/`e3` en la traza y la búsqueda hacia el lado
+  contrario tras timeout de curva.

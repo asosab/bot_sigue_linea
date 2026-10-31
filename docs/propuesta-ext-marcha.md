@@ -972,5 +972,16 @@ void loop() {
 
 ## Resultado de revisión
 
-Registro de corridas: [[corridas-v2_6]]. Decisión según los criterios
-de aceptación: **pendiente de corridas**.
+Registro de corridas: [[corridas-v2_6]] (3 del nivel A, 5 del B, 1 del
+C). Decisión según los criterios de aceptación: **`EXT_MARCHA 1`**.
+
+El nivel 2 se rechazó por veto a una esquina real: en C1 la máscara de
+la punta bloqueó la línea verdadera de la tercera esquina del lazo y le
+sacó al centroide la única señal de reenganche — el robot siguió de
+largo y no volvió. El nivel 1 (solo el veto, sin enmascarado) cruzó la
+X y su lazo en dos corridas distintas.
+
+Alcance honesto: en esta pista casi todos los `ext` son salidas reales;
+la masa ajena casi no apareció. El nivel 1 queda por no dañar, no por
+mejorar mediblemente. La ganancia efectiva de v2.6 es la edad `e1`/`e3`
+en la traza y el fix de búsqueda tras timeout de curva.

@@ -136,7 +136,7 @@ const int EXTREMO_CICLOS = 2;     // persistencia para disparar la curva
 //       hacia ese mismo lado, aunque ext este vetado.
 // El enmascarado solo rige fuera de curva, cruce y busqueda: ahi la
 // punta si es la primera en ver la cinta.
-#define EXT_MARCHA 2
+#define EXT_MARCHA 1
 const unsigned long MARCHA_MS = 60;  // ~2 filas de sensores a VEL_MAX
 
 // Guardia unica de rearmado: tras salir de curva, cruce o pausa

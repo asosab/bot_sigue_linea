@@ -100,6 +100,12 @@ Dos usos:
   rueda externa a `VEL_CURVA_EXT` e interna quieta (aquí sí frena una rueda)
   hacia ese lado. Sale cuando el trío interno recupera la línea (mínimo
   `CURVA_MIN_MS` de giro) o al vencer `CURVA_MAX_MS`, que pasa a búsqueda.
+  Desde v2.6 el disparo por extremo además pide **marcha del vecino**
+  (`EXT_MARCHA 1`): S1 o S3 tuvo que ver cinta en los últimos
+  `MARCHA_MS` (60 ms) — sin marcha, la punta sola se trata como masa
+  ajena y el giro no se compromete. Ver [[propuesta-ext-marcha]] y
+  [[corridas-v2_6]] para la decisión (nivel 2 rechazado por veto a una
+  esquina real).
 
 Tras salir de curva o de búsqueda hay un asiento de `ASIENTO_MS` con la
 velocidad capada a `VEL_ASIENTO`, para que el PD la recupere centrándola

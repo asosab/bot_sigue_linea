@@ -1,6 +1,6 @@
 ---
 type: registro
-status: pendiente-de-corridas
+status: cerrado
 created: 2026-10-30
 ---
 # Registro de corridas — Arturito v2.6
@@ -28,6 +28,8 @@ registra los eventos `ext-veto-izq/der` en la traza.
 | B2 | 1 | 1000 | 11,37 s | 13 | — | — | — | — | 1 | 1 disparo ext +2,20 (s4=864, e3=7 → pasó) → `curva-timeout`. Vetos silenciosos en punta sola con e3 alto. **Físico: pasó el desvío ligero, atravesó la X y se perdió antes de los tres giros a la izquierda** |
 | B3 | 1 | 1000 | 14,42 s | 29 | — | — | — | — | 1 | 1 disparo ext +12,97 (s4=700, e3=2 → pasó) → `curva-timeout`. **Físico: atravesó la X y su lazo; en el cruce siguiente a la derecha se perdió y volvió en dirección contraria, perdiéndose dentro del lazo de la X** |
 | C1 | 2 | 1000 | 12,39 s | 40 | — | — | ~28 | 1 | 0 | Tormenta de `ext-veto-izq` de +8,81 a +9,38 (~28 vetos en 570 ms): s0 leía 250-470 con trío vacío y e1 alto. **Físico: siguió de largo tras el segundo giro a la izquierda — la punta veía la línea real de la tercera esquina del lazo, vetada por la marcha y enmascarada del centroide → no volvió. Veto a esquina real + recuperación cegada.** El anillo se saturó y borró el inicio |
+| B4 | 1 | 1000 | 8,42 s | 21 | — | — | — | — | 1 | 1 disparo ext +0,41 (s4=716, e3=2 → pasó) → `curva-timeout`. **Físico: se saltó el lazo siguiendo el camino de salida** |
+| B5 | 1 | 1000 | 12,82 s | 25 | — | — | — | — | 0 | Cero disparos ext en toda la corrida — la marcha bloqueó todo o la punta nunca persistió. Pista más oscura (negro ~664). **Físico: atravesó el lazo con dificultad y se perdió en el cruce a la derecha posterior, mismo punto que B3 y C1** |
 
 ```text
 A1 (nivel 0): Ultima corrida: 14.67 s | perdidas 24 esquinas 2 cruces 0 | pista 8-793 (vistos 0-866)
@@ -419,11 +421,146 @@ C1 (nivel 2): Ultima corrida: 12.39 s | perdidas 40 esquinas 1 cruces 0 | pista 
   +12.38 stop | p-29 | v0 0 | 24 20 16 4 8 | e1 255 e3 255
 ```
 
+```text
+B4 (nivel 1): Ultima corrida: 8.42 s | perdidas 21 esquinas 1 cruces 0 | pista 11-796 (vistos 0-895)
+  +0.41 curva-der/ext | p21 | v254 0 | 8 8 12 28 716 | e1 245 e3 2
+  +1.11 curva-timeout | p21 | v150 -70 | 4 12 88 852 12 | e1 255 e3 0
+  +1.11 busq-izq | p21 | v150 -70 | 4 12 88 852 12 | e1 255 e3 0
+  +1.11 mue | p21 | v150 -70 | 4 12 88 852 12 | e1 255 e3 0
+  +1.11 pausa | p13 | v150 -70 | 4 12 88 852 12 | e1 255 e3 0
+  +1.19 busq*-der | p10 | v146 94 | 20 24 56 0 0 | e1 255 e3 3
+  +1.22 pausa | p-14 | v110 -110 | 24 616 20 4 4 | e1 0 e3 9
+  +1.32 busq*-izq | p-13 | v86 156 | 8 20 16 16 16 | e1 3 e3 25
+  +1.39 pausa | p-25 | v-110 110 | 300 24 12 20 24 | e1 14 e3 36
+  +1.46 busq*-izq | p-28 | v0 254 | 40 4 8 12 12 | e1 26 e3 48
+  +1.56 pausa | p-29 | v-110 110 | 288 12 0 4 0 | e1 43 e3 66
+  +1.64 busq*-izq | p-27 | v0 254 | 40 4 12 8 12 | e1 57 e3 79
+  +1.77 pausa | p-15 | v24 110 | 8 276 4 8 8 | e1 0 e3 99
+  +1.97 busq*-izq | p-1 | v120 122 | 12 20 32 4 8 | e1 9 e3 133
+  +2.03 pausa | p14 | v24 110 | 0 4 12 484 16 | e1 19 e3 0
+  +2.11 mue | p14 | v224 40 | 0 4 12 448 0 | e1 32 e3 0
+  +2.19 busq*-der | p14 | v160 80 | 4 8 20 8 8 | e1 45 e3 3
+  +2.24 pausa | p27 | v110 24 | 8 20 24 4 328 | e1 54 e3 12
+  +2.83 busq*-izq | p-11 | v122 166 | 0 28 8 16 16 | e1 3 e3 10
+  +2.92 pausa | p-26 | v24 110 | 280 8 16 20 16 | e1 18 e3 25
+  +2.97 busq*-izq | p-27 | v0 254 | 12 4 12 12 12 | e1 25 e3 32
+  +3.11 mue | p-27 | v24 110 | 12 12 4 8 4 | e1 49 e3 56
+  +4.02 pausa | p10 | v110 24 | 12 12 204 432 12 | e1 201 e3 0
+  +4.11 mue | p14 | v220 40 | 16 0 32 680 424 | e1 216 e3 0
+  +4.28 busq*-izq | p-17 | v0 254 | 16 8 12 16 20 | e1 14 e3 18
+  +4.86 pausa | p-29 | v-110 110 | 276 20 12 4 4 | e1 111 e3 115
+  +4.95 busq*-izq | p-28 | v0 254 | 16 12 12 12 12 | e1 126 e3 130
+  +4.97 pausa | p-14 | v-110 110 | 12 408 8 16 16 | e1 0 e3 134
+  +5.11 mue | p-11 | v90 150 | 16 736 360 16 16 | e1 0 e3 157
+  +5.19 busq*-izq | p-1 | v120 122 | 20 24 60 4 0 | e1 12 e3 170
+  +5.23 pausa | p15 | v24 110 | 4 0 4 332 4 | e1 19 e3 0
+  +5.40 busq*-der | p13 | v156 84 | 4 8 24 8 16 | e1 46 e3 3
+  +5.43 pausa | p30 | v110 24 | 8 8 4 8 320 | e1 51 e3 8
+  +5.86 busq*-der | p29 | v254 0 | 4 0 12 16 28 | e1 122 e3 79
+  +6.12 mue | p29 | v110 24 | 8 12 4 12 16 | e1 166 e3 123
+  +6.19 pausa | p29 | v110 24 | 12 4 4 12 296 | e1 178 e3 135
+  +7.06 busq-der | p14 | v166 86 | 20 0 72 24 4 | e1 255 e3 3
+  +7.12 mue | p14 | v110 -110 | 0 4 36 28 4 | e1 255 e3 14
+  +7.14 pausa | p0 | v110 -110 | 0 8 336 16 8 | e1 255 e3 17
+  +7.22 busq*-izq | p-10 | v92 148 | 20 140 12 60 0 | e1 3 e3 30
+  +7.23 pausa | p-13 | v-110 110 | 32 312 4 20 0 | e1 0 e3 32
+  +7.77 busq*-izq | p0 | v194 198 | 8 12 44 20 0 | e1 26 e3 121
+  +7.85 pausa | p1 | v-110 110 | 16 24 332 56 12 | e1 39 e3 135
+  +7.95 busq*-der | p12 | v216 40 | 4 8 28 132 0 | e1 55 e3 3
+  +7.96 pausa | p15 | v110 -110 | 0 4 8 328 8 | e1 58 e3 0
+  +8.06 busq*-der | p9 | v140 100 | 4 8 16 48 16 | e1 75 e3 3
+  +8.12 mue | p9 | v110 -110 | 16 0 12 32 4 | e1 85 e3 13
+  +8.14 pausa | p-13 | v110 -110 | 44 444 4 36 8 | e1 0 e3 16
+  +8.22 busq*-izq | p-12 | v90 150 | 20 64 16 16 32 | e1 3 e3 29
+  +8.28 pausa | p-13 | v24 110 | 16 304 20 24 0 | e1 0 e3 38
+  +8.30 busq*-izq | p-12 | v90 152 | 28 52 16 20 0 | e1 3 e3 42
+  +8.34 pausa | p-23 | v24 110 | 308 4 16 44 20 | e1 9 e3 48
+  +8.42 stop | p-26 | v0 0 | 396 8 12 32 8 | e1 22 e3 61
+```
+
+```text
+B5 (nivel 1): Ultima corrida: 12.82 s | perdidas 25 esquinas 0 cruces 0 | pista 11-664 (vistos 0-897)
+  +0.08 busq-der | p0 | v198 202 | 16 20 48 28 8 | e1 191 e3 191
+  +0.11 pausa | p1 | v110 -110 | 4 12 284 40 0 | e1 196 e3 196
+  +0.23 busq*-der | p2 | v120 122 | 12 16 32 40 16 | e1 215 e3 215
+  +0.26 pausa | p1 | v110 -110 | 28 0 340 36 8 | e1 220 e3 220
+  +0.47 busq*-der | p0 | v120 122 | 16 24 0 48 8 | e1 255 e3 255
+  +0.48 pausa | p12 | v110 -110 | 32 36 0 272 4 | e1 255 e3 0
+  +0.66 busq*-der | p14 | v160 80 | 8 12 20 44 12 | e1 255 e3 3
+  +0.68 pausa | p28 | v110 -110 | 4 12 8 40 296 | e1 255 e3 6
+  +0.83 busq*-der | p27 | v254 0 | 12 8 12 44 32 | e1 255 e3 30
+  +0.85 pausa | p15 | v110 -110 | 0 0 4 416 12 | e1 255 e3 0
+  +1.00 mue | p14 | v224 40 | 20 4 16 648 4 | e1 255 e3 0
+  +1.13 busq*-der | p11 | v166 116 | 8 28 76 44 0 | e1 255 e3 3
+  +1.20 pausa | p2 | v110 -110 | 8 12 232 64 24 | e1 255 e3 14
+  +1.28 busq*-izq | p-6 | v112 128 | 20 48 0 48 4 | e1 3 e3 27
+  +1.30 pausa | p-13 | v-110 110 | 28 232 0 20 0 | e1 0 e3 31
+  +1.80 busq*-izq | p-12 | v98 172 | 20 40 120 20 8 | e1 3 e3 113
+  +1.81 pausa | p0 | v-110 110 | 20 36 244 20 8 | e1 5 e3 115
+  +2.00 mue | p13 | v220 40 | 324 24 12 724 12 | e1 4 e3 0
+  +2.41 busq*-der | p9 | v174 134 | 20 0 32 20 8 | e1 72 e3 3
+  +2.44 pausa | p-22 | v110 -110 | 276 52 40 40 0 | e1 77 e3 8
+  +2.54 busq*-izq | p-13 | v94 146 | 28 36 16 20 4 | e1 5 e3 25
+  +3.00 mue | p-13 | v110 -110 | 32 44 32 108 0 | e1 82 e3 102
+  +4.00 mue | p-13 | v-110 110 | 16 40 24 48 0 | e1 248 e3 255
+  +4.41 pausa | p-25 | v-110 110 | 228 24 4 28 8 | e1 255 e3 255
+  +4.66 busq*-izq | p-22 | v0 242 | 128 8 12 24 16 | e1 255 e3 255
+  +4.73 pausa | p-21 | v-110 110 | 228 12 4 60 8 | e1 255 e3 255
+  +4.75 busq*-izq | p-21 | v0 238 | 24 12 12 24 16 | e1 255 e3 255
+  +4.95 pausa | p-13 | v24 110 | 12 232 16 20 4 | e1 0 e3 255
+  +4.98 busq*-izq | p-13 | v40 226 | 40 40 32 20 8 | e1 3 e3 255
+  +5.01 mue | p-13 | v24 110 | 0 8 40 28 12 | e1 7 e3 255
+  +5.06 pausa | p0 | v24 110 | 4 16 284 32 4 | e1 15 e3 255
+  +5.12 busq*-izq | p0 | v120 122 | 16 16 8 28 16 | e1 25 e3 255
+  +5.12 pausa | p14 | v24 110 | 4 4 12 240 16 | e1 26 e3 0
+  +5.39 busq*-der | p12 | v148 90 | 16 16 28 60 12 | e1 70 e3 3
+  +5.42 pausa | p27 | v110 24 | 16 12 8 28 240 | e1 75 e3 8
+  +5.75 busq*-der | p14 | v166 86 | 20 4 12 20 8 | e1 13 e3 3
+  +6.01 mue | p14 | v-110 110 | 16 16 12 20 16 | e1 55 e3 45
+  +6.77 pausa | p-24 | v24 110 | 252 28 8 28 16 | e1 182 e3 172
+  +7.01 mue | p-23 | v0 248 | 360 12 20 36 28 | e1 222 e3 212
+  +7.51 busq-izq | p-12 | v46 230 | 28 32 16 40 4 | e1 3 e3 255
+  +7.62 pausa | p-12 | v-110 110 | 16 328 12 32 16 | e1 0 e3 255
+  +7.72 busq*-izq | p-12 | v96 146 | 12 84 4 12 12 | e1 1 e3 255
+  +7.75 pausa | p-14 | v-110 110 | 16 348 4 12 12 | e1 0 e3 255
+  +7.84 busq*-izq | p-14 | v40 236 | 36 112 20 12 8 | e1 3 e3 255
+  +7.89 pausa | p0 | v-110 110 | 8 20 276 16 8 | e1 11 e3 255
+  +7.99 busq*-izq | p-1 | v120 122 | 20 24 116 12 4 | e1 27 e3 255
+  +8.01 mue | p-1 | v-110 110 | 24 24 24 20 4 | e1 30 e3 255
+  +8.02 pausa | p13 | v-110 110 | 24 24 20 400 8 | e1 32 e3 0
+  +8.82 busq-der | p3 | v184 186 | 12 0 40 36 0 | e1 45 e3 10
+  +8.90 pausa | p-13 | v110 -110 | 20 592 16 28 12 | e1 0 e3 23
+  +8.98 busq*-izq | p-12 | v86 154 | 20 60 16 20 16 | e1 3 e3 36
+  +9.01 pausa | p-12 | v-110 110 | 24 448 8 56 0 | e1 0 e3 41
+  +9.01 mue | p-12 | v40 208 | 32 352 16 40 16 | e1 0 e3 42
+  +9.11 busq*-izq | p-12 | v88 154 | 12 52 12 32 12 | e1 3 e3 58
+  +9.15 pausa | p-12 | v-110 110 | 16 252 8 28 8 | e1 0 e3 66
+  +9.43 busq*-izq | p-1 | v194 196 | 12 12 56 12 4 | e1 18 e3 112
+  +9.48 pausa | p0 | v-110 110 | 16 24 236 36 24 | e1 25 e3 119
+  +9.81 busq*-der | p27 | v254 0 | 8 12 16 32 16 | e1 81 e3 10
+  +10.01 mue | p27 | v110 24 | 12 16 16 20 8 | e1 114 e3 43
+  +11.02 mue | p27 | v24 110 | 0 16 20 48 20 | e1 255 e3 211
+  +12.02 mue | p27 | v110 24 | 16 28 8 32 0 | e1 255 e3 255
+  +12.82 stop | p27 | v0 0 | 4 0 8 36 8 | e1 255 e3 255
+```
+
 Pendiente de corridas. Debajo de cada fila va la traza completa tal
 como sale por serie (`t`, 9600, robot detenido).
 
-## Criterio de decisión
+## Decisión
 
-- C cumple los 4 criterios → queda `EXT_MARCHA 2`.
-- C falla solo en veto a esquina real pero B lo cumple → `EXT_MARCHA 1`.
-- B también falla → `EXT_MARCHA 0` y probar `MARCHA_MS` 90 y 120.
+**`EXT_MARCHA 1`** — C (nivel 2) falló el criterio 2 en la primera
+corrida: C1 vetó la punta sobre la línea real de la tercera esquina del
+lazo (`ext-veto-izq` ×~28) y el enmascarado le quitó además al
+centroide la única señal para reenganchar; el robot siguió de largo y
+no volvió. B (nivel 1) cumplió los 4 criterios: las esquinas reales se
+doblaron siempre que el robot llegó a ellas (B3 y B5 atravesaron la X y
+su lazo), las pérdidas quedaron en el rango de A y el tiempo no empeoró.
+
+Nota honesta sobre el alcance: en esta pista casi todos los `ext` son
+salidas reales y el caso «masa ajena» casi no apareció, así que el
+nivel 1 **cumple por no dañar, no por mejorar mediblemente** — en B
+ningún `ext` resolvió `curva-ok` (los que pasaron la marcha terminaron
+en timeout). La ganancia efectiva de v2.6 sobre v2.5 es la
+instrumentación `e1`/`e3` y el fix de `arrancarBusqueda(-curvaLado)`
+tras timeout de curva, no el veto.
