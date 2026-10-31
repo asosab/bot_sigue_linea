@@ -4,8 +4,8 @@
  * CONCURSO: 1er Concurso Distrital de Robotica 2026 (Santa Cruz)
  * ==========================================================
  * Largada igual que v2: apoyar sobre la linea, S2 sobre negro
- * con S0/S4 libres, pulsar D8. Un segundo click detiene y
- * devuelve a la espera.
+ * con S0/S4 libres. Apretar D8 prepara el arranque y soltarlo
+ * larga; apretar en carrera detiene y devuelve a la espera.
  *
  * Cambios respecto a v2:
  *
@@ -205,11 +205,6 @@ const int VEL_ASIENTO = 120;
 // Antirrebote del pulsador
 const unsigned long BTN_DEBOUNCE_MS = 50;
 
-// Espera tras el pulsador de largada: los motores quedan parados
-// ESPERA_LARGADA_MS para retirar el dedo, y el cronometro de la
-// corrida arranca con el movimiento real, no con el click.
-const unsigned long ESPERA_LARGADA_MS = 700;
-
 // Calibracion inicial de laboratorio (por canal; medir y rellenar).
 // En cinta negra sobre papel blanco: blanco ~26-30, negro ~850-960.
 int calMin[5] = {30, 30, 30, 30, 30};
@@ -284,7 +279,7 @@ int posfConteo = 0;
 int posfLado = 0;
 bool arrancado = false;
 bool btnPrev = HIGH;
-bool btnBloqueado = false;
+bool preparado = false;             // pulsador apretado: armado para largar al soltar
 unsigned long btnUltimo = 0;
 unsigned long cruceDesde = 0;
 unsigned long cruceHasta = 0;
@@ -295,8 +290,6 @@ const unsigned long CURVA_LOCKOUT_MS = 300;
 unsigned long asientoHasta = 0;
 unsigned long posfGuardiaHasta = 0;
 unsigned long sumaAltaHasta = 0;
-bool esperando = false;           // contando ESPERA_LARGADA_MS tras el click
-unsigned long esperaHasta = 0;
 
 // Maquina de la busqueda: fase 0..3 y lado recordado
 int faseBusqueda = -1;              // -1 = no esta buscando
@@ -572,41 +565,34 @@ void setup() {
 void loop() {
   leerSensores();
 
-  // 1. Pulsador: flanco de pulsado (HIGH->LOW) con antirrebote
+  // 1. Pulsador: flancos con antirrebote. Apretar prepara la
+  //    largada, soltar la ejecuta; en carrera, apretar detiene.
   bool btn = digitalRead(BTN);
-  bool presion = false;
+  bool flancoBajo = false, flancoAlto = false;
   if (btn != btnPrev && millis() - btnUltimo > BTN_DEBOUNCE_MS) {
     btnUltimo = millis();
     btnPrev = btn;
-    if (btn == LOW) presion = true;
+    if (btn == LOW) flancoBajo = true;
+    else flancoAlto = true;
   }
 
-  // 2. Compuerta de arranque (igual que v2) + espera para retirar el
-  //    dedo antes de que se muevan los motores.
+  // 2. Compuerta de arranque (igual que v2): apretar arma y soltar
+  //    larga si el apoyo es bueno en ese instante. El dedo ya esta
+  //    fuera al soltar, asi que no hay espera extra.
   if (!arrancado) {
-    if (esperando) {
-      detener();
-      if (millis() < esperaHasta) {
-        delay(5);
-        return;
-      }
-      esperando = false;
-      arrancado = true;
-      largadaDesde = millis();
-      muestraProx = millis() + MUESTRA_MS;
-      trazaEvento(T_LARGADA, 0);
-      Serial.println("LARGADA: arrancando.");
-    } else {
-      if (btn == HIGH) btnBloqueado = false;
+    if (flancoBajo) preparado = true;
+    if (flancoAlto && preparado) {
+      preparado = false;
       // Compuerta: negrura normal o lectura cruda de respaldo, por si
       // la calibracion persistida de otra pista comprime la escala.
-      if (!btnBloqueado && btn == LOW &&
-          (negrura(2) > N_ON || lecturas[2] > 650) &&
+      if ((negrura(2) > N_ON || lecturas[2] > 650) &&
           (negrura(0) < N_OFF || lecturas[0] < 350) &&
           (negrura(4) < N_OFF || lecturas[4] < 350)) {
         sembrarPista();
-        esperando = true;
-        esperaHasta = millis() + ESPERA_LARGADA_MS;
+        arrancado = true;
+        largadaDesde = millis();
+        muestraProx = millis() + MUESTRA_MS;
+        trazaEvento(T_LARGADA, 0);
         perdRun = esqRun = cruceRun = 0;
         posF = posPrev = 0;
         ultimoLado = 0; // no heredar el lado de la corrida anterior
@@ -621,20 +607,18 @@ void loop() {
         enLinea = false;
         asientoHasta = 0;
         trazaIdx = trazaLen = 0;
-        Serial.println("LARGADA: espera para retirar el dedo.");
-        delay(5);
-        return;
-      } else {
-        detener();
-        delay(5);
-        return;
+        Serial.println("LARGADA: arrancando.");
       }
     }
+    if (!arrancado) {
+      detener();
+      delay(5);
+      return;
+    }
   }
-  // 3. En carrera: un nuevo click detiene y devuelve a la espera
-  else if (presion) {
+  // 3. En carrera: apretar detiene y devuelve a la espera
+  else if (flancoBajo) {
     arrancado = false;
-    btnBloqueado = true;
     detener();
     // Volcar la corrida a EEPROM: cabecera con resumen y calibracion
     // + el anillo de eventos tal cual (start apunta al mas viejo).

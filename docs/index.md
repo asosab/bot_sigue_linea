@@ -16,6 +16,7 @@ Punto de entrada a la documentación del proyecto. Navegación por enlaces, no p
 - [[pista]] — características de la línea, la pista de pruebas y su recorrido
 - [[corridas]] — archivo de corridas en pista (antes vivía en la EEPROM)
 - [[flujo-arturito-v3]] — máquina de estados del firmware en diagrama Mermaid, con análisis
+- [[analisis-v2-v3]] — comparación v2/v3, por qué fallaba v3 y diseño de la v2.5
 - [[concurso]] — 1.er Concurso Distrital de Robótica 2026: fechas, reglas y homologación
 - [[premios]] — premios del concurso y la hoja que los actualiza
 - [[precios]] — compras del robot (factura ECROBOTICS)

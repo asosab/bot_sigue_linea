@@ -4,14 +4,16 @@
  * CONCURSO: 1er Concurso Distrital de Robotica 2026 (Santa Cruz)
  * ==========================================================
  * Arranque de competencia: se enciende en la mano, con motores
- * parados, se apoya sobre la linea y larga al pulsar el boton
- * de largada (D8). La largada exige S2 sobre negro y los
- * extremos S0/S4 libres: si esta mal apoyado no arranca y da
- * tiempo de reacomodarlo. Un segundo click detiene el robot y
- * lo devuelve a la espera; un click nuevo lo relanza con la
- * misma regla. Sin prueba de motores ni ventana de calibracion:
- * el reglamento no permite tocarlo una vez en carrera. Antes
- * de pulsar se puede verificar el LED del modulo S2 encendido
+ * parados, se apoya sobre la linea. Apretar el pulsador de
+ * largada (D8) prepara el arranque y soltarlo larga el robot,
+ * siempre que S2 siga sobre negro y los extremos S0/S4 libres:
+ * si esta mal apoyado no arranca y da tiempo de reacomodarlo.
+ * Mantenerlo apretado mientras se baja el robot tambien sirve:
+ * larga al soltar. En carrera, apretar detiene y devuelve a la
+ * espera; un ciclo apretar-soltar nuevo lo relanza con la misma
+ * regla. Sin prueba de motores ni ventana de calibracion: el
+ * reglamento no permite tocarlo una vez en carrera. Antes de
+ * pulsar se puede verificar el LED del modulo S2 encendido
  * = esta viendo la linea.
  *
  * - Posicion continua (media ponderada de los 5 canales
@@ -96,7 +98,7 @@ unsigned long perdidaDesde = 0;
 unsigned long cruceHasta = 0;
 bool arrancado = false;
 bool btnPrev = HIGH;                // pull-up: HIGH = suelto
-bool btnBloqueado = false;          // tras detener, exige soltar para relanzar
+bool preparado = false;             // pulsador apretado: armado para largar al soltar
 unsigned long btnUltimo = 0;
 
 // --- MOTORES (velocidad con signo: + adelante, - atras) ---
@@ -179,39 +181,45 @@ void setup() {
 void loop() {
   leerSensores();
 
-  // 1. Pulsador: flanco de pulsado (HIGH->LOW) con antirrebote
+  // 1. Pulsador: flancos con antirrebote. Apretar prepara la
+  //    largada, soltar la ejecuta; en carrera, apretar detiene.
   bool btn = digitalRead(BTN);
-  bool presion = false;
+  bool flancoBajo = false, flancoAlto = false;
   if (btn != btnPrev && millis() - btnUltimo > BTN_DEBOUNCE_MS) {
     btnUltimo = millis();
     btnPrev = btn;
-    if (btn == LOW) presion = true;
+    if (btn == LOW) flancoBajo = true;
+    else flancoAlto = true;
   }
 
-  // 2. Compuerta de arranque: quieto hasta pulsar largada estando
-  //    bien apoyado (S2 sobre la linea, extremos libres). Si no se
-  //    cumple no pasa nada: senal de reacomodar y volver a pulsar.
+  // 2. Compuerta de arranque: apretar arma y soltar larga, solo si
+  //    el apoyo es bueno en ese instante (S2 sobre la linea,
+  //    extremos libres). Si no se cumple no pasa nada: senal de
+  //    reacomodar y volver a intentar.
   if (!arrancado) {
-    if (btn == HIGH) btnBloqueado = false;
-    if (!btnBloqueado && btn == LOW &&   // pulsador a GND: presionado = LOW
-        negrura(2) > N_ON && negrura(0) < N_OFF && negrura(4) < N_OFF) {
-      sembrarPista();
-      arrancado = true;
-      posF = posPrev = 0;
-      perdidaDesde = 0;
-      cruceHasta = 0;
-      Serial.println("LARGADA: arrancando.");
-    } else {
+    if (flancoBajo) preparado = true;
+    if (flancoAlto && preparado) {
+      preparado = false;
+      if (negrura(2) > N_ON && negrura(0) < N_OFF && negrura(4) < N_OFF) {
+        sembrarPista();
+        arrancado = true;
+        posF = posPrev = 0;
+        perdidaDesde = 0;
+        cruceHasta = 0;
+        Serial.println("LARGADA: arrancando.");
+      }
+    }
+    if (!arrancado) {
       detener();
       delay(5);
       return;
     }
   }
-  // 3. En carrera: un nuevo click detiene y devuelve a la espera.
-  //    Hay que soltar antes de relanzar (btnBloqueado).
-  else if (presion) {
+  // 3. En carrera: apretar detiene y devuelve a la espera. El mismo
+  //    apretado no arma (preparado queda en falso), asi que soltar
+  //    no relanza.
+  else if (flancoBajo) {
     arrancado = false;
-    btnBloqueado = true;
     detener();
     Serial.println("DETENIDO: esperando nueva largada.");
     delay(5);
