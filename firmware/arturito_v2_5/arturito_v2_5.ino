@@ -80,18 +80,23 @@ const int RUEDA_MIN = 40;   // piso de la rueda interna en el PD
 const float TRIM_IZQ = 1.0;
 const float TRIM_DER = 1.02;
 
-// Compuerta de arranque: S2 tiene que leer bastante mas oscuro que
-// los dos extremos. Relativa y sin calibracion — sirve en cualquier
-// superficie (las pistas de prueba no se repiten).
-const int MARGEN_LARGADA = 200;   // ADC: S2 supera a S0 y S4 por esto
+// Compuerta de arranque: la pose de salida la garantiza el
+// usuario — S2 sobre la linea, S0 y S4 sobre blanco. El margen
+// solo pide contraste minimo; la escala de la corrida se deduce
+// de esa pose (S2 = negro de referencia, S0/S4 = blanco).
+const int MARGEN_LARGADA = 120;   // ADC: S2 supera a S0 y S4 por esto
 
-// Deteccion de linea: margen en ADC sobre el blanco visto. El
-// negro cambia mucho de superficie en superficie (150 a 960); el
-// blanco es estable. Decidir contra el piso, no contra un maximo
-// calibrable — un calMax inflado comprimia la negrura y la linea
-// real leia "blanco" en las corridas #23 y #24.
-const int MARGEN_LINEA = 130;   // ADC sobre el blanco = "hay linea"
-const int MARGEN_FUERTE = 220;  // ADC sobre el blanco = saturacion
+// Umbrales de la corrida, deducidos de la pose de largada: la
+// linea varia mucho entre superficies (150 a 960) pero el rango
+// medido en el punto de inicio es la escala real de esta pista.
+// "hay linea" = un tercio del rango sobre el blanco; saturacion =
+// dos tercios; la histeresis aguanta hasta un sexto. Nada de
+// margenes fijos ni calibracion heredada (corridas #23 y #24).
+int blancoRef = 0;      // blanco de la pose (min de S0/S4)
+int negroRef = 0;       // negro de la pose (lectura de S2)
+int umbralLinea = 0;    // blancoRef + rango/3
+int umbralFuerte = 0;   // blancoRef + rango*2/3
+int umbralDebil = 0;    // blancoRef + rango/6 (piso de histeresis)
 const int PERDIDA_MIN_CICLOS = 3; // ciclos sin linea antes de buscar
 
 // Interseccion: avance recto que sale cuando la punta S2
@@ -190,8 +195,9 @@ const unsigned long MUESTRA_MS = 100;
 int velIcmd = 0, velDcmd = 0;   // ultimo comando enviado a cada rueda
 
 // Cabecera EEPROM en offset 0; los eventos van justo despues.
-// Mismo tamano que la version con calMin/calMax: refs[0] guarda el
-// blanco y refs[1] el negro vistos en la corrida; el resto libre.
+// Mismo tamano que la version con calMin/calMax: refs[0..1] guarda
+// la escala de la pose (blanco, negro) y refs[2..3] los extremos
+// vistos en carrera; el resto libre.
 struct TrazaHead {
   byte magic;                   // TRAZA_MAGIC si hay datos validos
   unsigned long tiempo;         // ms largada -> parada
@@ -317,7 +323,10 @@ void imprimirTraza() {
   Serial.print(" esquinas "); Serial.print(th.esquinas);
   Serial.print(" cruces "); Serial.print(th.cruces);
   Serial.print(" | pista "); Serial.print(th.refs[0]);
-  Serial.print("-"); Serial.println(th.refs[1]);
+  Serial.print("-"); Serial.print(th.refs[1]);
+  Serial.print(" (vistos "); Serial.print(th.refs[2]);
+  Serial.print("-"); Serial.print(th.refs[3]);
+  Serial.println(")");
   Serial.println("Traza (t | evento | posF | velI velD | s0..s4):");
   for (int i = 0; i < th.n; i++) {
     Traza t;
@@ -496,16 +505,19 @@ void loop() {
       // oscuro que ambos extremos. Vale en cualquier superficie.
       if (lecturas[2] > lecturas[0] + MARGEN_LARGADA &&
           lecturas[2] > lecturas[4] + MARGEN_LARGADA) {
-        // Referencias de la pose: el negro es lo que ve S2 (esta
-        // sobre la linea por la compuerta), el blanco el canal mas
-        // claro. De ahi en mas se actualizan solas.
-        blancoVisto = 1023; negroVisto = 0;
-        for (int i = 0; i < 5; i++) {
-          if (lecturas[i] < blancoVisto) blancoVisto = lecturas[i];
-          if (lecturas[i] > negroVisto) negroVisto = lecturas[i];
-        }
-        Serial.print("Pista: blanco "); Serial.print(blancoVisto);
-        Serial.print(" negro "); Serial.println(negroVisto);
+        // La pose da la escala de la corrida: S2 es el negro de
+        // referencia y el peor de los extremos el blanco.
+        blancoRef = (lecturas[0] < lecturas[4]) ? lecturas[0] : lecturas[4];
+        negroRef = lecturas[2];
+        int rango = negroRef - blancoRef;
+        umbralLinea = blancoRef + rango / 3;
+        umbralFuerte = blancoRef + rango * 2 / 3;
+        umbralDebil = blancoRef + rango / 6;
+        blancoVisto = blancoRef;
+        negroVisto = negroRef;
+        Serial.print("Pista: blanco "); Serial.print(blancoRef);
+        Serial.print(" negro "); Serial.print(negroRef);
+        Serial.print(" umbral "); Serial.println(umbralLinea);
         arrancado = true;
         largadaDesde = millis();
         muestraProx = millis() + MUESTRA_MS;
@@ -549,8 +561,10 @@ void loop() {
     th.esquinas = esqRun;
     th.cruces = cruceRun;
     for (int i = 0; i < 10; i++) th.refs[i] = 0;
-    th.refs[0] = blancoVisto;
-    th.refs[1] = negroVisto;
+    th.refs[0] = blancoRef;
+    th.refs[1] = negroRef;
+    th.refs[2] = blancoVisto;
+    th.refs[3] = negroVisto;
     th.n = trazaLen;
     th.start = (trazaIdx + TRAZA_N - trazaLen) % TRAZA_N;
     EEPROM.put(0, th);
@@ -562,23 +576,23 @@ void loop() {
     return;
   }
 
-  // --- DETECCION: exceso crudo sobre el blanco visto ---
+  // --- DETECCION: exceso crudo sobre el blanco de la pose ---
   // exc = cuanto pisa de oscuro cada canal (el blanco da ~0). El
   // centroide ponderado sobre exc es insensible a la escala — la
-  // ponderacion la cancela — y "hay linea" se decide por margen,
-  // no por una negrura calibrada que puede comprimirse.
+  // ponderacion la cancela — y "hay linea" se decide contra los
+  // umbrales deducidos del rango medido en la largada.
   int exc[5];
   bool sobre[5];
   float suma = 0, sumaP = 0;
-  int nSobre = 0, nFuerte = 0, maxExc = 0;
+  int nSobre = 0, nFuerte = 0, maxLect = 0;
   for (int i = 0; i < 5; i++) {
-    int e = lecturas[i] - blancoVisto;
+    int e = lecturas[i] - blancoRef;
     if (e < 0) e = 0;
     exc[i] = e;
-    sobre[i] = e > MARGEN_LINEA;
+    sobre[i] = lecturas[i] > umbralLinea;
     if (sobre[i]) nSobre++;
-    if (e > MARGEN_FUERTE) nFuerte++;
-    if (e > maxExc) maxExc = e;
+    if (lecturas[i] > umbralFuerte) nFuerte++;
+    if (lecturas[i] > maxLect) maxLect = lecturas[i];
     suma += e;
     sumaP += X_MM[i] * e;
   }
@@ -607,7 +621,7 @@ void loop() {
     int lider = (curvaLado > 0) ? exc[3] + exc[4] : exc[0] + exc[1];
     int cola  = (curvaLado > 0) ? exc[0] + exc[1] : exc[3] + exc[4];
     bool volvio = sobre[2] && interna >= 2;
-    bool barrida = cola > lider && cola > MARGEN_LINEA;
+    bool barrida = cola > lider && cola > (umbralLinea - blancoRef);
     if (enCurva >= CURVA_MIN_MS && (volvio || barrida)) {
       curvaDesde = 0;
       asientoHasta = millis() + ASIENTO_MS;
@@ -660,10 +674,10 @@ void loop() {
   }
 
   // 9. Linea a la vista: PD con zona muerta y rueda interna en
-  //    piso. Histeresis: entra con un canal sobre el margen y no la
-  //    suelta hasta que la senal baja de la mitad.
+  //    piso. Histeresis: entra con un canal sobre el umbral y no
+  //    la suelta hasta que todo baja del piso debil.
   bool estabaEnLinea = enLinea;
-  enLinea = (nSobre > 0) || (enLinea && maxExc > MARGEN_LINEA / 2);
+  enLinea = (nSobre > 0) || (enLinea && maxLect > umbralDebil);
   if (enLinea) {
     float pos = (suma > 0) ? sumaP / suma : 0;  // mm, -30 .. +30
     // Al reenganchar la lectura actual es la mejor estima: el EMA
