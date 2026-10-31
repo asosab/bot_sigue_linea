@@ -29,8 +29,11 @@
  *   comprometer giros sobre centroide: eso lo resuelve el PD.
  * - Busqueda acotada por fases: ninguna maniobra junta mas de
  *   ~90 grados, no puede quedar mirando para atras.
- * - Traza EEPROM identica a v3: anillo de eventos con canales
- *   crudos, posF y comandos; calibracion persistida.
+ * - Sin calibracion: "hay linea" se decide por margen en ADC
+ *   sobre el blanco visto (estable entre superficies); el negro
+ *   varia demasiado para calibrarlo (corridas #23-#24).
+ * - Traza EEPROM: anillo de eventos con canales crudos, posF y
+ *   comandos; se lee por serie con el comando 't'.
  *
  * Hardware: UNO + 5xTCRT5000 (A0..A4, flecha: S2 adelante,
  * S1/S3 medios, S0/S4 atras en las puntas) + DRV8833 (IN1..IN4
@@ -81,10 +84,14 @@ const float TRIM_DER = 1.02;
 // los dos extremos. Relativa y sin calibracion — sirve en cualquier
 // superficie (las pistas de prueba no se repiten).
 const int MARGEN_LARGADA = 200;   // ADC: S2 supera a S0 y S4 por esto
-const float N_ON = 0.6;    // S2 sobre negro firme (salida del cruce)
 
-// Lectura de linea
-const float UMBRAL_LINEA = 0.3;  // suma de negruras para "linea a la vista"
+// Deteccion de linea: margen en ADC sobre el blanco visto. El
+// negro cambia mucho de superficie en superficie (150 a 960); el
+// blanco es estable. Decidir contra el piso, no contra un maximo
+// calibrable — un calMax inflado comprimia la negrura y la linea
+// real leia "blanco" en las corridas #23 y #24.
+const int MARGEN_LINEA = 130;   // ADC sobre el blanco = "hay linea"
+const int MARGEN_FUERTE = 220;  // ADC sobre el blanco = saturacion
 const int PERDIDA_MIN_CICLOS = 3; // ciclos sin linea antes de buscar
 
 // Interseccion: avance recto que sale cuando la punta S2
@@ -106,14 +113,7 @@ const unsigned long CURVA_MAX_MS = 700;  // techo antes de pasar a buscar
 // desplazaba el arreglo fuera de la esquina (corrida #10).
 const unsigned long CURVA_PIVOTE_MS = 250;
 const int VEL_PIVOTE_INT = -70;   // -110 devolvia al robot (corrida #22)
-const float NEG_EXT = 0.45;       // negrura para "el extremo ve la linea"
-const float SUMA_OTROS = 0.6;     // techo de los demas canales
 const int EXTREMO_CICLOS = 2;     // persistencia para disparar la curva
-const float NEG_INTERNA = 0.6;    // trio interno que confirma la vuelta
-// Veto con la punta sobre cinta: un brazo de la X asoma por un
-// extremo mientras S2 sigue sobre la linea propia — ahi la linea
-// no se esta yendo, esta cruzando otra (corrida #11).
-const float NEG_CENTRO_VETO = 0.4;
 
 // Guardia unica de rearmado: tras salir de curva, cruce o pausa
 // de busqueda, ningun giro comprometido se dispara hasta que el
@@ -147,19 +147,11 @@ const int VEL_ASIENTO = 120;
 // Antirrebote del pulsador
 const unsigned long BTN_DEBOUNCE_MS = 50;
 
-// Calibracion inicial de laboratorio (por canal; medir y rellenar).
-// En cinta negra sobre papel blanco: blanco ~26-30, negro ~850-960.
-int calMin[5] = {30, 30, 30, 30, 30};
-int calMax[5] = {930, 930, 930, 930, 930};
-
-// Adaptacion compartida del rango: cuando un canal ve un extremo
-// nuevo de la pista, los demas heredan la referencia dentro de la
-// variabilidad entre modulos TCRT5000. En la largada solo S2 ve la
-// linea — los demas arrancan estimados y refinan al verla.
-const int VAR_NEGRO = 90;    // ADC: tolerancia hacia abajo del negro
-const int VAR_BLANCO = 30;   // ADC: tolerancia hacia arriba del blanco
-int negroVisto = 0;          // mayor lectura vista sobre la pista
-int blancoVisto = 1023;      // menor lectura vista
+// Referencias del piso de la pista, se actualizan solas con cada
+// lectura. El blanco es la base de toda la deteccion; el negro
+// queda solo para la estadistica de la traza.
+int negroVisto = 0;
+int blancoVisto = 1023;
 
 // Posicion lateral de cada canal en mm (medida sobre el chasis):
 // S1/S3 a +-15 mm; S0/S4 a +-30 mm.
@@ -198,12 +190,13 @@ const unsigned long MUESTRA_MS = 100;
 int velIcmd = 0, velDcmd = 0;   // ultimo comando enviado a cada rueda
 
 // Cabecera EEPROM en offset 0; los eventos van justo despues.
+// Mismo tamano que la version con calMin/calMax: refs[0] guarda el
+// blanco y refs[1] el negro vistos en la corrida; el resto libre.
 struct TrazaHead {
   byte magic;                   // TRAZA_MAGIC si hay datos validos
   unsigned long tiempo;         // ms largada -> parada
   byte perdidas, esquinas, cruces;
-  int calMin[5];
-  int calMax[5];
+  int refs[10];
   byte n;                       // eventos validos en el anillo
   byte start;                   // indice del evento mas viejo
 };
@@ -269,53 +262,16 @@ void detener() {
   motorIzq(0); motorDer(0);
 }
 
-// --- SENSORES Y CALIBRACION ADAPTATIVA ---
+// --- SENSORES Y REFERENCIAS DE PISTA ---
+// No hay calibracion: cada lectura actualiza el piso del blanco y
+// el techo del negro vistos. Toda la deteccion se hace con margen
+// en ADC sobre el blanco, que es estable entre superficies.
 void leerSensores() {
   for (int i = 0; i < 5; i++) {
     int v = analogRead(CANALES[i]);
     lecturas[i] = v;
-    if (v < calMin[i]) calMin[i] = v;
-    if (v > calMax[i]) calMax[i] = v;
     if (v < blancoVisto) blancoVisto = v;
     if (v > negroVisto) negroVisto = v;
-  }
-  // Los canales que aun no midieron su propio extremo reciben el
-  // rango visto por los demas, con tolerancia entre sensores. El
-  // negro propio siempre manda: el piso compartido solo levanta a
-  // los que no lo vieron todavia.
-  int pisoNegro = negroVisto - VAR_NEGRO;
-  int techoBlanco = blancoVisto + VAR_BLANCO;
-  for (int i = 0; i < 5; i++) {
-    if (calMax[i] < pisoNegro) calMax[i] = pisoNegro;
-    if (calMin[i] > techoBlanco) calMin[i] = techoBlanco;
-  }
-}
-
-float negrura(int i) {
-  float n = (float)(lecturas[i] - calMin[i]) / (float)(calMax[i] - calMin[i]);
-  if (n < 0) n = 0;
-  if (n > 1) n = 1;
-  return n;
-}
-
-// Al soltar el pulsador, la pose de salida siembra la pista real:
-// S2 esta sobre la linea por la compuerta y da el negro de
-// referencia; el canal mas claro da el blanco. Cada canal queda
-// calibrado con esta superficie, no con la de una corrida vieja.
-void sembrarPista() {
-  int negro = lecturas[2];
-  int blanco = 1023;
-  for (int i = 0; i < 5; i++)
-    if (lecturas[i] < blanco) blanco = lecturas[i];
-  int medio = (negro + blanco) / 2;
-  negroVisto = negro;
-  blancoVisto = blanco;
-  for (int i = 0; i < 5; i++) {
-    if (lecturas[i] > medio) { calMax[i] = lecturas[i]; calMin[i] = blanco; }
-    else                     { calMin[i] = lecturas[i]; calMax[i] = negro; }
-    Serial.print("S"); Serial.print(i);
-    Serial.print(": "); Serial.print(calMin[i]);
-    Serial.print("-"); Serial.println(calMax[i]);
   }
 }
 
@@ -359,7 +315,9 @@ void imprimirTraza() {
   Serial.print("Ultima corrida: "); Serial.print(th.tiempo / 1000.0);
   Serial.print(" s | perdidas "); Serial.print(th.perdidas);
   Serial.print(" esquinas "); Serial.print(th.esquinas);
-  Serial.print(" cruces "); Serial.println(th.cruces);
+  Serial.print(" cruces "); Serial.print(th.cruces);
+  Serial.print(" | pista "); Serial.print(th.refs[0]);
+  Serial.print("-"); Serial.println(th.refs[1]);
   Serial.println("Traza (t | evento | posF | velI velD | s0..s4):");
   for (int i = 0; i < th.n; i++) {
     Traza t;
@@ -538,7 +496,16 @@ void loop() {
       // oscuro que ambos extremos. Vale en cualquier superficie.
       if (lecturas[2] > lecturas[0] + MARGEN_LARGADA &&
           lecturas[2] > lecturas[4] + MARGEN_LARGADA) {
-        sembrarPista();
+        // Referencias de la pose: el negro es lo que ve S2 (esta
+        // sobre la linea por la compuerta), el blanco el canal mas
+        // claro. De ahi en mas se actualizan solas.
+        blancoVisto = 1023; negroVisto = 0;
+        for (int i = 0; i < 5; i++) {
+          if (lecturas[i] < blancoVisto) blancoVisto = lecturas[i];
+          if (lecturas[i] > negroVisto) negroVisto = lecturas[i];
+        }
+        Serial.print("Pista: blanco "); Serial.print(blancoVisto);
+        Serial.print(" negro "); Serial.println(negroVisto);
         arrancado = true;
         largadaDesde = millis();
         muestraProx = millis() + MUESTRA_MS;
@@ -581,10 +548,9 @@ void loop() {
     th.perdidas = perdRun;
     th.esquinas = esqRun;
     th.cruces = cruceRun;
-    for (int i = 0; i < 5; i++) {
-      th.calMin[i] = calMin[i];
-      th.calMax[i] = calMax[i];
-    }
+    for (int i = 0; i < 10; i++) th.refs[i] = 0;
+    th.refs[0] = blancoVisto;
+    th.refs[1] = negroVisto;
     th.n = trazaLen;
     th.start = (trazaIdx + TRAZA_N - trazaLen) % TRAZA_N;
     EEPROM.put(0, th);
@@ -596,21 +562,33 @@ void loop() {
     return;
   }
 
-  // Traza: muestra periodica con los 5 canales en crudo, posF y
-  // comandos — cubre tambien los tramos de maniobra comprometida.
-  if (millis() >= muestraProx) {
-    muestraProx = millis() + MUESTRA_MS;
-    trazaEvento(T_MUESTRA, 0);
+  // --- DETECCION: exceso crudo sobre el blanco visto ---
+  // exc = cuanto pisa de oscuro cada canal (el blanco da ~0). El
+  // centroide ponderado sobre exc es insensible a la escala — la
+  // ponderacion la cancela — y "hay linea" se decide por margen,
+  // no por una negrura calibrada que puede comprimirse.
+  int exc[5];
+  bool sobre[5];
+  float suma = 0, sumaP = 0;
+  int nSobre = 0, nFuerte = 0, maxExc = 0;
+  for (int i = 0; i < 5; i++) {
+    int e = lecturas[i] - blancoVisto;
+    if (e < 0) e = 0;
+    exc[i] = e;
+    sobre[i] = e > MARGEN_LINEA;
+    if (sobre[i]) nSobre++;
+    if (e > MARGEN_FUERTE) nFuerte++;
+    if (e > maxExc) maxExc = e;
+    suma += e;
+    sumaP += X_MM[i] * e;
   }
+  bool todoNegro = (nFuerte == 5);
 
   // 4. Cruce comprometido: recto hasta que la punta reencuentra el
   //    patron de linea o vence el techo.
   if (cruceHasta) {
-    bool saturado = negrura(0) > 0.7 && negrura(1) > 0.7 &&
-                    negrura(2) > 0.7 && negrura(3) > 0.7 &&
-                    negrura(4) > 0.7;
     bool reaparecio = millis() - cruceDesde >= CRUCE_MIN_MS &&
-                      negrura(2) > N_ON && !saturado;
+                      sobre[2] && !todoNegro;
     if (millis() < cruceHasta && !reaparecio) {
       motorIzq(VEL_CRUCE); motorDer(VEL_CRUCE);
       delay(5);
@@ -625,13 +603,11 @@ void loop() {
   //    Todo-negro aca no es cruce: es el cuadrado de la esquina.
   if (curvaDesde) {
     unsigned long enCurva = millis() - curvaDesde;
-    float interna = negrura(1) + negrura(2) + negrura(3);
-    float lider = (curvaLado > 0) ? negrura(3) + negrura(4)
-                                : negrura(0) + negrura(1);
-    float cola  = (curvaLado > 0) ? negrura(0) + negrura(1)
-                                : negrura(3) + negrura(4);
-    bool volvio = interna > NEG_INTERNA && negrura(2) > 0.4;
-    bool barrida = cola > lider && cola > UMBRAL_LINEA;
+    int interna = sobre[1] + sobre[2] + sobre[3];
+    int lider = (curvaLado > 0) ? exc[3] + exc[4] : exc[0] + exc[1];
+    int cola  = (curvaLado > 0) ? exc[0] + exc[1] : exc[3] + exc[4];
+    bool volvio = sobre[2] && interna >= 2;
+    bool barrida = cola > lider && cola > MARGEN_LINEA;
     if (enCurva >= CURVA_MIN_MS && (volvio || barrida)) {
       curvaDesde = 0;
       asientoHasta = millis() + ASIENTO_MS;
@@ -651,17 +627,6 @@ void loop() {
     }
   }
 
-  // 6. Lectura ponderada en mm
-  float suma = 0, sumaP = 0;
-  bool todoNegro = true;
-  float n[5];
-  for (int i = 0; i < 5; i++) {
-    n[i] = negrura(i);
-    suma += n[i];
-    sumaP += X_MM[i] * n[i];
-    if (n[i] < 0.7) todoNegro = false;
-  }
-
   // 7. Todo negro: cruce o esquina. El historial decide: si antes
   //    del negro la linea venia corrida, era una esquina y hay que
   //    girar; si venia centrada, es un cruce y se atraviesa recto.
@@ -678,10 +643,10 @@ void loop() {
   //    y el PD ya no tiene que medir — ahi si se compromete el
   //    giro. Persistencia de unos ciclos, punta libre de cinta
   //    (veto del brazo de la X) y guardia de rearmado.
-  bool extIzq = (n[0] > NEG_EXT) && (n[2] < NEG_CENTRO_VETO) &&
-                (suma - n[0] < SUMA_OTROS) && millis() >= rearmadoHasta;
-  bool extDer = (n[4] > NEG_EXT) && (n[2] < NEG_CENTRO_VETO) &&
-                (suma - n[4] < SUMA_OTROS) && millis() >= rearmadoHasta;
+  bool extIzq = sobre[0] && !sobre[1] && !sobre[2] &&
+                !sobre[3] && !sobre[4] && millis() >= rearmadoHasta;
+  bool extDer = sobre[4] && !sobre[3] && !sobre[2] &&
+                !sobre[1] && !sobre[0] && millis() >= rearmadoHasta;
   int ladoExt = extIzq ? -1 : (extDer ? 1 : 0);
   if (ladoExt != 0 && ladoExt == extremoLado) {
     if (++extremoConteo >= EXTREMO_CICLOS) {
@@ -695,12 +660,12 @@ void loop() {
   }
 
   // 9. Linea a la vista: PD con zona muerta y rueda interna en
-  //    piso. Histeresis: entra pidiendo UMBRAL_LINEA pero no la
-  //    suelta hasta que la senal se apaga del todo.
+  //    piso. Histeresis: entra con un canal sobre el margen y no la
+  //    suelta hasta que la senal baja de la mitad.
   bool estabaEnLinea = enLinea;
-  enLinea = (suma > UMBRAL_LINEA) || (enLinea && suma > UMBRAL_LINEA / 2.0);
+  enLinea = (nSobre > 0) || (enLinea && maxExc > MARGEN_LINEA / 2);
   if (enLinea) {
-    float pos = sumaP / suma;            // mm, -30 (izq) .. +30 (der)
+    float pos = (suma > 0) ? sumaP / suma : 0;  // mm, -30 .. +30
     // Al reenganchar la lectura actual es la mejor estima: el EMA
     // arrastraba el valor viejo y corregia al lado equivocado; y
     // deriv sobre un salto de tiempo metia picos (corridas #15, #20).
