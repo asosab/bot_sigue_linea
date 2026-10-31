@@ -13,9 +13,10 @@ de largada y misma batería. Mínimo 3 vueltas por nivel:
 - **B — `EXT_MARCHA 1`**: solo veta `ext`.
 - **C — `EXT_MARCHA 2`**: veta `ext` y enmascara la punta ajena.
 
-Para cada corrida anotar el `MUESTRA_MS` usado (sugerido 1000 para que
-el anillo cubra ~64 s) y detener con el pulsador justo después de la
-zona de interés.
+Para cada corrida anotar el `MUESTRA_MS` usado y detener con el
+pulsador justo después de la zona de interés. **Estado al iniciar las
+pruebas**: `MUESTRA_MS = 1000` ya aplicado en la placa con el nivel A
+(`EXT_MARCHA 0`), subido el 2026-10-30.
 
 | # | Nivel | `MUESTRA_MS` | Tiempo | Perdidas | Curvas ext falsas | Curvas ext reales | Veto a masa ajena | Veto a esquina real | Timeouts de curva | Notas |
 |---|---|---|---|---|---|---|---|---|---|---|

@@ -136,7 +136,7 @@ const int EXTREMO_CICLOS = 2;     // persistencia para disparar la curva
 //       hacia ese mismo lado, aunque ext este vetado.
 // El enmascarado solo rige fuera de curva, cruce y busqueda: ahi la
 // punta si es la primera en ver la cinta.
-#define EXT_MARCHA 2
+#define EXT_MARCHA 0
 const unsigned long MARCHA_MS = 60;  // ~2 filas de sensores a VEL_MAX
 
 // Guardia unica de rearmado: tras salir de curva, cruce o pausa
@@ -217,7 +217,7 @@ Traza traza[TRAZA_N];
 byte trazaIdx = 0;        // proxima escritura = la mas vieja si esta lleno
 byte trazaLen = 0;
 unsigned long muestraProx = 0;
-const unsigned long MUESTRA_MS = 250; // muestra periodica de la traza
+const unsigned long MUESTRA_MS = 1000; // muestra periodica de la traza
 int velIcmd = 0, velDcmd = 0;   // ultimo comando enviado a cada rueda
 
 // Cabecera EEPROM en offset 0; los eventos van justo despues.
