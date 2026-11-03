@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 260">
+  <!-- la bola del desodorante queda bajo el chasis y apenas
+       asoma por el borde trasero -->
+  <circle cx="110" cy="228" r="7" fill="#d9596f" stroke="#a83a50" stroke-width="2"/>
+
+  <!-- ruedas: cubierta negra con la liga oscura por el centro de la banda -->
+  <rect x="6"   y="118" width="30" height="98" rx="15" fill="#1d1d1d"/>
+  <rect x="184" y="118" width="30" height="98" rx="15" fill="#1d1d1d"/>
+  <rect x="16"  y="124" width="10" height="86" rx="5" fill="#43251a"/>
+  <rect x="194" y="124" width="10" height="86" rx="5" fill="#43251a"/>
+  <circle cx="21"  cy="167" r="11" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+  <circle cx="199" cy="167" r="11" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+
+  <!-- los sensores van debajo de la base: en el piso solo se ve la
+       sombra del voladizo y el brillo de los LEDs al encender -->
+  <ellipse cx="110" cy="55" rx="68" ry="30" fill="#8a7a5c" opacity="0.28"/>
+  <ellipse cx="110" cy="70" rx="77" ry="15" fill="#38d05c"/>
+
+  <!-- base cuadrada: lo cubre todo menos las ruedas -->
+  <rect x="38" y="78" width="144" height="144" rx="8" fill="#f4f2ea" stroke="#cdc7b8" stroke-width="3"/>
+  <circle cx="50"  cy="92"  r="3.2" fill="#9a9a9a"/>
+  <circle cx="170" cy="92"  r="3.2" fill="#9a9a9a"/>
+  <circle cx="50"  cy="208" r="3.2" fill="#9a9a9a"/>
+  <circle cx="170" cy="208" r="3.2" fill="#9a9a9a"/>
+
+  <!-- medio envase de leche como carcasa -->
+  <rect x="52" y="100" width="116" height="116" rx="20" fill="#f8f6ef" stroke="#d6d2c4" stroke-width="2.5"/>
+  <rect x="58" y="106" width="104" height="104" rx="16" fill="none" stroke="#e3ded0" stroke-width="2"/>
+  <!-- el asa del envase, junto a la tapa -->
+  <rect x="124" y="190" width="34" height="24" rx="12" fill="none" stroke="#f8f6ef" stroke-width="8"/>
+
+  <!-- cables que salen por el borde delantero del pote -->
+  <path d="M94 100 q-8 -8 -18 -9"  fill="none" stroke="#b03a2e" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M126 100 q8 -8 18 -9"  fill="none" stroke="#34495e" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- el botón de largada va montado sobre la tapa: de arriba se
+       ve amarillo con el anillo azul que le queda debajo -->
+  <circle cx="100" cy="184" r="16"   fill="#2657b0" stroke="#173c7c" stroke-width="2.5"/>
+  <circle cx="100" cy="184" r="11.5" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+  <circle cx="100" cy="184" r="6"    fill="#f7d94e"/>
+
+  <!-- puntos de lectura de los cinco sensores (equivalente a .sen) -->
+  <circle cx="58"  cy="83" r="7" fill="#222"/>
+  <circle cx="84"  cy="57" r="7" fill="#222"/>
+  <circle cx="110" cy="31" r="7" fill="#ff3b30"/>
+  <circle cx="136" cy="57" r="7" fill="#222"/>
+  <circle cx="162" cy="83" r="7" fill="#222"/>
+</svg>

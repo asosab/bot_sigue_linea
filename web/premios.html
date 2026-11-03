@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Los premios, desglosados · Arturito</title>
+<meta name="description" content="Cada premio del 1.er Concurso Distrital de Robótica 2026: quién lo puso, qué relación tenía con los competidores y los organizadores, y qué se puede concluir sin inventar nada.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Arturito">
+<meta property="og:title" content="Los premios, desglosados · Arturito">
+<meta property="og:description" content="Cada premio del 1.er Concurso Distrital de Robótica 2026: quién lo puso, qué relación tenía con los competidores y los organizadores, y qué se puede concluir sin inventar nada.">
+<meta property="og:url" content="https://asosab.github.io/bot_sigue_linea/premios.html">
+<meta property="og:image" content="https://asosab.github.io/bot_sigue_linea/assets/img/compartir.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="es_BO">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="premios">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="arturito-shape">
+      <!-- la bola del desodorante queda bajo el chasis y apenas
+           asoma por el borde trasero -->
+      <circle cx="110" cy="228" r="7" fill="#d9596f" stroke="#a83a50" stroke-width="2"/>
+
+      <!-- ruedas: cubierta negra con la liga oscura por el centro de la banda -->
+      <rect x="6"   y="118" width="30" height="98" rx="15" fill="#1d1d1d"/>
+      <rect x="184" y="118" width="30" height="98" rx="15" fill="#1d1d1d"/>
+      <rect x="16"  y="124" width="10" height="86" rx="5" fill="#43251a"/>
+      <rect x="194" y="124" width="10" height="86" rx="5" fill="#43251a"/>
+      <circle cx="21"  cy="167" r="11" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+      <circle cx="199" cy="167" r="11" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+
+      <!-- los sensores van debajo de la base: en el piso solo se ve la
+           sombra del voladizo y, al encender, el brillo de los LEDs -->
+      <ellipse cx="110" cy="55" rx="68" ry="30" fill="#8a7a5c" opacity="0.28"/>
+
+      <!-- base cuadrada: lo cubre todo menos las ruedas -->
+      <rect x="38" y="78" width="144" height="144" rx="8" fill="#f4f2ea" stroke="#cdc7b8" stroke-width="3"/>
+      <circle cx="50"  cy="92"  r="3.2" fill="#9a9a9a"/>
+      <circle cx="170" cy="92"  r="3.2" fill="#9a9a9a"/>
+      <circle cx="50"  cy="208" r="3.2" fill="#9a9a9a"/>
+      <circle cx="170" cy="208" r="3.2" fill="#9a9a9a"/>
+
+      <!-- medio envase de leche como carcasa -->
+      <rect x="52" y="100" width="116" height="116" rx="20" fill="#f8f6ef" stroke="#d6d2c4" stroke-width="2.5"/>
+      <rect x="58" y="106" width="104" height="104" rx="16" fill="none" stroke="#e3ded0" stroke-width="2"/>
+      <!-- el asa del envase, junto a la tapa -->
+      <rect x="124" y="190" width="34" height="24" rx="12" fill="none" stroke="#f8f6ef" stroke-width="8"/>
+
+      <!-- cables que salen por el borde delantero del pote -->
+      <path d="M94 100 q-8 -8 -18 -9"  fill="none" stroke="#b03a2e" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M126 100 q8 -8 18 -9"  fill="none" stroke="#34495e" stroke-width="2.5" stroke-linecap="round"/>
+
+      <!-- el botón de largada va montado sobre la tapa: de arriba se
+           ve amarillo con el anillo azul que le queda debajo -->
+      <circle cx="100" cy="184" r="16"   fill="#2657b0" stroke="#173c7c" stroke-width="2.5"/>
+      <circle cx="100" cy="184" r="11.5" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+      <circle cx="100" cy="184" r="6"    fill="#f7d94e"/>
+    </g>
+  </defs>
+</svg>
+
+<!-- La pista: la línea visible corre por debajo del contenido -->
+<svg id="track" aria-hidden="true">
+  <path id="trackPath" d=""/>
+</svg>
+
+
+<nav id="menu">
+  <button id="menuToggle" type="button" aria-label="Menú" aria-expanded="false" aria-controls="menuLinks">
+    <span></span><span></span><span></span>
+  </button>
+  <div id="menuLinks">
+    <a href="concurso.html">← El concurso</a>
+    <a href="colegios.html">Colegios</a>
+    <a href="#lista">Los premios</a>
+    <a href="#donantes">Los donantes</a>
+    <a href="#circuito">El circuito</a>
+    <a href="#conclusion">La conclusión</a>
+    <button id="openLab" type="button">Probar el simulador</button>
+  </div>
+</nav>
+
+<main>
+  <header class="hero diary">
+    <h1>Los premios, desglosados</h1>
+    <p class="lede">Qué se ofrecía ganar en el concurso, quién puso cada
+    cosa y qué relación tenía el donante con quienes compitieron y
+    organizaron. Todo lo marcado con fuente consta en documentos; lo
+    demás se presenta como lectura, no como afirmación.</p>
+    <p class="hint">La cinta negra se puede arrastrar: muévela para leer lo
+    que hay debajo o dibuja figuras nuevas con ella.</p>
+  </header>
+
+  <div class="track-anchor" id="t1"></div>
+
+  <section id="lista">
+    <h2>Qué se ofrecía</h2>
+    <p>La lista de premios vino en una hoja oficial (Anexo C) que el
+    organizador compartió por el grupo de WhatsApp el 21 de octubre.
+    La convocatoria escrita no la mencionaba: los premios se conocieron
+    por ese anexo, diez días antes del evento.</p>
+    <table class="tabla">
+      <thead>
+        <tr><th>Premio (seguidor de línea)</th><th>Quién lo pone</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Trofeo, medalla y certificado (1.º, 2.º, 3.º)</td>
+          <td>La organización — DDE Santa Cruz 1; el trofeo lleva además
+          el logo de un auspicio, «MEGA»</td></tr>
+        <tr><td>Beca completa de estudio (1.º)</td>
+          <td>U.E. España B, escuela privada del distrito</td></tr>
+        <tr><td>Beca de cursos de robótica (1.º)</td>
+          <td>TechHome, instituto privado de tecnología y robótica</td></tr>
+        <tr><td>Participación en Infomatrix y Robomatrix (1.º)</td>
+          <td>El circuito SOLACYT–Robomatrix, invitación como «invitados
+          especiales» a la XVI Liga, 6–7 nov en UNIVALLE</td></tr>
+        <tr><td>Sesión de terapia psicológica (2.º)</td>
+          <td>Lic. Oscar Urzagasti, profesional firmante</td></tr>
+        <tr><td>Impresora 3D Ender (sorteo)</td>
+          <td>Sorteada entre los tres primeros de cada categoría; el
+          donante no figura identificado en los documentos. La prensa
+          la describe como «premio principal»</td></tr>
+      </tbody>
+    </table>
+    <p class="nota">Ningún premio era dinero ni equipo: casi todo lo que
+    se ganaba era visibilidad o servicios con firma del donante. La
+    nota de prensa del 1 de noviembre, basada en declaraciones del
+    organizador, menciona sin embargo «premios económicos» entre los
+    incentivos: si los hubo, no figuran en el Anexo C ni se
+    comunicaron por la vía habitual.</p>
+  </section>
+
+  <div class="track-anchor" id="t2"></div>
+
+  <section id="donantes">
+    <h2>Quién puso qué, y con quién estaba conectado</h2>
+
+  <div class="track-anchor" id="t3"></div>
+
+    <div class="dia">
+      <time>Donante · escuela privada</time>
+      <h3>U.E. España B — la beca completa de estudio</h3>
+      <p>Escuela privada pequeña del distrito (~128 alumnos en el
+      registro) que además opera el CEA España, un Centro de Educación
+      Alternativa para jóvenes y adultos que retoman estudios. Su
+      fanpage publicita «inscripciones abiertas por traslado».</p>
+      <p>El premio tiene una particularidad: todo participante elegible
+      ya era estudiante de una U.E. del distrito (requisito de la
+      convocatoria), así que la beca solo se aprovecha cambiándose de
+      colegio. Para quien no quiera mudarse, el premio mayor no vale
+      nada; para la escuela, donarlo cuesta una silla en un aula que ya
+      existe y deja su nombre en el papel que el distrito repartió a
+      todas las familias.</p>
+      <p>Relación con la organización: el CEA España trabaja bajo la
+      Subdirección de Educación Alternativa y Especial (SEAE) de la
+      DDE — la misma unidad donde el celular del organizador figura
+      como contacto oficial en la web institucional.</p>
+    </div>
+
+    <div class="dia">
+      <time>Donante · instituto de robótica</time>
+      <h3>TechHome — la beca de cursos</h3>
+      <p>Instituto de Tecnología y Robótica Avanzada. Dos hermanos del
+      equipo «Team Wang Jallaza» compiten representándolo desde 2022,
+      según la prensa de esos años. Su director es Gustavo Tantani
+      Mamani.</p>
+      <p>Relación con el podio: la beca de cursos la ganó el alumno que
+      TechHome entrena. El premio volvió al instituto que lo puso.</p>
+    </div>
+
+    <div class="dia">
+      <time>Donante · circuito internacional</time>
+      <h3>Robomatrix / SOLACYT — la invitación</h3>
+      <p>El 1.º ganaba participación en la XVI Liga Latinoamericana de
+      Robótica (Robomatrix), que además figuraba entre los apoyos de la
+      convocatoria.</p>
+      <p>Relación con el podio: el coordinador regional de
+      SOLACYT-Robomatrix para Santa Cruz es hermano del ganador, según
+      la página oficial del circuito y la prensa.</p>
+    </div>
+
+    <div class="dia">
+      <time>Donante · profesional independiente</time>
+      <h3>Lic. Oscar Urzagasti — la sesión de terapia</h3>
+      <p>El premio de 2.º lugar es una sesión de terapia psicológica con
+      nombre y apellido del profesional. Sigue el mismo patrón que las
+      becas: un servicio donado que publicita a quien lo firma.</p>
+    </div>
+
+  <div class="track-anchor" id="t4"></div>
+
+    <div class="dia">
+      <time>Auspicio sin identificar</time>
+      <h3>MEGA — el logo del trofeo</h3>
+      <p>El trofeo de primer lugar luce un logo «MEGA» junto al nombre
+      del evento. En los documentos revisados no figura qué empresa es
+      ni qué aportó. La convocatoria cierra con logos «organizado con
+      el apoyo de», entre ellos uno parcialmente ilegible.</p>
+    </div>
+  </section>
+
+  <div class="track-anchor" id="t5"></div>
+
+  <section id="circuito">
+    <h2>El circuito del premio</h2>
+    <p>Juntando donante y ganador, el dibujo es este:</p>
+    <div class="chart">
+      <div class="bar"><span class="bar-name">Beca de cursos <i>TechHome</i></span>
+        <span class="bar-fill privada" style="--w:100%"><b>vuelve a su propio alumno</b></span></div>
+      <div class="bar"><span class="bar-name">Invitación <i>Robomatrix</i></span>
+        <span class="bar-fill privada" style="--w:100%"><b>la otorga el hermano del ganador</b></span></div>
+      <div class="bar"><span class="bar-name">Beca de estudios <i>España B</i></span>
+        <span class="bar-fill privada" style="--w:100%"><b>fue al mismo ganador, según el organizador</b></span></div>
+      <div class="bar"><span class="bar-name">Trofeos y medallas <i>seguidor</i></span>
+        <span class="bar-fill privada" style="--w:100%"><b>podio completo para la sede</b></span></div>
+    </div>
+    <p>En la entrevista que dio a El Deber el 1 de noviembre, el propio
+    organizador declaró que un solo participante del colegio sede se
+    llevó los tres puestos de seguidor de línea: la beca de estudios,
+    pensada para el primero, quedó en el mismo alumno que recibió la
+    beca de cursos de su instituto y la invitación del circuito de su
+    hermano. La petición formal de informes pide igual el acta de
+    premiación, porque una declaración a la prensa no es un documento
+    de adjudicación.</p>
+  </section>
+
+  <div class="track-anchor" id="t6"></div>
+
+  <section id="conclusion">
+    <h2>Qué se puede concluir</h2>
+    <p>Sin afirmar nada que los documentos no sostengan, esto es lo que
+    los hechos permiten decir:</p>
+    <ul>
+      <li>Los premios eran, en su mayoría, publicidad con firma: dos
+      becas que nombran a su donante y una sesión de terapia firmada.
+      Solo los trofeos y la impresora eran objetos.</li>
+      <li>Donar casi nada costaba: una beca de estudio no ejecutable sin
+      traslado, una beca de cursos que volvía al alumno propio, una
+      invitación que el circuito otorga de todos modos a sus figuras.</li>
+      <li>Los donantes y los ganadores eran el mismo círculo: la sede
+      auspició y ganó, el instituto donó y ganó, el circuito donó y su
+      coordinador es familia del ganador.</li>
+      <li>Los trece colegios restantes aportaron las inscripciones pagas
+      —150 Bs por equipo pagados a una cuenta personal del organizador,
+      unos 8.500 Bs entre las 57 si todas costaron igual—, el público
+      y la legitimidad de un concurso «distrital».</li>
+    </ul>
+
+    <h3>Para qué pudo crearse el evento</h3>
+    <p>Las lecturas posibles, de la más simple a la más cargada:</p>
+    <ul>
+      <li><strong>Actividad institucional.</strong> Un evento distrital
+      cumple agenda y produce fotos del equipo organizador con el polo
+      institucional — y las hubo, publicadas la misma noche.</li>
+      <li><strong>Vitrina comercial.</strong> La sede, el instituto de
+      los capacitadores y las escuelas donantes ganaron exposición ante
+      las familias del distrito; en las capacitaciones ya se vendían
+      catálogos de robots y repuestos.</li>
+      <li><strong>Escaparate del circuito.</strong> Un torneo «amateur»
+      ganado por el competidor internacional de los auspiciadores sirve
+      de demostración del nivel del circuito Robomatrix-TechHome y de
+      embudo hacia sus cursos, su liga y su colegio.</li>
+    </ul>
+    <p>Las tres lecturas conviven sin necesidad de ningún acuerdo
+    secreto: basta que cada actor haya respondido a su incentivo
+    evidente. Lo que no ofrece una lectura inocente es la suma de
+    decisiones documentadas — convocar a un campeón como capacitador y
+    aceptarlo como participante, inscribir a la misma dupla con ocho
+    equipos, premiar con donaciones que regresan al donante — que todas
+    señalan en la misma dirección.</p>
+    <p class="nota">Fuentes: convocatoria y Anexo C de premios, lista
+    oficial de participantes, página de Facebook del distrito, prensa
+    local (El Deber) y páginas oficiales de Robomatrix, TechHome y las
+    escuelas citadas. Datos complementarios en
+    <a href="colegios.html">la página de colegios</a> y en
+    <a href="concurso.html">la del concurso</a>.</p>
+  </section>
+
+  <div class="track-anchor" id="t7"></div>
+
+  <footer>
+    <p>Gaby, Darius y Max · U.E. Jaime Alfonso Escalante Gutierrez A<br>
+    Distrito Santa Cruz 1, Bolivia · 2026</p>
+    <p class="credit">Página y simulador escritos por
+    <a href="https://asosab.github.io">Alejandro Sosa Briceño</a></p>
+  </footer>
+</main>
+
+
+<!-- El carrito viaja en esta capa, siguiendo la línea por encima del
+     texto. El agarre de la cinta se resuelve en track.js a nivel
+     documento (sin elemento sobre el contenido: solo reclama el gesto
+     dentro de la banda de la cinta y nunca sobre links ni botones). -->
+<svg id="trackTop" width="110" height="110">
+  <g id="bot" role="button" tabindex="0" aria-label="Encender o apagar a Arturito" style="cursor:pointer">
+    <ellipse class="led" cx="0" cy="-20.4" rx="26" ry="5" fill="none"/>
+    <use href="#arturito-shape" transform="scale(0.34) translate(-110 -130)"/>
+    <circle class="sen" cx="-17.7" cy="-16" r="2.4"/>
+    <circle class="sen" cx="-8.8" cy="-24.8" r="2.4"/>
+    <circle class="sen" cx="0" cy="-33.7" r="2.4"/>
+    <circle class="sen" cx="8.8" cy="-24.8" r="2.4"/>
+    <circle class="sen" cx="17.7" cy="-16" r="2.4"/>
+  </g>
+</svg>
+
+<div id="lab" hidden>
+  <svg id="labTrack"><path id="labHit" d=""/><path id="labPath" d=""/></svg>
+  <div class="lab-bar">
+    <span class="lab-title">Probar el simulador</span>
+    <span class="lab-hint">Pista de práctica: circuito cerrado con un cruce. Clic en el carrito para encenderlo, arrástralo para probar situaciones. Los bordes son muros.</span>
+    <button id="closeLab" type="button" aria-label="Cerrar el probador">Cerrar</button>
+  </div>
+</div>
+
+<script src="assets/js/track.js"></script>
+</body>
+</html>

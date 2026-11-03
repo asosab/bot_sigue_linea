@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El proyecto · Arturito</title>
+<meta name="description" content="El trabajo de los niños detrás de Arturito: el equipo, el robot, la galería del armado y el diario de construcción completo, del primer tornillo al día del concurso.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Arturito">
+<meta property="og:title" content="El proyecto · Arturito">
+<meta property="og:description" content="El trabajo de los niños detrás de Arturito: el equipo, el robot, la galería del armado y el diario de construcción completo, del primer tornillo al día del concurso.">
+<meta property="og:url" content="https://asosab.github.io/bot_sigue_linea/proyecto.html">
+<meta property="og:image" content="https://asosab.github.io/bot_sigue_linea/assets/img/compartir.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="es_BO">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="proyecto">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="arturito-shape">
+      <!-- la bola del desodorante queda bajo el chasis y apenas
+           asoma por el borde trasero -->
+      <circle cx="110" cy="228" r="7" fill="#d9596f" stroke="#a83a50" stroke-width="2"/>
+
+      <!-- ruedas: cubierta negra con la liga oscura por el centro de la banda -->
+      <rect x="6"   y="118" width="30" height="98" rx="15" fill="#1d1d1d"/>
+      <rect x="184" y="118" width="30" height="98" rx="15" fill="#1d1d1d"/>
+      <rect x="16"  y="124" width="10" height="86" rx="5" fill="#43251a"/>
+      <rect x="194" y="124" width="10" height="86" rx="5" fill="#43251a"/>
+      <circle cx="21"  cy="167" r="11" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+      <circle cx="199" cy="167" r="11" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+
+      <!-- los sensores van debajo de la base: en el piso solo se ve la
+           sombra del voladizo y, al encender, el brillo de los LEDs -->
+      <ellipse cx="110" cy="55" rx="68" ry="30" fill="#8a7a5c" opacity="0.28"/>
+
+      <!-- base cuadrada: lo cubre todo menos las ruedas -->
+      <rect x="38" y="78" width="144" height="144" rx="8" fill="#f4f2ea" stroke="#cdc7b8" stroke-width="3"/>
+      <circle cx="50"  cy="92"  r="3.2" fill="#9a9a9a"/>
+      <circle cx="170" cy="92"  r="3.2" fill="#9a9a9a"/>
+      <circle cx="50"  cy="208" r="3.2" fill="#9a9a9a"/>
+      <circle cx="170" cy="208" r="3.2" fill="#9a9a9a"/>
+
+      <!-- medio envase de leche como carcasa -->
+      <rect x="52" y="100" width="116" height="116" rx="20" fill="#f8f6ef" stroke="#d6d2c4" stroke-width="2.5"/>
+      <rect x="58" y="106" width="104" height="104" rx="16" fill="none" stroke="#e3ded0" stroke-width="2"/>
+      <!-- el asa del envase, junto a la tapa -->
+      <rect x="124" y="190" width="34" height="24" rx="12" fill="none" stroke="#f8f6ef" stroke-width="8"/>
+
+      <!-- cables que salen por el borde delantero del pote -->
+      <path d="M94 100 q-8 -8 -18 -9"  fill="none" stroke="#b03a2e" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M126 100 q8 -8 18 -9"  fill="none" stroke="#34495e" stroke-width="2.5" stroke-linecap="round"/>
+
+      <!-- el botón de largada va montado sobre la tapa: de arriba se
+           ve amarillo con el anillo azul que le queda debajo -->
+      <circle cx="100" cy="184" r="16"   fill="#2657b0" stroke="#173c7c" stroke-width="2.5"/>
+      <circle cx="100" cy="184" r="11.5" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+      <circle cx="100" cy="184" r="6"    fill="#f7d94e"/>
+    </g>
+  </defs>
+</svg>
+
+<!-- La pista: la línea visible corre por debajo del contenido -->
+<svg id="track" aria-hidden="true">
+  <path id="trackPath" d=""/>
+</svg>
+
+
+<nav id="menu">
+  <button id="menuToggle" type="button" aria-label="Menú" aria-expanded="false" aria-controls="menuLinks">
+    <span></span><span></span><span></span>
+  </button>
+  <div id="menuLinks">
+    <a href="index.html">← Inicio</a>
+    <a href="#equipo">Equipo</a>
+    <a href="#robot">Robot</a>
+    <a href="#diario">Diario</a>
+    <a href="#galeria">Galería</a>
+    <a href="concurso.html">El concurso</a>
+    <a href="metodo.html">El método</a>
+    <button id="openLab" type="button">Probar el simulador</button>
+  </div>
+</nav>
+
+<main>
+  <header class="hero diary">
+    <h1>El proyecto</h1>
+    <p class="lede">Tres estudiantes de secundaria de un colegio fiscal,
+    un Arduino UNO y un puñado de piezas sueltas. Así nació Arturito:
+    esta es la parte feliz de la historia.</p>
+    <p class="hint">La cinta negra se puede arrastrar: muévela para leer lo
+    que hay debajo o dibuja figuras nuevas con ella.</p>
+  </header>
+
+  <div class="track-anchor" id="t1"></div>
+
+  <section id="equipo">
+    <h2>El equipo</h2>
+    <p>Tres cursos distintos y un solo carrito.</p>
+    <div class="cards">
+      <figure class="card">
+        <img src="assets/img/Gaby_Leryn_Ayala_Chambi.jpg" alt="Gaby Leryn Ayala Chambi">
+        <figcaption>Gaby Leryn Ayala Chambi<span class="rol">Mecatrónica y construcción</span><span>2.º de secundaria A</span></figcaption>
+      </figure>
+      <figure class="card">
+        <img src="assets/img/Christopher_Darius_Valero_Lima.jpg" alt="Christopher Darius Valero Lima">
+        <figcaption>Christopher Darius Valero Lima<span class="rol">Eléctrica y conexiones</span><span>1.º de secundaria B</span></figcaption>
+      </figure>
+      <figure class="card">
+        <img src="assets/img/Maximiliano_Sosa_Useche.jpg" alt="Maximiliano Sosa Useche">
+        <figcaption>Maximiliano Sosa Useche<span class="rol">Desarrollador de software y simulación</span><span>1.º de secundaria A</span></figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <div class="track-anchor" id="t2"></div>
+
+  <section id="robot">
+    <h2>El robot</h2>
+    <p>Arturito lee la línea con cinco sensores infrarrojos TCRT5000 en punta
+    en la parte delantera. Un Arduino UNO decide hacia dónde girar y dos
+    motores reductores amarillos lo empujan. Lo alimentan cuatro pilas AA y
+    el interruptor de encendido se ve a simple vista, como pide el reglamento.</p>
+    <ul class="specs">
+      <li>Arduino UNO</li>
+      <li>5 sensores TCRT5000</li>
+      <li>Driver dual de motores</li>
+      <li>2 motoreductores 1:48</li>
+      <li>4 pilas AA</li>
+      <li>Menos de 25 × 30 cm</li>
+    </ul>
+    <figure class="wide">
+      <img src="assets/img/formacion_sensores_luz.jpg" alt="Diagrama de la formación de los cinco sensores sobre el chasis">
+    </figure>
+  </section>
+
+  <div class="track-anchor" id="t3"></div>
+
+  <section id="diario">
+    <h2>El diario de construcción</h2>
+    <p>Todo el proceso quedó anotado: qué falló, qué se midió y qué
+    cambió cada día. El driver que dormía, la protoboard que repartía
+    mal la corriente, los dos programas de diagnóstico que salvaron la
+    tarde, la rueda loca hecha con la bola de un desodorante y las
+    ligas que la mañana del concurso resolvieron el derrape y la
+    altura de los sensores de una vez.</p>
+    <p>Son dieciocho entradas, del primer tornillo al día después del
+    concurso: <a href="diario.html">leer el diario completo</a>.</p>
+  </section>
+
+  <div class="track-anchor" id="t4"></div>
+
+  <section id="galeria">
+    <h2>Así lo armamos</h2>
+    <figure class="wide clip">
+      <video src="assets/video/afinando-sensores.mp4"
+        poster="assets/img/afinando-sensores.jpg" autoplay muted loop
+        playsinline preload="metadata"
+        aria-label="Max afina los sensores de Arturito sobre la pista del concurso"></video>
+      <figcaption>Previo a la competencia, Max afina los sensores para
+      leer mejor la línea de la pista.</figcaption>
+    </figure>
+    <div class="gallery">
+      <figure>
+        <a href="assets/img/bola_trasera_construccion.jpg"><img src="assets/img/bola_trasera_construccion.jpg" alt="El chasis visto desde arriba: los dos motores y el hueco de la bola trasera" loading="lazy"></a>
+        <figcaption>El chasis visto desde arriba: los dos motores y el hueco de la bola trasera.</figcaption>
+      </figure>
+      <figure>
+        <a href="assets/img/bot_cableando.jpg"><img src="assets/img/bot_cableando.jpg" alt="Arturito sobre la mesa de trabajo, cableado en marcha" loading="lazy"></a>
+        <figcaption>Arturito sobre la mesa de trabajo, cableado en marcha.</figcaption>
+      </figure>
+      <figure>
+        <a href="assets/img/bola_trasera.jpg"><img src="assets/img/bola_trasera.jpg" alt="La rueda loca trasera: una bola de plástico que apoya el chasis" loading="lazy"></a>
+        <figcaption>La rueda loca: la bola de un desodorante apoya el chasis.</figcaption>
+      </figure>
+      <figure>
+        <a href="assets/img/sensores.jpg"><img src="assets/img/sensores.jpg" alt="Uno de los cinco sensores TCRT5000 que leen la línea" loading="lazy"></a>
+        <figcaption>Uno de los cinco sensores TCRT5000 que leen la línea.</figcaption>
+      </figure>
+      <figure>
+        <a href="assets/img/sensores_instalados.jpg"><img src="assets/img/sensores_instalados.jpg" alt="Los cinco sensores en punta, montados en la placa delantera" loading="lazy"></a>
+        <figcaption>Los cinco sensores en punta, montados en la placa delantera.</figcaption>
+      </figure>
+      <figure>
+        <a href="assets/img/bot_linea_prueba.jpg"><img src="assets/img/bot_linea_prueba.jpg" alt="Arturito ya cableado, sobre la pista de pruebas" loading="lazy"></a>
+        <figcaption>Arturito ya cableado, sobre la pista de pruebas.</figcaption>
+      </figure>
+      <figure>
+        <a href="assets/img/linea_de_prueba.jpg"><img src="assets/img/linea_de_prueba.jpg" alt="La pista de pruebas completa: un circuito cerrado de cinta negra con un cruce" loading="lazy"></a>
+        <figcaption>La pista de pruebas completa: cinta negra con un cruce.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <div class="track-anchor" id="t5"></div>
+
+  <footer>
+    <p>Gaby, Darius y Max · U.E. Jaime Alfonso Escalante Gutierrez A<br>
+    Distrito Santa Cruz 1, Bolivia · 2026</p>
+    <p class="credit">Página y simulador escritos por
+    <a href="https://asosab.github.io">Alejandro Sosa Briceño</a></p>
+  </footer>
+</main>
+
+<div id="visor" hidden role="dialog" aria-modal="true" aria-label="Visor de fotos">
+  <figure class="visor-fig">
+    <img id="visorImg" alt="">
+    <figcaption id="visorCap"></figcaption>
+  </figure>
+  <button id="visorPrev" class="visor-flecha izq" type="button" aria-label="Foto anterior">‹</button>
+  <button id="visorNext" class="visor-flecha der" type="button" aria-label="Foto siguiente">›</button>
+  <div class="visor-barra">
+    <button id="visorAnt" type="button">⏮ Anterior</button>
+    <button id="visorPlay" type="button" aria-pressed="false">▶ Pase automático</button>
+    <button id="visorSig" type="button">Siguiente ⏭</button>
+    <button id="visorCerrar" type="button">Cerrar</button>
+  </div>
+</div>
+
+<script src="assets/js/lightbox.js"></script>
+
+<!-- El carrito viaja en esta capa, siguiendo la línea por encima del
+     texto. El agarre de la cinta se resuelve en track.js a nivel
+     documento (sin elemento sobre el contenido: solo reclama el gesto
+     dentro de la banda de la cinta y nunca sobre links ni botones). -->
+<svg id="trackTop" width="110" height="110">
+  <g id="bot" role="button" tabindex="0" aria-label="Encender o apagar a Arturito" style="cursor:pointer">
+    <ellipse class="led" cx="0" cy="-20.4" rx="26" ry="5" fill="none"/>
+    <use href="#arturito-shape" transform="scale(0.34) translate(-110 -130)"/>
+    <circle class="sen" cx="-17.7" cy="-16" r="2.4"/>
+    <circle class="sen" cx="-8.8" cy="-24.8" r="2.4"/>
+    <circle class="sen" cx="0" cy="-33.7" r="2.4"/>
+    <circle class="sen" cx="8.8" cy="-24.8" r="2.4"/>
+    <circle class="sen" cx="17.7" cy="-16" r="2.4"/>
+  </g>
+</svg>
+
+<div id="lab" hidden>
+  <svg id="labTrack"><path id="labHit" d=""/><path id="labPath" d=""/></svg>
+  <div class="lab-bar">
+    <span class="lab-title">Probar el simulador</span>
+    <span class="lab-hint">Pista de práctica: circuito cerrado con un cruce. Clic en el carrito para encenderlo, arrástralo para probar situaciones. Los bordes son muros.</span>
+    <button id="closeLab" type="button" aria-label="Cerrar el probador">Cerrar</button>
+  </div>
+</div>
+
+<script src="assets/js/track.js"></script>
+</body>
+</html>

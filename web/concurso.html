@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>El concurso · Arturito</title>
+<meta name="description" content="El 1.er Concurso Distrital de Robótica 2026: la convocatoria, el desenlace, la investigación posterior, los reclamos de participantes y la carta de petición de informe a la Dirección Distrital de Educación.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Arturito">
+<meta property="og:title" content="El concurso · Arturito">
+<meta property="og:description" content="El 1.er Concurso Distrital de Robótica 2026: la convocatoria, el desenlace, la investigación posterior, los reclamos de participantes y la carta de petición de informe a la Dirección Distrital de Educación.">
+<meta property="og:url" content="https://asosab.github.io/bot_sigue_linea/concurso.html">
+<meta property="og:image" content="https://asosab.github.io/bot_sigue_linea/assets/img/compartir.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="es_BO">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="concurso">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="arturito-shape">
+      <!-- la bola del desodorante queda bajo el chasis y apenas
+           asoma por el borde trasero -->
+      <circle cx="110" cy="228" r="7" fill="#d9596f" stroke="#a83a50" stroke-width="2"/>
+
+      <!-- ruedas: cubierta negra con la liga oscura por el centro de la banda -->
+      <rect x="6"   y="118" width="30" height="98" rx="15" fill="#1d1d1d"/>
+      <rect x="184" y="118" width="30" height="98" rx="15" fill="#1d1d1d"/>
+      <rect x="16"  y="124" width="10" height="86" rx="5" fill="#43251a"/>
+      <rect x="194" y="124" width="10" height="86" rx="5" fill="#43251a"/>
+      <circle cx="21"  cy="167" r="11" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+      <circle cx="199" cy="167" r="11" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+
+      <!-- los sensores van debajo de la base: en el piso solo se ve la
+           sombra del voladizo y, al encender, el brillo de los LEDs -->
+      <ellipse cx="110" cy="55" rx="68" ry="30" fill="#8a7a5c" opacity="0.28"/>
+
+      <!-- base cuadrada: lo cubre todo menos las ruedas -->
+      <rect x="38" y="78" width="144" height="144" rx="8" fill="#f4f2ea" stroke="#cdc7b8" stroke-width="3"/>
+      <circle cx="50"  cy="92"  r="3.2" fill="#9a9a9a"/>
+      <circle cx="170" cy="92"  r="3.2" fill="#9a9a9a"/>
+      <circle cx="50"  cy="208" r="3.2" fill="#9a9a9a"/>
+      <circle cx="170" cy="208" r="3.2" fill="#9a9a9a"/>
+
+      <!-- medio envase de leche como carcasa -->
+      <rect x="52" y="100" width="116" height="116" rx="20" fill="#f8f6ef" stroke="#d6d2c4" stroke-width="2.5"/>
+      <rect x="58" y="106" width="104" height="104" rx="16" fill="none" stroke="#e3ded0" stroke-width="2"/>
+      <!-- el asa del envase, junto a la tapa -->
+      <rect x="124" y="190" width="34" height="24" rx="12" fill="none" stroke="#f8f6ef" stroke-width="8"/>
+
+      <!-- cables que salen por el borde delantero del pote -->
+      <path d="M94 100 q-8 -8 -18 -9"  fill="none" stroke="#b03a2e" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M126 100 q8 -8 18 -9"  fill="none" stroke="#34495e" stroke-width="2.5" stroke-linecap="round"/>
+
+      <!-- el botón de largada va montado sobre la tapa: de arriba se
+           ve amarillo con el anillo azul que le queda debajo -->
+      <circle cx="100" cy="184" r="16"   fill="#2657b0" stroke="#173c7c" stroke-width="2.5"/>
+      <circle cx="100" cy="184" r="11.5" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+      <circle cx="100" cy="184" r="6"    fill="#f7d94e"/>
+    </g>
+  </defs>
+</svg>
+
+<!-- La pista: la línea visible corre por debajo del contenido -->
+<svg id="track" aria-hidden="true">
+  <path id="trackPath" d=""/>
+</svg>
+
+
+<nav id="menu">
+  <button id="menuToggle" type="button" aria-label="Menú" aria-expanded="false" aria-controls="menuLinks">
+    <span></span><span></span><span></span>
+  </button>
+  <div id="menuLinks">
+    <a href="index.html">← Inicio</a>
+    <a href="#convocatoria">Convocatoria</a>
+    <a href="#desenlace">Desenlace</a>
+    <a href="#investigacion">Investigación</a>
+    <a href="#reclamos">Los reclamos</a>
+    <a href="#carta">La carta</a>
+    <a href="#leccion">La lección</a>
+    <a href="proyecto.html">El proyecto</a>
+    <a href="metodo.html">El método</a>
+    <button id="openLab" type="button">Probar el simulador</button>
+  </div>
+</nav>
+
+<main>
+  <header class="hero diary">
+    <h1>El concurso</h1>
+    <p class="lede">El 1.er Concurso Distrital de Robótica 2026: qué se
+    convocó, qué pasó el 31 de octubre y qué encontramos después al
+    mirar los documentos con calma. Todo lo que se afirma aquí consta
+    en una fuente citada; lo que no se puede probar, se pregunta.</p>
+    <p class="hint">La cinta negra se puede arrastrar: muévela para leer lo
+    que hay debajo o dibuja figuras nuevas con ella.</p>
+  </header>
+
+  <div class="track-anchor" id="t1"></div>
+
+  <section id="convocatoria">
+    <h2>La convocatoria</h2>
+    <p>La Dirección Distrital de Educación Santa Cruz 1 convocó a los
+    colegios del distrito a un torneo con tres categorías: seguidor de
+    línea, sumo RC y carrera de insectos, esta última solo para
+    estudiantes de primaria. Hubo dos jornadas de capacitación los
+    sábados 17 y 24 de octubre y el evento se corrió el sábado 31, en
+    el Colegio Internacional San Marcos de Santa Cruz de la Sierra.</p>
+    <p>La inscripción costó 150 Bs por equipo, pagada por QR a una
+    cuenta personal del organizador. La entrada del público costó 5 Bs
+    y solo daba acceso a la zona de público: acompañar a los chicos en
+    la zona de participantes costaba 100 Bs por adulto, un pase avisado
+    por escrito un día antes, con multa por registro tardío. Las
+    reglas del seguidor de línea pedían un robot autónomo de menos de
+    25 × 30 cm, sin turbinas, con máximo ocho sensores y una sola
+    batería 18650 o cuatro pilas AA, sobre una pista de 10 a 30 m con
+    curvas, cruces y bifurcaciones. Cada robot tenía dos minutos por
+    intento y contaba el mejor tiempo.</p>
+    <p>Respondieron quince unidades educativas con 57 equipos: diez
+    fiscales, cinco privadas y ninguna de convenio, aunque la
+    convocatoria las incluía. Tres colegios vinieron de fuera del
+    distrito. El detalle, colegio por colegio y por categoría:
+    <a href="colegios.html">quiénes respondieron al concurso</a>.</p>
+    <p>Los premios se conocieron recién el 21 de octubre, por una hoja
+    anexa que el organizador pasó por el grupo de WhatsApp: la
+    convocatoria escrita no los mencionaba. Casi nada era dinero u
+    objetos: una beca completa de estudio, una beca de cursos de
+    robótica, una invitación a un torneo internacional y una sesión de
+    terapia psicológica, cada una con el nombre del donante al lado.
+    Premio por premio, quién lo puso y con quién estaba conectado:
+    <a href="premios.html">los premios, desglosados</a>.</p>
+  </section>
+
+  <div class="track-anchor" id="t2"></div>
+
+  <section id="desenlace">
+    <h2>El desenlace</h2>
+    <p>Arturito corrió sus tres oportunidades y no completó el circuito
+    en ninguna. Volvió a casa entero, eso sí, y el equipo volvió
+    riéndose.</p>
+    <p>El 1.º, 2.º y 3.º de seguidor de línea fueron para los robots
+    «Internacional San Marcos 1, 2 y 3», del colegio sede, todos bajo
+    los 14 segundos y los tres inscritos en la lista oficial a nombre
+    de <strong>un mismo estudiante del colegio sede</strong>. El único robot
+    por fuera de ese trío que cerró el recorrido dentro de los dos
+    minutos reglamentarios quedó cuarto: era de un colegio fiscal y,
+    descontado el barrido, era el campeón real — con la beca completa
+    de estudio incluida.</p>
+    <p>Filmamos la primera vuelta de cada robot ganador desde el borde
+    de la pista:</p>
+    <div class="yt-grid">
+      <button class="yt" type="button" data-id="4Uxm5ijj0G0"
+        aria-label="Ver la primera vuelta del robot «Internacional San Marcos 1»">
+        <img src="assets/img/yt-san-marcos-1.jpg" alt="" loading="lazy">
+        <span class="yt-play" aria-hidden="true"></span>
+        <span class="yt-tag">San Marcos 1</span>
+      </button>
+      <button class="yt" type="button" data-id="TpZHJ5RJrHw"
+        aria-label="Ver la primera vuelta del robot «Internacional San Marcos 2»">
+        <img src="assets/img/yt-san-marcos-2.jpg" alt="" loading="lazy">
+        <span class="yt-play" aria-hidden="true"></span>
+        <span class="yt-tag">San Marcos 2</span>
+      </button>
+      <button class="yt" type="button" data-id="1RvcKR0c_Lk"
+        aria-label="Ver la primera vuelta del robot «Internacional San Marcos 3»">
+        <img src="assets/img/yt-san-marcos-3.jpg" alt="" loading="lazy">
+        <span class="yt-play" aria-hidden="true"></span>
+        <span class="yt-tag">San Marcos 3</span>
+      </button>
+    </div>
+    <p class="nota">La organización no publicó tabla oficial de
+    tiempos ni registro de homologación. El podio se reconstruyó de
+    la lista oficial de participantes, las fotos del álbum del
+    distrito y los videos del evento; al día siguiente llegó la
+    confirmación por una vía inesperada.</p>
+    <p>El 1 de noviembre El Deber publicó una entrevista con el
+    organizador, Boris Claros, donde él mismo da los resultados que
+    su página oficial no publicó. Según sus declaraciones, esto fue
+    el podio de cada categoría:</p>
+    <table class="tabla">
+      <thead>
+        <tr><th>Categoría (según la nota)</th><th>Podio según el organizador</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Seguidor de línea amateur</td>
+          <td>Un mismo estudiante de San Marcos se llevó «los tres
+          primeros puestos»</td></tr>
+        <tr><td>Carrera de insectos</td>
+          <td>1.º el mismo estudiante · 2.º y 3.º colegio Golden
+          Lion</td></tr>
+        <tr><td>Sumo autónomo de 3 kg</td>
+          <td>1.º y 2.º el mismo estudiante · 3.º Simón Bolívar de
+          Yapacaní</td></tr>
+        <tr><td>Sumo RC</td>
+          <td>1.º y 2.º Simón Bolívar de Yapacaní · 3.º el mismo
+          estudiante</td></tr>
+      </tbody>
+    </table>
+    <p>La entrevista aporta detalles que no constan en ningún
+    documento del evento. Habla de cuatro categorías, cuando la
+    convocatoria solo convocó tres: el «sumo autónomo de tres
+    kilos» no figura ni en el reglamento ni en la lista oficial de
+    participantes. Menciona «premios económicos» entre los
+    incentivos, algo que la hoja oficial de premios no lista. Cifra
+    la participación en más de 200 estudiantes de 25 colegios, la
+    estimación de la organización; la lista oficial registra 57
+    equipos de 15 unidades educativas. Y presenta a un hermano del
+    ganador como «coordinador del evento», un rol que en la
+    convocatoria no aparecía: él estaba anunciado solo como
+    capacitador.</p>
+    <p>Sigue siendo prensa, no una tabla oficial: lo que piden las
+    familias es el documento con los tiempos de cada robot. Pero el
+    barrido de seguidor de línea ya no se reconstruye, lo declaró
+    el propio organizador.</p>
+    <figure class="wide">
+      <img src="assets/img/gaby_y_max_concurso.jpg"
+        alt="Gaby y Maximiliano riéndose juntos en la mañana del concurso, con el uniforme del equipo y las credenciales colgadas"
+        loading="lazy">
+      <figcaption>Gaby y Max, líderes del team Arturito, el día del
+      concurso: la derrota no les aguó la mañana.</figcaption>
+    </figure>
+  </section>
+
+  <div class="track-anchor" id="t3"></div>
+
+  <section id="investigacion">
+    <h2>La investigación</h2>
+    <p>Después del evento cruzamos la convocatoria, la lista oficial de
+    participantes, la prensa y los registros públicos. Lo que aparece
+    no necesita interpretación:</p>
+    <ul>
+      <li><strong>El capacitador era el campeón.</strong> La propia
+      convocatoria anunciaba como capacitadores a dos hermanos del
+      equipo «Team Wang Jallaza», competidores del instituto TechHome
+      desde 2022: uno de
+      ellos suma 13 medallas en una sola edición de Robomatrix y corrió
+      la final mundial en Rumanía. El mismo nombre figura inscrito como
+      participante en las tres categorías — incluso en carrera de
+      insectos, reservada a primaria — con ocho equipos del colegio
+      sede. Los tres que barrieron el podio de seguidor corrían a su
+      nombre.</li>
+      <li><strong>Los premios vuelven a casa.</strong> La beca de
+      cursos de robótica la donaba TechHome, el instituto que entrena
+      al ganador: volvió a su propio alumno. La invitación a Robomatrix
+      la otorga un circuito cuyo coordinador regional en Santa Cruz es
+      hermano del ganador. El trofeo lleva el logo de un auspicio
+      comercial, «MEGA», que en ningún documento se identifica.</li>
+      <li><strong>El hermano coordinaba.</strong> En la entrevista
+      que El Deber publicó el 1 de noviembre, un hermano del ganador
+      figura como «coordinador del evento», no como un capacitador
+      más. El circuito que otorga la invitación internacional
+      tenía así a su coordinador regional dentro de la propia
+      organización del torneo.</li>
+      <li><strong>El reglamento lo permitía por omisión.</strong> No
+      limitaba cuántos robots podía inscribir una persona ni prohibía
+      competir a capacitadores u organizadores; no tenía cláusula de
+      conflicto de interés; el jurado lo designaba el propio comité y
+      sus fallos eran «definitivos e inapelables»; los reclamos solo
+      los podía hacer el capitán de equipo antes de cada ronda.</li>
+      <li><strong>Las preguntas se cerraron con expulsión.</strong> La
+      noche del evento enviamos al grupo oficial diez consultas de
+      transparencia — la tabla de tiempos, el registro de homologación,
+      la nómina del jurado. Dieciocho minutos después el administrador
+      expulsó al remitente y cerró el grupo: primero a solo
+      administradores y luego vaciando a todos los miembros. Ya era el
+      segundo cierre tras un reclamo escrito.</li>
+    </ul>
+    <p>Un competidor con ese palmarés, inscrito con los equipos del
+    colegio sede en las tres categorías, puede quedarse legalmente con
+    el primero, segundo y tercer puesto de todo: los premios regresan
+    a quienes los pusieron y el evento entero funciona como publicidad.
+    Mientras tanto, cada equipo rival pagó sus 150 Bs de inscripción
+    por la esperanza de un lugar reconocido.</p>
+    <p class="nota">Fuentes: la convocatoria y su hoja de premios, la
+    lista oficial de participantes, el export del grupo de WhatsApp,
+    el álbum del distrito en Facebook, la prensa local (El Deber) y
+    las páginas de Robomatrix y TechHome. El detalle con tablas:
+    <a href="premios.html">premios</a> y <a href="colegios.html">colegios</a>.</p>
+  </section>
+
+  <div class="track-anchor" id="t3b"></div>
+
+  <section id="reclamos">
+    <h2>Los reclamos</h2>
+    <p>Dentro de la pista nadie podía reclamar salvo el capitán del
+    equipo, y solo antes de cada ronda. El capitán era un niño de unos
+    trece años; los tutores y los padres mirábamos desde las gradas,
+    sin acceso a la zona de competencia. Aun así hubo reclamos: los de
+    los niños, que nadie tomó en cuenta, y los que llegaron por otros
+    canales.</p>
+    <p>Uno de esos reclamos quedó escrito en el grupo oficial, el día
+    antes del evento. La acreditación y el sorteo se habían anunciado
+    para el jueves por la tarde, se pasaron al viernes y el viernes
+    por la mañana, con gente ya en la puerta, avisaron que sería
+    recién a las dos de la tarde. Un profesor protestó por escrito:</p>
+    <blockquote>
+      <p>Cambian de lugar y hora varias veces. Soy profesor: debo
+      pedir permiso y dejar reemplazo para poder asistir a los
+      lugares que indican, no puedo estar saliendo del colegio a la
+      hora que sea. Usted lo cambió para hoy por la mañana y recién
+      a las ocho dice para la tarde. No es correcto.</p>
+    </blockquote>
+    <p>Un minuto después el administrador cerró el grupo: desde ahí
+    solo los administradores podían escribir. Dos minutos más tarde
+    respondió, con el reclamo todavía arriba en la conversación:
+    «¿De qué unidad educativa es? Hablaré con su director».</p>
+    <p>Los plazos se movían igual. La confirmación de participación
+    vencía el 23 de octubre, luego el 27 «impostergablemente»,
+    luego el 28. Cada aviso llegaba por ese grupo, a veces el mismo
+    día.</p>
+    <p>Un representante de otro equipo nos escribió por WhatsApp unos
+    días después. Lo transcribimos sin su nombre:</p>
+    <blockquote>
+      <p>En mi caso, mi robot no completó el circuito y solo vi uno,
+      aparte del colegio San Marcos, que pudo completarlo. Vi
+      muchísimas irregularidades en la competencia; en su momento
+      quise quejarme pero no nos tomaron en cuenta.</p>
+      <p>Primero, ellos establecieron reglas para el seguidor de línea
+      que luego eliminaron por completo. Con mi equipo luchamos
+      hartísimo para que nuestro robot funcionara con una batería,
+      para que después cambiaran a dos pilas y otro tipo de
+      motores.</p>
+      <p>Vimos con mi tutor que los organizadores del evento asesoraban
+      a los chicos del colegio San Marcos y había una clara
+      preferencia. Nos pareció absurdo que metieran tres robots del
+      mismo colegio (obviamente iban a ganar los tres premios, porque
+      los mismos jueces eran sus asesores y ellos ya los trajeron
+      armados con otros materiales). Ellos los aconsejaban a los del
+      colegio, pero cuando una chica del colegio de polera azul oscuro
+      les pidió un consejo le dijeron: «Niña, pregúntele a su tutor».
+      Ese es un claro ejemplo de la diferencia que hacían.</p>
+      <p>Tercero, era una competencia «distrital» y vinieron colegios
+      desde Puerto Quijarro.</p>
+      <p>Cuarto, con mi tutor vimos que una chica que estaba en las
+      gradas (creemos que era del colegio) estaba apuntando con un
+      láser, cosa que igual está prohibido porque bloquea los sensores
+      del seguidor de línea.</p>
+      <p>Quinto, en la entrega de credenciales cambiaron los horarios a
+      su antojo y ni siquiera fueron capaces de pedir disculpas.</p>
+      <p>Sexto, vi que cuando un papá se quejó por las irregularidades
+      le dijeron: «Para la próxima no participe». ¿Qué clase de evento
+      educativo es ese?</p>
+      <p>Por último, tuve un compañero que ni siquiera tenía su
+      certificado. Mi tutor no quiso hacer ningún problema, pero por mi
+      parte y la de mis padres sí nos gustaría hacer una queja respecto
+      al evento, porque fue una burla tanto para los participantes como
+      para los padres y maestros que invirtieron mucho tiempo y dinero
+      en esto.</p>
+    </blockquote>
+    <p>Al papá que protestó le respondieron «para la próxima no
+    participe». Cuando yo le reclamé al organizador en persona, me
+    contestó que si no me gustaba, que hiciera mi propio evento.</p>
+    <p>Días después, en el grupo que los representantes armamos por
+    nuestra cuenta, el mismo reclamo seguía apareciendo. Un
+    representante de otro equipo contó que el evento le había parecido
+    «una sacada de dinero, mal organizado y direccionado a que solo
+    unos ganen» y que había tenido que agregarse a los grupos oficiales
+    con un número distinto «para que respondieran a las consultas
+    porque una vez que hacías una queja o algo, simplemente te
+    ignoraban». Otro pedía separar principiantes de profesionales,
+    porque «la competencia tenía participantes internacionales,
+    profesionales, y eso no es justo». Cerrado el canal oficial, la
+    queja se rearmó sola en otro lado.</p>
+    <p class="nota">Los mensajes del grupo se transcriben del export
+    completo, con la fecha y la hora que registró WhatsApp; los relatos
+    de los representantes son testimonios, no verificación: los
+    publicamos porque coinciden con lo que vimos ese día y con lo que
+    muestran los documentos de la sección anterior.</p>
+  </section>
+
+  <div class="track-anchor" id="t4"></div>
+
+  <section id="carta">
+    <h2>La carta a la Dirección Distrital</h2>
+    <p>La vía interna está cerrada por diseño: el reglamento solo
+    admite reclamos del capitán antes de cada ronda, es decir, de un
+    niño de unos trece años al que ningún adulto podía acompañar en la
+    pista. Acompañarlo en la zona de participantes sí se podía, a 100
+    Bs por adulto avisados por escrito la víspera, con multa por
+    registro tardío: quien no pagó —o no pudo— vio la competencia
+    desde la zona del público. La vía que queda es la petición
+    escrita, que en Bolivia es
+    un derecho constitucional (art. 24 CPE) y obliga a responder.</p>
+    <p>Un padre de un estudiante participante envió una nota a
+    la directora distrital, con copia a la Dirección Departamental y al
+    Ministerio de Educación. Pide por escrito doce cosas concretas: la
+    tabla oficial de tiempos por robot y por ronda, el registro de
+    homologación con la lista de robots rechazados y sus motivos, la
+    nómina del jurado y sus vínculos con equipos y auspiciantes, la
+    regla que permitió a una misma persona inscribir varios robots por
+    categoría, la verificación de elegibilidad, el destino de lo
+    recaudado por inscripciones —pagadas por QR a una cuenta personal
+    del organizador: unos 8.550 Bs si las 57 inscripciones pagaron los
+    150 Bs que costaban en seguidor de línea— y la
+    publicación oficial de los resultados.</p>
+    <p>La nota no acusa a nadie de fraude ni cuestiona el mérito de
+    ningún estudiante: pide los documentos. Si existen y están en
+    orden, publicarlos despeja las dudas de todas las familias; si no
+    existen, eso también es un dato. El 3 de noviembre salió por correo
+    electrónico y por WhatsApp hacia la directora distrital. Acá quedan
+    la nota y sus anexos, para leer o descargar:</p>
+    <ul>
+      <li><a href="assets/pdf/peticion-informe-dde.pdf">La nota</a>
+      (versión pública) — también está <a href="assets/pdf/peticion-informe-dde-completa.pdf">la
+      nota con todos los anexos en un solo PDF</a>.</li>
+      <li><a href="assets/pdf/anexo-A-convocatoria-y-reglamentos.pdf">Anexo
+      A</a> — Convocatoria y reglamentos.</li>
+      <li><a href="assets/pdf/anexo-B-extracto-lista-participantes.pdf">Anexo
+      B</a> — Extracto de la lista oficial de participantes.</li>
+      <li><a href="assets/pdf/anexo-C-hoja-oficial-premios.pdf">Anexo
+      C</a> — Hoja oficial de premios.</li>
+      <li><a href="assets/pdf/anexo-D-extracto-grupo-participantes.pdf">Anexo
+      D</a> — Registro del grupo de participantes, del 21 al 31 de
+      octubre, y capturas del <a href="assets/img/anexo-D1-captura-borrado-y-expulsion.jpg">mensaje
+      borrado y la expulsión</a> y del <a href="assets/img/anexo-D2-captura-expulsiones-tercero.jpg">cierre
+      del grupo</a>.</li>
+      <li><a href="assets/pdf/anexo-E-consultas-31-octubre.pdf">Anexo
+      E</a> — Las diez consultas del 31 de octubre.</li>
+      <li><a href="assets/pdf/anexo-F-prensa-y-publicaciones.pdf">Anexo
+      F</a> — Prensa y publicaciones oficiales, con la <a href="assets/img/anexo-F1-captura-publicacion-distrito.png">captura
+      del álbum del distrito</a>.</li>
+      <li><a href="assets/pdf/anexo-G-reconocimiento_concurso_robotica.pdf">Anexo
+      G</a> — Reconocimiento de participación.</li>
+    </ul>
+    <p>Hay familias que ya no están en Santa Cruz, así que las
+    adhesiones se recolectan también en línea:
+    <a href="https://www.ipetitions.com/p/transparencia-en-el-concurso-distrital-de-robotica/">Transparencia
+    en el Concurso Distrital de Robótica</a>. Cada firma queda
+    verificada por correo y la lista va como anexo de respaldo a la
+    nota.</p>
+  </section>
+
+  <div class="track-anchor" id="t5"></div>
+
+  <section id="leccion">
+    <h2>Cómo debió ser</h2>
+    <p>Antes de inscribir a un niño en cualquier concurso, media hora
+    de tarea alcanza para mirar lo esencial:</p>
+    <ul>
+      <li>Quién organiza y quién capacita. Si la misma persona da el
+      taller y luego compite, el resultado está escrito desde antes.</li>
+      <li>Quiénes están inscritos. La lista de participantes suele ser
+      pública: buscar los nombres en prensa y torneos anteriores dice
+      si el torneo «amateur» es amateur de verdad.</li>
+      <li>Quién pone los premios y qué gana con ello. Una beca que
+      nombra a su donante es publicidad; si el donante tiene un alumno
+      compitiendo, el premio puede no salir nunca de casa.</li>
+      <li>Qué dice el reglamento sobre reclamos, jurado y conflictos
+      de interés. Un reglamento que no limita inscripciones por
+      persona ni regula vínculos le permite a un solo inscrito
+      llevarse el podio entero, legalmente.</li>
+      <li>Qué canal de consultas existe y si las respuestas quedan por
+      escrito. Un grupo de WhatsApp que cierra el administrador no es
+      un canal: es una puerta que se puede cerrar.</li>
+    </ul>
+    <p>Una representante de otro equipo llegó a la misma conclusión
+    y la escribió mejor que nosotros:</p>
+    <blockquote>
+      <p>Yo considero que el hecho de que hagan una competencia para
+      menores, usando la red escolar, es lo más delicado de la forma
+      en que se desenvolvió esta competencia de robótica. Los niños,
+      niñas y adolescentes que participaron ahora pueden quedarse
+      con la sensación de que no importa cuántas ganas le pongan a
+      lograr el objetivo: puede ganar el que más violenta las reglas
+      si es amparado por quien organiza esta clase de eventos. Yo me
+      quedé con un mal sabor al terminar un evento que me resultó
+      inconcluso y sin ninguna transparencia.</p>
+    </blockquote>
+    <p>A eso nos suscribimos. Nada de esto quita lo que valió
+    participar: los chicos aprendieron a competir y lo pasaron bien.
+    Lo que cambia es que la próxima inscripción se firma con los
+    ojos abiertos.</p>
+  </section>
+
+  <div class="track-anchor" id="t6"></div>
+
+  <footer>
+    <p>Gaby, Darius y Max · U.E. Jaime Alfonso Escalante Gutierrez A<br>
+    Distrito Santa Cruz 1, Bolivia · 2026</p>
+    <p class="credit">Página y simulador escritos por
+    <a href="https://asosab.github.io">Alejandro Sosa Briceño</a></p>
+  </footer>
+</main>
+
+<script src="assets/js/youtube.js"></script>
+
+<!-- El carrito viaja en esta capa, siguiendo la línea por encima del
+     texto. El agarre de la cinta se resuelve en track.js a nivel
+     documento (sin elemento sobre el contenido: solo reclama el gesto
+     dentro de la banda de la cinta y nunca sobre links ni botones). -->
+<svg id="trackTop" width="110" height="110">
+  <g id="bot" role="button" tabindex="0" aria-label="Encender o apagar a Arturito" style="cursor:pointer">
+    <ellipse class="led" cx="0" cy="-20.4" rx="26" ry="5" fill="none"/>
+    <use href="#arturito-shape" transform="scale(0.34) translate(-110 -130)"/>
+    <circle class="sen" cx="-17.7" cy="-16" r="2.4"/>
+    <circle class="sen" cx="-8.8" cy="-24.8" r="2.4"/>
+    <circle class="sen" cx="0" cy="-33.7" r="2.4"/>
+    <circle class="sen" cx="8.8" cy="-24.8" r="2.4"/>
+    <circle class="sen" cx="17.7" cy="-16" r="2.4"/>
+  </g>
+</svg>
+
+<div id="lab" hidden>
+  <svg id="labTrack"><path id="labHit" d=""/><path id="labPath" d=""/></svg>
+  <div class="lab-bar">
+    <span class="lab-title">Probar el simulador</span>
+    <span class="lab-hint">Pista de práctica: circuito cerrado con un cruce. Clic en el carrito para encenderlo, arrástralo para probar situaciones. Los bordes son muros.</span>
+    <button id="closeLab" type="button" aria-label="Cerrar el probador">Cerrar</button>
+  </div>
+</div>
+
+<script src="assets/js/track.js"></script>
+</body>
+</html>

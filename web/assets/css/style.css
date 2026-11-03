@@ -1,0 +1,972 @@
+* { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  font-family: "Bricolage Grotesque", "Segoe UI", system-ui, -apple-system, sans-serif;
+  color: #222;
+  background: #fff;
+  overflow-x: hidden;
+}
+
+#track {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* la capa del carrito: una caja chica que lo sigue por el documento,
+   no una capa de página completa — un svg a todo lo ancho taparía el
+   texto (y el inspector lo mediría como contenido cubierto) */
+#trackTop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 30;
+  width: 110px;
+  height: 110px;
+  pointer-events: none;
+  overflow: visible;
+  will-change: transform;
+}
+
+#labHit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 40;
+  pointer-events: stroke;
+  cursor: grab;
+  /* sin esto, en táctil el gesto de arrastrar la cinta se lo lleva el
+     scroll de la página (y un tirón hacia abajo refresca la página) */
+  touch-action: none;
+}
+#labHit.rope-drag { cursor: grabbing; }
+
+#trackPath {
+  fill: none;
+  stroke: #141414;
+  stroke-width: 14.4;
+  stroke-linecap: round;
+  stroke-linejoin: miter;
+}
+
+#bot {
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  filter: drop-shadow(0 5px 5px rgba(0,0,0,.22));  /* taste-skill-ignore: objeto físico, no control en reposo */
+  transition: filter .3s;
+}
+#bot.drag { cursor: grabbing; }
+#bot.lift { filter: drop-shadow(0 22px 16px rgba(0,0,0,.30)); }  /* taste-skill-ignore */
+
+#bot .sen { fill: #222; }
+#bot.on .sen.hit { fill: #ff3b30; }
+
+#bot .led { transition: fill .15s; }
+#bot.on .led {
+  fill: #38d05c;
+  filter: drop-shadow(0 0 6px #38d05c);  /* taste-skill-ignore: brillo del LED */
+}
+
+#menu {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 14px;
+  background: rgba(255,255,255,.92);
+  backdrop-filter: blur(6px);
+}
+
+#menuLinks {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+#menuToggle {
+  display: none;
+  width: 38px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: #f0f0f0;
+  cursor: pointer;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+#menuToggle span {
+  width: 18px;
+  height: 2px;
+  background: #141414;
+  border-radius: 1px;
+  transition: transform .18s ease, opacity .18s ease;
+}
+
+#menu.open #menuToggle span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+#menu.open #menuToggle span:nth-child(2) { opacity: 0; }
+#menu.open #menuToggle span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+/* menú compacto: las rallitas quedan en la barra y los enlaces bajan
+   como desplegable */
+#menu.compact #menuToggle { display: flex; }
+
+#menu.compact #menuLinks {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
+  padding: 6px 10px 10px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(0,0,0,.12);   /* taste-skill-ignore: overlay real */
+}
+
+#menu.compact.open #menuLinks { display: flex; }
+
+#menu.compact #menuLinks a {
+  padding: 10px 12px;
+  font-size: 1rem;
+}
+
+#menu.compact #openLab {
+  margin: 6px 0 0;
+  align-self: flex-start;
+}
+
+#menu a {
+  color: #333;
+  text-decoration: none;
+  font-size: .85rem;
+  padding: 6px 10px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+#menu a:hover { background: #fff3c4; }
+
+#openLab {
+  margin-left: auto;
+  border: 0;
+  background: #141414;
+  color: #fff;
+  font-size: .85rem;
+  padding: 7px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+section, footer, header.hero { scroll-margin-top: 64px; }
+
+#lab {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: #fff;
+}
+
+#labTrack {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+#labPath {
+  fill: none;
+  stroke: #141414;
+  stroke-width: 14.4;
+  stroke-linecap: round;
+  stroke-linejoin: miter;
+  pointer-events: none;
+}
+
+.lab-bar {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 16px;
+  background: rgba(255,255,255,.92);
+}
+
+.lab-title { font-weight: 700; }
+
+.lab-hint {
+  color: #555;
+  font-size: .85rem;
+  flex: 1;
+}
+
+#closeLab {
+  border: 0;
+  background: #141414;
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: .85rem;
+}
+
+main {
+  position: relative;
+  z-index: 20;                 /* por encima de la cinta (10), debajo de su agarre y el carrito (30) */
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+section, footer {
+  background: rgba(255,255,255,.82);
+  border-radius: 14px;
+  padding: 18px 26px;
+  margin: 40px 0;
+}
+
+.hero {
+  text-align: center;
+  padding: 170px 16px 26px;
+}
+
+h1, h2, h3, .lede, figcaption { text-wrap: balance; }
+
+h1 {
+  font-size: clamp(3rem, 9vw, 5rem);
+  margin: .2em 0 .15em;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+h2 {
+  font-size: 1.9rem;
+  margin-top: 0;
+  border-bottom: 3px solid #f4c91f;
+  display: inline-block;
+  padding-bottom: 4px;
+}
+
+h3 { font-size: 1.15rem; }
+
+.lede {
+  font-size: 1.15rem;
+  line-height: 1.6;
+  max-width: 34em;
+  margin: 0 auto 1em;
+}
+
+.hint {
+  font-size: .85rem;
+  color: #555;
+  max-width: 32em;
+  margin: 0 auto;
+}
+
+/* la acción del hero: misma pill negra que «Probar el simulador» pero grande */
+.cta {
+  display: inline-block;
+  margin-top: 20px;
+  border: 0;
+  background: #141414;
+  color: #fff;
+  font-size: 1rem;
+  padding: 12px 26px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+/* la secundaria va dibujada: mismo tamaño, tinta por fuera */
+.cta.ghost {
+  background: transparent;
+  color: #141414;
+  box-shadow: inset 0 0 0 2px #141414;
+}
+
+.track-anchor { height: 70px; }
+
+/* el diario de puesta a punto: cada día es una entrada con la fecha en
+   ámbar sobre el título y una guía amarilla al margen */
+.dia {
+  border-left: 3px solid #f4c91f;
+  padding-left: 16px;
+  margin: 28px 0;
+}
+
+.dia time {
+  display: block;
+  font-size: .8rem;
+  font-weight: 700;
+  color: #b78f00;
+}
+
+.dia h3 {
+  margin: .2em 0 .5em;
+}
+
+p, li { line-height: 1.65; }
+
+ul { padding-left: 1.2em; }
+li { margin: .4em 0; }
+
+.specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.specs li {
+  margin: 0;
+  background: #fff6d6;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: .85rem;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.card {
+  margin: 0;
+  text-align: left;
+}
+
+.card img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 12px;
+}
+
+.card figcaption {
+  margin-top: 8px;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.card figcaption span {
+  display: block;
+  font-weight: 400;
+  color: #666;
+  font-size: .85rem;
+}
+
+.card figcaption .rol {
+  color: #b78f00;
+  font-weight: 600;
+}
+
+.podium { align-items: end; }
+
+.podium .card {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+  padding: 14px;
+  background: rgba(255, 246, 214, .55);
+}
+
+/* el podio en sí: un escalón coloreado a pie de cada tarjeta, con las
+   alturas del podium real (1.º más alto) y las bases alineadas */
+.podium .card::after {
+  content: '';
+  display: block;
+  margin: auto -14px -14px;
+  border-radius: 0 0 9px 9px;
+}
+.podium .p1::after { height: 64px; background: #f4c91f; }
+.podium .p2::after { height: 42px; background: #d9d9d9; }
+.podium .p3::after { height: 26px; background: #d9a86c; }
+
+/* fila de retratos con desnivel editorial en vez de tres cajas iguales */
+#equipo .card:nth-child(2) { transform: translateY(16px); }
+#equipo .card:nth-child(3) { transform: translateY(32px); }
+
+.prize .lugar {
+  display: block;
+  font-size: 1.9rem;
+  font-weight: 700;
+}
+
+.prize p {
+  margin: .4em 0 0;
+  font-size: .85rem;
+}
+
+.nota {
+  color: #555;
+  font-size: .85rem;
+}
+
+blockquote {
+  margin: 1.1em 0;
+  padding: 0 0 0 1em;
+  border-left: 3px solid #f4c91f;
+  color: #444;
+  font-size: .95rem;
+}
+
+blockquote p { margin: .6em 0; }
+blockquote p:first-child { margin-top: 0; }
+blockquote p:last-child { margin-bottom: 0; }
+
+figure.wide img, figure.wide video {
+  width: 100%;
+  border-radius: 12px;
+  display: block;
+}
+
+figure.wide figcaption {
+  margin-top: 8px;
+  font-size: .85rem;
+  color: #555;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.gallery figure { margin: 0; }
+
+.gallery img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 10px;
+  display: block;
+}
+
+.gallery figcaption {
+  margin-top: 6px;
+  font-size: .8rem;
+  color: #555;
+  line-height: 1.4;
+}
+
+.gallery a {
+  display: block;
+  cursor: zoom-in;
+  border-radius: 10px;
+}
+
+/* la página del diario no lleva la cinta: el hero puede ser bajo */
+.hero.diary { padding: 90px 16px 10px; }
+
+.gallery a:focus-visible {
+  outline: 3px solid #f4c91f;
+  outline-offset: 2px;
+}
+
+/* videos de YouTube: la página solo trae las miniaturas locales; el
+   reproductor de youtube-nocookie se inserta al hacer clic, y el que
+   suena se estira a todo el ancho y salta a la primera fila */
+.yt-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin: 14px 0 18px;
+}
+
+.yt {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #111;
+  cursor: pointer;
+}
+
+.yt img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.yt-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 48px;
+  height: 48px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: rgba(20, 20, 20, .82);
+}
+
+.yt-play::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 54%;
+  transform: translate(-50%, -50%);
+  border-left: 16px solid #f4c91f;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+}
+
+.yt-tag {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, .65);
+  color: #fff;
+  font-size: .75rem;
+}
+
+.yt:focus-visible {
+  outline: 3px solid #f4c91f;
+  outline-offset: 2px;
+}
+
+.yt.playing {
+  order: -1;
+  grid-column: 1 / -1;
+  cursor: default;
+}
+
+.yt.playing iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+/* Visor de fotos: cubre todo, por encima del menú (z-40) y del lab (z-60) */
+#visor {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, .92);
+}
+
+#visor[hidden] { display: none; }
+
+.visor-fig {
+  margin: 0;
+  text-align: center;
+  max-width: 92vw;
+}
+
+#visorImg {
+  max-width: 92vw;
+  max-height: 78vh;
+  object-fit: contain;
+  border-radius: 6px;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+#visorCap {
+  margin-top: 10px;
+  color: #ddd;
+  font-size: .85rem;
+}
+
+.visor-flecha {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 0;
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
+  font-size: 2.6rem;
+  line-height: 1;
+  padding: 18px 18px 22px;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.visor-flecha:hover { background: rgba(255, 255, 255, .28); }
+.visor-flecha.izq { left: 14px; }
+.visor-flecha.der { right: 14px; }
+
+.visor-barra {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 16px;
+}
+
+.visor-barra button {
+  border: 0;
+  background: rgba(255, 255, 255, .14);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: .85rem;
+}
+
+.visor-barra button:hover { background: rgba(255, 255, 255, .25); }
+
+@media (max-width: 560px) {
+  /* en pantallas angostas las flechas tapan la foto; alcanza la barra */
+  .visor-flecha { display: none; }
+}
+
+a { color: #0f7fae; }
+
+footer {
+  text-align: left;
+  color: #666;
+  font-size: .85rem;
+  margin-bottom: 80px;
+}
+
+.credit { font-size: .85rem; }
+.credit a { color: #666; }
+
+@media (max-width: 560px) {
+  .cards { grid-template-columns: 1fr; }
+  .gallery { grid-template-columns: repeat(2, 1fr); }
+  .yt-grid { grid-template-columns: 1fr; }
+  .card { max-width: 220px; margin: 0 auto; }
+  #equipo .card { transform: none; }
+  .podium .card { max-width: 340px; }
+  .lab-hint { display: none; }
+  .lab-bar { padding: 10px 12px; }
+}
+
+/* Página «colegios»: barras de datos. La pista de fondo de cada barra
+   queda siempre visible, así una barra vacía (convenio, el resto) se
+   lee como ausencia y no como dato faltante */
+.chart { margin: 22px 0; }
+.chart h3 { margin: 0 0 12px; }
+
+.bar {
+  display: grid;
+  grid-template-columns: 8.5em 1fr auto;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  font-size: .9rem;
+}
+
+.bar-name { font-weight: 600; }
+.bar-name i { display: block; font-style: normal; font-weight: 400; color: #777; font-size: .78rem; }
+.bar-val { font-size: .8rem; color: #666; white-space: nowrap; }
+
+.bar-fill {
+  position: relative;
+  display: block;
+  height: 22px;
+  background: #f0ece1;
+  border-radius: 999px;
+}
+
+.bar-fill::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: var(--w);
+  min-width: 0;
+  border-radius: 999px;
+}
+
+.bar-fill b {
+  position: absolute;
+  left: calc(var(--w) + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: .85rem;
+}
+
+.bar-fill.fiscal::before   { background: #141414; }
+.bar-fill.privada::before  { background: #f4c91f; }
+.bar-fill.convenio::before { background: transparent; }
+/* el equipo propio: tinta con aro ámbar */
+.bar-fill.nos::before      { background: #141414; box-shadow: inset 0 0 0 3px #f4c91f; }
+
+/* modo «por distrito»: todo tinta; los de fuera quedan rayados */
+#chartEscuelas.dist .bar-fill::before { background: #141414; box-shadow: none; }
+#chartEscuelas.dist .bar.fuera .bar-fill::before {
+  background: repeating-linear-gradient(45deg, #141414 0 7px, #a39e90 7px 14px);
+}
+
+.chart-toggle { display: flex; gap: 8px; margin: 14px 0 18px; }
+.chart-toggle button {
+  border: 0;
+  background: #f0ece1;
+  padding: 7px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: .85rem;
+  font-family: inherit;
+}
+.chart-toggle button.on { background: #141414; color: #fff; }
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 0;
+  list-style: none;
+  font-size: .8rem;
+  color: #555;
+}
+.legend .sw {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border-radius: 4px;
+  margin-right: 6px;
+  vertical-align: -2px;
+}
+.sw.fiscal, .sw.dentro { background: #141414; }
+.sw.privada { background: #f4c91f; }
+.sw.gris { background: #a39e90; }
+.sw.fuera { background: repeating-linear-gradient(45deg, #141414 0 4px, #a39e90 4px 8px); }
+.legend .ley-dist { display: none; }
+#chartEscuelas.dist + .legend .ley-dep  { display: none; }
+#chartEscuelas.dist + .legend .ley-dist { display: list-item; }
+
+/* la tabla de colegio × categoría: rayas horizontales, misma tinta */
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .82rem;
+  margin-top: 22px;
+}
+.tabla th, .tabla td {
+  padding: 6px 8px;
+  text-align: left;
+  border-bottom: 1px solid #e8e3d6;
+}
+.tabla th {
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: #8a8471;
+  border-bottom: 2px solid #f4c91f;
+}
+.tabla td:not(:first-child):not(:nth-child(2)):not(:nth-child(3)),
+.tabla th:not(:first-child):not(:nth-child(2)):not(:nth-child(3)) {
+  text-align: right;
+}
+.tabla .f { color: #141414; }
+.tabla .p { color: #b78f00; }
+.tabla tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid #141414; }
+
+/* tres modalidades en columnas (small multiples): cada grupo repite
+   la misma triple barra colegios/equipos/estudiantes */
+.grupos {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.grupos .grupo h4 { margin: 0 0 10px; font-size: .95rem; }
+.grupos .bar { grid-template-columns: 6em 1fr auto; font-size: .82rem; }
+.grupos .bar-fill { height: 18px; }
+.grupos .bar-val { font-weight: 700; color: #141414; }
+.bar-fill.g1::before { background: #b0a98f; }
+.bar-fill.g2::before { background: #141414; }
+.bar-fill.g3::before { background: #f4c91f; }
+.bar-fill.gris::before { background: #a39e90; }
+.sw.g1 { background: #b0a98f; }
+.sw.g2 { background: #141414; }
+.sw.g3 { background: #f4c91f; }
+
+/* matriz de vínculos: puntos llenos lo que consta, huecos lo reportado */
+.tabla.vinc td, .tabla.vinc th { text-align: center; }
+.tabla.vinc td:first-child, .tabla.vinc th:first-child { text-align: left; }
+.tabla.vinc td i { color: #8a8471; font-style: normal; font-size: .78rem; }
+.tabla.vinc .d { color: #141414; }
+.tabla.vinc .o { color: #b78f00; }
+.legend .d, .legend .o { display: inline-block; margin-right: 4px; }
+.legend .o { color: #b78f00; }
+
+/* torta de inscripciones por alumno: una tajada por nivel, el ancho
+   son las inscripciones que llevaba un alumno (×1 fina, ×8 gorda) y
+   la etiqueta cuenta los estudiantes (58, 9, 3, 1, 1 de 72) */
+.pie-wrap {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  margin: 18px 0;
+  flex-wrap: wrap;
+}
+
+.pie-insc {
+  width: 230px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: conic-gradient(
+    #2a2a2a 0deg 18deg, #a89f86 18deg 54deg, #8a7a3d 54deg 108deg,
+    #b78f00 108deg 216deg, #f4c91f 216deg 360deg
+  );
+}
+
+.pie-leyenda {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: .88rem;
+}
+.pie-leyenda li { margin: 7px 0; }
+.pie-leyenda b { font-weight: 700; }
+.pie-leyenda .sw { border-radius: 4px; }
+.sw.p1 { background: #2a2a2a; }
+.sw.p2 { background: #a89f86; }
+.sw.p3 { background: #8a7a3d; }
+.sw.p4 { background: #b78f00; }
+.sw.p5 { background: #f4c91f; }
+.pie-nota { display: block; color: #777; font-size: .78rem; margin-left: 20px; }
+
+/* gráficas vivas: tooltip que sigue al puntero (barras y torta) */
+#tip {
+  position: fixed;
+  z-index: 70;
+  max-width: 235px;
+  padding: 7px 11px;
+  background: #141414;
+  color: #f4f2ea;
+  font-size: .8rem;
+  line-height: 1.4;
+  border-radius: 9px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.28);
+  pointer-events: none;
+}
+#tip b { color: #f4c91f; }
+#tip i { color: #b3ab93; font-style: normal; }
+
+.chart .bar:hover .bar-fill::before { filter: brightness(1.15); }
+
+/* premios: las etiquetas son frases largas y todas las barras van al
+   100%, así que van dentro de la píldora y no al costado, donde se
+   salen del ancho */
+[data-page="premios"] .bar-fill b {
+  left: 14px;
+  right: 10px;
+  color: #141414;
+}
+
+/* la torta interactiva: un donut SVG con etiqueta al centro; el div
+   conserva el conic-gradient como reserva cuando no corre el script */
+.pie-svg { display: block; width: 100%; height: 100%; }
+.pie-svg path { transition: opacity .18s ease, transform .18s ease; }
+.pie-svg.sel path { opacity: .3; }
+.pie-svg.sel path.on { opacity: 1; }
+.pie-big   { font-size: 34px; font-weight: 700; fill: #141414; text-anchor: middle; }
+.pie-small { font-size: 12px; fill: #6b6656; text-anchor: middle; }
+.pie-tiny  { font-size: 10px; fill: #9a9484; text-anchor: middle; }
+.pie-lbl   { font-size: 10.5px; fill: #6b6656; text-anchor: middle; pointer-events: none; }
+
+.pie-leyenda li { cursor: pointer; }
+.pie-leyenda li.on { color: #141414; }
+.pie-leyenda li.on .sw { outline: 2px solid #141414; outline-offset: 1px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pie-svg path { transition: none; }
+}
+
+@media (max-width: 560px) {
+  .pie-wrap { justify-content: center; }
+  .pie-insc { width: 200px; }
+}
+
+@media (max-width: 560px) {
+  .bar { grid-template-columns: 1fr; gap: 3px; margin: 14px 0; }
+  .bar-val { font-size: .78rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+/* letreros de los portales: marcan por dónde viene y por dónde se va
+   Arturito, y enlazan a la página anterior y a la siguiente */
+.portal {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 25;
+  padding: 5px 14px;
+  border-radius: 999px;
+  border: 2.5px solid #141414;
+  background: #f4c91f;
+  color: #141414;
+  font-size: .8rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.portal:hover {
+  background: #141414;
+  color: #f4c91f;
+}
+
+.portal.flash { animation: portalGlow .7s 3; }
+
+@keyframes portalGlow {
+  50% { box-shadow: 0 0 0 9px rgba(244, 201, 31, .45); }
+}
+
+/* el mapa del circuito en la portada */
+.mapa { display: block; width: 100%; height: auto; }
+
+.mapa-tape {
+  fill: none;
+  stroke: #141414;
+  stroke-width: 13;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mapa-arrow { fill: #f4c91f; stroke: #141414; stroke-width: 1.5; }
+
+.map-node rect { fill: #fff; stroke: #141414; stroke-width: 2.5; }
+
+.map-node text {
+  font-family: "Bricolage Grotesque", "Segoe UI", sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  fill: #141414;
+}
+
+/* en táctil, arrastrar la cinta no debe hacer scroll ni pull-to-refresh */
+html, body { overscroll-behavior: none; }

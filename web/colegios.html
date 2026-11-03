@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quiénes respondieron al concurso · Arturito</title>
+<meta name="description" content="De los colegios convocados al 1.er Concurso Distrital de Robótica 2026, cuántos eran fiscales, privados y de convenio, y qué dice eso sobre la cancha en la que corrió Arturito.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Arturito">
+<meta property="og:title" content="Quiénes respondieron al concurso · Arturito">
+<meta property="og:description" content="De los colegios convocados al 1.er Concurso Distrital de Robótica 2026, cuántos eran fiscales, privados y de convenio, y qué dice eso sobre la cancha en la que corrió Arturito.">
+<meta property="og:url" content="https://asosab.github.io/bot_sigue_linea/colegios.html">
+<meta property="og:image" content="https://asosab.github.io/bot_sigue_linea/assets/img/compartir.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="es_BO">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="colegios">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="arturito-shape">
+      <!-- la bola del desodorante queda bajo el chasis y apenas
+           asoma por el borde trasero -->
+      <circle cx="110" cy="228" r="7" fill="#d9596f" stroke="#a83a50" stroke-width="2"/>
+
+      <!-- ruedas: cubierta negra con la liga oscura por el centro de la banda -->
+      <rect x="6"   y="118" width="30" height="98" rx="15" fill="#1d1d1d"/>
+      <rect x="184" y="118" width="30" height="98" rx="15" fill="#1d1d1d"/>
+      <rect x="16"  y="124" width="10" height="86" rx="5" fill="#43251a"/>
+      <rect x="194" y="124" width="10" height="86" rx="5" fill="#43251a"/>
+      <circle cx="21"  cy="167" r="11" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+      <circle cx="199" cy="167" r="11" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+
+      <!-- los sensores van debajo de la base: en el piso solo se ve la
+           sombra del voladizo y, al encender, el brillo de los LEDs -->
+      <ellipse cx="110" cy="55" rx="68" ry="30" fill="#8a7a5c" opacity="0.28"/>
+
+      <!-- base cuadrada: lo cubre todo menos las ruedas -->
+      <rect x="38" y="78" width="144" height="144" rx="8" fill="#f4f2ea" stroke="#cdc7b8" stroke-width="3"/>
+      <circle cx="50"  cy="92"  r="3.2" fill="#9a9a9a"/>
+      <circle cx="170" cy="92"  r="3.2" fill="#9a9a9a"/>
+      <circle cx="50"  cy="208" r="3.2" fill="#9a9a9a"/>
+      <circle cx="170" cy="208" r="3.2" fill="#9a9a9a"/>
+
+      <!-- medio envase de leche como carcasa -->
+      <rect x="52" y="100" width="116" height="116" rx="20" fill="#f8f6ef" stroke="#d6d2c4" stroke-width="2.5"/>
+      <rect x="58" y="106" width="104" height="104" rx="16" fill="none" stroke="#e3ded0" stroke-width="2"/>
+      <!-- el asa del envase, junto a la tapa -->
+      <rect x="124" y="190" width="34" height="24" rx="12" fill="none" stroke="#f8f6ef" stroke-width="8"/>
+
+      <!-- cables que salen por el borde delantero del pote -->
+      <path d="M94 100 q-8 -8 -18 -9"  fill="none" stroke="#b03a2e" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M126 100 q8 -8 18 -9"  fill="none" stroke="#34495e" stroke-width="2.5" stroke-linecap="round"/>
+
+      <!-- el botón de largada va montado sobre la tapa: de arriba se
+           ve amarillo con el anillo azul que le queda debajo -->
+      <circle cx="100" cy="184" r="16"   fill="#2657b0" stroke="#173c7c" stroke-width="2.5"/>
+      <circle cx="100" cy="184" r="11.5" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+      <circle cx="100" cy="184" r="6"    fill="#f7d94e"/>
+    </g>
+  </defs>
+</svg>
+
+<!-- La pista: la línea visible corre por debajo del contenido -->
+<svg id="track" aria-hidden="true">
+  <path id="trackPath" d=""/>
+</svg>
+
+
+<nav id="menu">
+  <button id="menuToggle" type="button" aria-label="Menú" aria-expanded="false" aria-controls="menuLinks">
+    <span></span><span></span><span></span>
+  </button>
+  <div id="menuLinks">
+    <a href="concurso.html">← El concurso</a>
+    <a href="premios.html">Premios</a>
+    <a href="#numeros">Los números</a>
+    <a href="#colegios">Colegio por colegio</a>
+    <a href="#categorias">Por categoría</a>
+    <a href="#estudiantes">Estudiantes</a>
+    <a href="#podio">El podio</a>
+    <a href="#vinculos">Vínculos</a>
+    <a href="#lectura">La lectura</a>
+    <button id="openLab" type="button">Probar el simulador</button>
+  </div>
+</nav>
+
+<main>
+  <header class="hero diary">
+    <h1>Quiénes respondieron</h1>
+    <p class="lede">La convocatoria del 1.er Concurso Distrital de Robótica
+    llamaba a todos los colegios del distrito: fiscales, privados y de
+    convenio. Cruzamos la lista oficial de participantes con el registro
+    de unidades educativas para ver quiénes llegaron de verdad.</p>
+    <p class="hint">La cinta negra se puede arrastrar: muévela para leer lo
+    que hay debajo o dibuja figuras nuevas con ella.</p>
+  </header>
+
+  <div class="track-anchor" id="t1"></div>
+
+  <section id="numeros">
+    <h2>Los números</h2>
+    <p>Quince unidades educativas inscribieron 57 equipos en las tres
+    categorías. Así se reparten por dependencia:</p>
+
+    <div class="chart">
+      <h3>Colegios que respondieron</h3>
+      <div class="bar"><span class="bar-name">Fiscal</span>
+        <span class="bar-fill fiscal" style="--w:66.7%"><b>10</b></span>
+        <span class="bar-val">10 de 15</span></div>
+      <div class="bar"><span class="bar-name">Privada</span>
+        <span class="bar-fill privada" style="--w:33.3%"><b>5</b></span>
+        <span class="bar-val">5 de 15</span></div>
+      <div class="bar"><span class="bar-name">Convenio</span>
+        <span class="bar-fill convenio" style="--w:0%"></span>
+        <span class="bar-val">0 de 15</span></div>
+    </div>
+
+    <div class="chart">
+      <h3>Equipos inscritos</h3>
+      <div class="bar"><span class="bar-name">Fiscal</span>
+        <span class="bar-fill fiscal" style="--w:54.4%"><b>31</b></span>
+        <span class="bar-val">31 de 57 · 54%</span></div>
+      <div class="bar"><span class="bar-name">Privada</span>
+        <span class="bar-fill privada" style="--w:45.6%"><b>26</b></span>
+        <span class="bar-val">26 de 57 · 46%</span></div>
+      <div class="bar"><span class="bar-name">Convenio</span>
+        <span class="bar-fill convenio" style="--w:0%"></span>
+        <span class="bar-val">0</span></div>
+    </div>
+
+    <p>Los colegios fiscales son el doble que los privados, pero meten
+    apenas un poco más de la mitad de los equipos: cada privada inscribió
+    en promedio 5 equipos y cada fiscal, 3. Es el presupuesto asomando
+    en la estadística: del lado privado hay mensualidad, talleres y
+    auspiciantes; del fiscal, el bolsillo de cada familia. Y de los
+    colegios de convenio, que la convocatoria menciona como parte del
+    universo convocado, no llegó ni uno.</p>
+  </section>
+
+  <div class="track-anchor" id="t2"></div>
+
+  <section id="colegios">
+    <h2>Colegio por colegio</h2>
+    <p>Cada barra es una unidad educativa y su largo, los equipos que
+    inscribió. Cambia el criterio para ver la misma lista por
+    dependencia o por distrito:</p>
+
+    <div class="chart-toggle" role="group" aria-label="Criterio de color del gráfico">
+      <button type="button" class="on" data-mode="dep">Por dependencia</button>
+      <button type="button" data-mode="dist">Por distrito</button>
+    </div>
+
+    <div class="chart escuelas" id="chartEscuelas" data-total="57" data-unit="equipos">
+      <div class="bar"><span class="bar-name">Kinda Golden Lion <i>privada</i></span>
+        <span class="bar-fill privada" style="--w:100%"><b>10</b></span></div>
+      <div class="bar"><span class="bar-name">María Vaca Díez I <i>fiscal</i></span>
+        <span class="bar-fill fiscal" style="--w:90%"><b>9</b></span></div>
+      <div class="bar"><span class="bar-name">Internacional San Marcos <i>privada, la sede</i></span>
+        <span class="bar-fill privada" style="--w:80%"><b>8</b></span></div>
+      <div class="bar"><span class="bar-name">Santa Cruz de la Sierra Km 8 <i>fiscal</i></span>
+        <span class="bar-fill fiscal" style="--w:50%"><b>5</b></span></div>
+      <div class="bar fuera"><span class="bar-name">Simón Bolívar I <i>fiscal, Yapacaní</i></span>
+        <span class="bar-fill fiscal" style="--w:50%"><b>5</b></span></div>
+      <div class="bar fuera"><span class="bar-name">El Progreso <i>fiscal, El Torno</i></span>
+        <span class="bar-fill fiscal" style="--w:40%"><b>4</b></span></div>
+      <div class="bar"><span class="bar-name">Bautista Boliviano Brasileño <i>privada</i></span>
+        <span class="bar-fill privada" style="--w:40%"><b>4</b></span></div>
+      <div class="bar"><span class="bar-name">Grigota A <i>fiscal</i></span>
+        <span class="bar-fill fiscal" style="--w:30%"><b>3</b></span></div>
+      <div class="bar"><span class="bar-name">Monte Ararat «Mavir» <i>privada</i></span>
+        <span class="bar-fill privada" style="--w:20%"><b>2</b></span></div>
+      <div class="bar"><span class="bar-name">Santa Ana E <i>privada</i></span>
+        <span class="bar-fill privada" style="--w:20%"><b>2</b></span></div>
+      <div class="bar fuera"><span class="bar-name">Cleidy Duran Yovio <i>fiscal, Puerto Quijarro</i></span>
+        <span class="bar-fill fiscal" style="--w:20%"><b>2</b></span></div>
+      <div class="bar"><span class="bar-name">Maria Teresa Pulido <i>fiscal</i></span>
+        <span class="bar-fill fiscal" style="--w:10%"><b>1</b></span></div>
+      <div class="bar"><span class="bar-name">Vertino Candia Ayala <i>fiscal</i></span>
+        <span class="bar-fill fiscal" style="--w:10%"><b>1</b></span></div>
+      <div class="bar"><span class="bar-name">Jaime A. Escalante G. A <i>fiscal · Arturito</i></span>
+        <span class="bar-fill fiscal nos" style="--w:10%"><b>1</b></span></div>
+    </div>
+
+    <ul class="legend">
+      <li class="ley-dep"><span class="sw fiscal"></span> Fiscal</li>
+      <li class="ley-dep"><span class="sw privada"></span> Privada</li>
+      <li class="ley-dist"><span class="sw dentro"></span> Distrito SCZ-1</li>
+      <li class="ley-dist"><span class="sw fuera"></span> Otro distrito</li>
+    </ul>
+
+    <p>En modo «por distrito» quedan rayadas las barras de las U.E. que
+    no pertenecen a Santa Cruz 1: Simón Bolívar I está en Yapacaní, a unos
+    100 km; El Progreso, en El Torno, a unos 30; y Cleidy Duran Yovio es
+    un colegio de Puerto Quijarro, a más de 600 km, en la frontera con
+    Brasil. La convocatoria limitaba la participación a estudiantes de
+    unidades educativas del distrito, y aun así compitieron.</p>
+    <p class="nota">Fuente: lista oficial de participantes cruzada con el
+    registro de unidades educativas por código RUE. Se cuentan
+    inscripciones, no equipos únicos: hay formularios duplicados en la
+    lista. «El Progreso» junta sus dos turnos, mañana y tarde.</p>
+
+    <table class="tabla">
+      <thead>
+        <tr><th>U.E.</th><th>Dep.</th><th>Distrito</th>
+          <th>Seg.</th><th>Sumo</th><th>Ins.</th><th>Total</th><th>Alumnos</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Kinda Golden Lion</td><td class="p">Privada</td><td>SCZ-1</td>
+          <td>0</td><td>3</td><td>7</td><td>10</td><td>18</td></tr>
+        <tr><td>María Vaca Díez I</td><td class="f">Fiscal</td><td>SCZ-1</td>
+          <td>7</td><td>2</td><td>0</td><td>9</td><td>11</td></tr>
+        <tr><td>Internacional San Marcos</td><td class="p">Privada</td><td>SCZ-1 (sede)</td>
+          <td>3</td><td>3</td><td>2</td><td>8</td><td>3</td></tr>
+        <tr><td>Santa Cruz de la Sierra Km 8</td><td class="f">Fiscal</td><td>SCZ-1</td>
+          <td>3</td><td>1</td><td>1</td><td>5</td><td>9</td></tr>
+        <tr><td>Simón Bolívar I</td><td class="f">Fiscal</td><td>Yapacaní</td>
+          <td>1</td><td>4</td><td>0</td><td>5</td><td>4</td></tr>
+        <tr><td>El Progreso (2 turnos)</td><td class="f">Fiscal</td><td>El Torno</td>
+          <td>0</td><td>0</td><td>4</td><td>4</td><td>7</td></tr>
+        <tr><td>Bautista Boliviano Brasileño</td><td class="p">Privada</td><td>SCZ-1</td>
+          <td>1</td><td>3</td><td>0</td><td>4</td><td>8</td></tr>
+        <tr><td>Grigota A</td><td class="f">Fiscal</td><td>SCZ-1</td>
+          <td>3</td><td>0</td><td>0</td><td>3</td><td>3</td></tr>
+        <tr><td>Monte Ararat «Mavir»</td><td class="p">Privada</td><td>SCZ-1</td>
+          <td>0</td><td>1</td><td>1</td><td>2</td><td>1</td></tr>
+        <tr><td>Santa Ana E</td><td class="p">Privada</td><td>SCZ-1</td>
+          <td>2</td><td>0</td><td>0</td><td>2</td><td>2</td></tr>
+        <tr><td>Cleidy Duran Yovio</td><td class="f">Fiscal</td><td>Puerto Quijarro</td>
+          <td>1</td><td>1</td><td>0</td><td>2</td><td>1</td></tr>
+        <tr><td>Maria Teresa Pulido</td><td class="f">Fiscal</td><td>SCZ-1</td>
+          <td>0</td><td>1</td><td>0</td><td>1</td><td>1</td></tr>
+        <tr><td>Vertino Candia Ayala</td><td class="f">Fiscal</td><td>SCZ-1</td>
+          <td>1</td><td>0</td><td>0</td><td>1</td><td>2</td></tr>
+        <tr><td>Jaime A. Escalante G. A</td><td class="f">Fiscal</td><td>SCZ-1</td>
+          <td>1</td><td>0</td><td>0</td><td>1</td><td>2</td></tr>
+      </tbody>
+      <tfoot>
+        <tr><td>Total</td><td></td><td></td>
+          <td>23</td><td>19</td><td>15</td><td>57</td><td>72</td></tr>
+      </tfoot>
+    </table>
+  </section>
+
+  <div class="track-anchor" id="t3"></div>
+
+  <section id="categorias">
+    <h2>Categoría por categoría</h2>
+    <p>Cada modalidad tuvo su propio reparto. Seguidor de línea fue la
+    más fiscal del evento; carrera de insectos, la más privada; sumo
+    quedó pareja en inscripciones:</p>
+
+    <div class="chart">
+      <h3>Seguidor de línea · 23 equipos de 10 colegios</h3>
+      <div class="bar"><span class="bar-name">Fiscal</span>
+        <span class="bar-fill fiscal" style="--w:73.9%"><b>17</b></span>
+        <span class="bar-val">74%</span></div>
+      <div class="bar"><span class="bar-name">Privada</span>
+        <span class="bar-fill privada" style="--w:26.1%"><b>6</b></span>
+        <span class="bar-val">26%</span></div>
+      <div class="bar"><span class="bar-name">Convenio</span>
+        <span class="bar-fill convenio" style="--w:0%"></span>
+        <span class="bar-val">0</span></div>
+    </div>
+
+    <div class="chart">
+      <h3>Sumo RC · 19 equipos de 9 colegios</h3>
+      <div class="bar"><span class="bar-name">Fiscal</span>
+        <span class="bar-fill fiscal" style="--w:47.4%"><b>9</b></span>
+        <span class="bar-val">47%</span></div>
+      <div class="bar"><span class="bar-name">Privada</span>
+        <span class="bar-fill privada" style="--w:52.6%"><b>10</b></span>
+        <span class="bar-val">53%</span></div>
+      <div class="bar"><span class="bar-name">Convenio</span>
+        <span class="bar-fill convenio" style="--w:0%"></span>
+        <span class="bar-val">0</span></div>
+    </div>
+
+    <div class="chart">
+      <h3>Carrera de insectos · 15 equipos de 5 colegios</h3>
+      <div class="bar"><span class="bar-name">Fiscal</span>
+        <span class="bar-fill fiscal" style="--w:33.3%"><b>5</b></span>
+        <span class="bar-val">33%</span></div>
+      <div class="bar"><span class="bar-name">Privada</span>
+        <span class="bar-fill privada" style="--w:66.7%"><b>10</b></span>
+        <span class="bar-val">67%</span></div>
+      <div class="bar"><span class="bar-name">Convenio</span>
+        <span class="bar-fill convenio" style="--w:0%"></span>
+        <span class="bar-val">0</span></div>
+    </div>
+
+    <p>El detalle cuenta cosas. En seguidor, la categoría más abierta,
+    siete de los diez colegios eran fiscales: ahí fue donde más público
+    se animó a entrar. En insectos, categoría de primaria, Golden Lion
+    metió sola 7 de los 15 equipos. Y en sumo las privadas ya empataban
+    en volumen a todas las fiscales juntas, incluidas las dos de fuera
+    del distrito.</p>
+  </section>
+
+  <div class="track-anchor" id="t4"></div>
+
+  <section id="estudiantes">
+    <h2>Equipos y estudiantes</h2>
+    <p>Las 57 inscripciones de equipo suman 99 inscripciones de
+    estudiante (individual o en dupla). Detrás hay unas 72 personas
+    reales: varios compitieron en más de un equipo o en más de una
+    categoría. Así se ve cada modalidad:</p>
+
+    <div class="chart grupos">
+      <div class="grupo">
+        <h4>Seguidor de línea</h4>
+        <div class="bar"><span class="bar-name">Colegios</span>
+          <span class="bar-fill g1" style="--w:25.6%"></span>
+          <span class="bar-val">10</span></div>
+        <div class="bar"><span class="bar-name">Equipos</span>
+          <span class="bar-fill g2" style="--w:59%"></span>
+          <span class="bar-val">23</span></div>
+        <div class="bar"><span class="bar-name">Estudiantes</span>
+          <span class="bar-fill g3" style="--w:100%"></span>
+          <span class="bar-val">39</span></div>
+      </div>
+      <div class="grupo">
+        <h4>Sumo RC</h4>
+        <div class="bar"><span class="bar-name">Colegios</span>
+          <span class="bar-fill g1" style="--w:23.1%"></span>
+          <span class="bar-val">9</span></div>
+        <div class="bar"><span class="bar-name">Equipos</span>
+          <span class="bar-fill g2" style="--w:48.7%"></span>
+          <span class="bar-val">19</span></div>
+        <div class="bar"><span class="bar-name">Estudiantes</span>
+          <span class="bar-fill g3" style="--w:82.1%"></span>
+          <span class="bar-val">32</span></div>
+      </div>
+      <div class="grupo">
+        <h4>Carrera de insectos</h4>
+        <div class="bar"><span class="bar-name">Colegios</span>
+          <span class="bar-fill g1" style="--w:12.8%"></span>
+          <span class="bar-val">5</span></div>
+        <div class="bar"><span class="bar-name">Equipos</span>
+          <span class="bar-fill g2" style="--w:38.5%"></span>
+          <span class="bar-val">15</span></div>
+        <div class="bar"><span class="bar-name">Estudiantes</span>
+          <span class="bar-fill g3" style="--w:71.8%"></span>
+          <span class="bar-val">28</span></div>
+      </div>
+    </div>
+    <ul class="legend">
+      <li><span class="sw g1"></span> Colegios</li>
+      <li><span class="sw g2"></span> Equipos</li>
+      <li><span class="sw g3"></span> Estudiantes</li>
+    </ul>
+
+    <h3>Pocos alumnos, muchos equipos</h3>
+    <p>La regla no limitaba cuántos robots podía inscribir una misma
+    persona. Algunos lo aprovecharon: estos son los equipos que metió
+    cada uno divididos entre sus estudiantes reales, contra el promedio
+    del evento:</p>
+    <div class="chart" data-unit="equipos por alumno">
+      <div class="bar"><span class="bar-name">San Marcos <i>8 equipos, 3 alumnos</i></span>
+        <span class="bar-fill privada" style="--w:100%"><b>2,7</b></span></div>
+      <div class="bar"><span class="bar-name">Cleidy Duran Yovio <i>2 equipos, 1 alumna</i></span>
+        <span class="bar-fill fiscal" style="--w:74.8%"><b>2,0</b></span></div>
+      <div class="bar"><span class="bar-name">Monte Ararat «Mavir» <i>2 equipos, 1 alumno</i></span>
+        <span class="bar-fill privada" style="--w:74.8%"><b>2,0</b></span></div>
+      <div class="bar"><span class="bar-name">Simón Bolívar I <i>5 equipos, 4 alumnos</i></span>
+        <span class="bar-fill fiscal" style="--w:46.8%"><b>1,3</b></span></div>
+      <div class="bar"><span class="bar-name">Promedio del evento <i>57 equipos, 72 alumnos</i></span>
+        <span class="bar-fill gris" style="--w:29.6%"><b>0,8</b></span></div>
+    </div>
+    <p>San Marcos metió casi tres equipos por estudiante. Con el podio
+    definido por robot y no por persona, ese volumen era toda la
+    ventaja: tres robots propios compitiendo entre sí por el primer,
+    segundo y tercer lugar.</p>
+
+    <h3>La torta de las inscripciones</h3>
+    <p>Cada tajada es un nivel de participación y su ancho, las
+    inscripciones que llevaba un alumno. La más fina junta a la
+    mayoría —58 estudiantes con una sola—; la más ancha de todas es un
+    solo alumno con ocho:</p>
+    <div class="pie-wrap">
+      <div class="pie-insc" role="img"
+        aria-label="Torta de inscripciones por alumno: 58 alumnos con 1, 9 con 2, 3 con 3, 1 con 6 y 1 con 8 inscripciones"></div>
+      <ul class="pie-leyenda">
+        <li data-g="0"><span class="sw p1"></span><b>58 alumnos × 1</b> = 58 inscripciones</li>
+        <li data-g="1"><span class="sw p2"></span><b>9 alumnos × 2</b> = 18 inscripciones</li>
+        <li data-g="2"><span class="sw p3"></span><b>3 alumnos × 3</b> = 9 inscripciones</li>
+        <li data-g="3"><span class="sw p4"></span><b>1 alumno × 6</b> = 6 inscripciones<span class="pie-nota">Un alumno del colegio sede: 3 sumo + 3 seguidor</span></li>
+        <li data-g="4"><span class="sw p5"></span><b>1 alumno × 8</b> = 8 inscripciones<span class="pie-nota">Otro alumno del colegio sede: 3 sumo + 3 seguidor + 2 insectos</span></li>
+      </ul>
+    </div>
+    <p>La lectura visual es directa: para la mayoría, participar fue un
+    solo intento; para el que cortó la tajada gorda, ocho chances en
+    tres categorías distintas. Y ese intento no era gratis: la
+    inscripción costó 150 Bs por equipo —el precio que se cobró en
+    seguidor de línea. A la mayoría le alcanzaba para una —una
+    chance, y todo el trabajo puesto en un solo robot. El de la tajada
+    gorda lleva ocho inscripciones pagas: 1.200 Bs si las ocho costaban
+    lo mismo. Y las dos más anchas, la de seis y la de ocho, son de
+    alumnos de San Marcos: la privada que hacía de sede.</p>
+  </section>
+
+  <div class="track-anchor" id="t5"></div>
+
+  <section id="podio">
+    <h2>El podio</h2>
+    <p class="nota">La organización no publicó resultados oficiales:
+    no hay tabla de tiempos ni acta de ganadores. Este podio se
+    reconstruye de lo que se vio ese día en la pista, los videos del
+    evento y las fotos de la premiación.</p>
+    <p>Las cinco privadas eran un tercio de los colegios. Se quedaron con
+    casi la mitad de las inscripciones y con todo lo que había para
+    ganar. Así quedaron los lugares del podio en las tres modalidades,
+    contando solo lo que se puede confirmar:</p>
+    <div class="chart">
+      <div class="bar"><span class="bar-name">Seguidor de línea</span>
+        <span class="bar-fill privada" style="--w:100%"></span>
+        <span class="bar-val">3 de 3 · podio completo para la sede</span></div>
+      <div class="bar"><span class="bar-name">Carrera de insectos</span>
+        <span class="bar-fill privada" style="--w:33.3%"><b>1 de 3</b></span>
+        <span class="bar-val">1.º de la sede · 2.º y 3.º del Golden Lion</span></div>
+      <div class="bar"><span class="bar-name">Sumo autónomo 3 kg</span>
+        <span class="bar-fill privada" style="--w:66.7%"><b>2 de 3</b></span>
+        <span class="bar-val">1.º y 2.º de la sede · 3.º del Simón Bolívar</span></div>
+      <div class="bar"><span class="bar-name">Sumo RC</span>
+        <span class="bar-fill privada" style="--w:33.3%"><b>1 de 3</b></span>
+        <span class="bar-val">3.º de la sede · 1.º y 2.º del Simón Bolívar</span></div>
+    </div>
+    <ul class="legend">
+      <li><span class="sw privada"></span> Lugares del colegio sede, según
+      lo que el organizador declaró a El Deber el 1 de noviembre</li>
+    </ul>
+    <p>El 1.º, 2.º y 3.º de seguidor de línea fueron para los tres robots
+    del Internacional San Marcos, el colegio sede, inscritos a nombre del
+    capacitador del propio evento. Lo demás lo contó el propio
+    organizador en la entrevista de El Deber del día siguiente: en
+    insectos ganó el mismo estudiante del colegio sede y los otros dos
+    lugares fueron del Golden Lion; en «sumo autónomo de tres kilos»
+    —una categoría que no figura ni en la convocatoria ni en la lista
+    oficial— el mismo estudiante se llevó primero y segundo; y en sumo
+    RC el colegio Simón Bolívar de Yapacaní, de fuera del distrito, ganó
+    primero y segundo, con el mismo estudiante tercero. El
+    único robot amateur de fuera del podio que completó el circuito en
+    regla quedó cuarto: era de un colegio fiscal.</p>
+
+    <h3>Lo que se llevaban</h3>
+    <p>La hoja de premios que el organizador compartió por el grupo
+    detalla los premios de seguidor de línea; de sumo e insectos no hay
+    lista publicada. La entrevista de prensa habla además de «premios
+    económicos» entre los incentivos, algo que el anexo oficial no
+    lista. Esto era lo que había en juego y adónde fue:</p>
+    <table class="tabla">
+      <thead>
+        <tr><th>Lugar</th><th>Premio (seguidor de línea)</th><th>Se lo llevó</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>1.º</td>
+          <td>Trofeo de campeón —con el logo del auspicio «MEGA»—,
+          medalla, certificado, beca completa de estudio (U.E. España B),
+          beca de cursos de robótica (TechHome) y participación en
+          Infomatrix y Robomatrix</td>
+          <td class="p">San Marcos</td></tr>
+        <tr><td>2.º</td>
+          <td>Trofeo de subcampeón, medalla, certificado y una sesión de
+          terapia psicológica</td>
+          <td class="p">San Marcos</td></tr>
+        <tr><td>3.º</td>
+          <td>Trofeo, medalla y certificado</td>
+          <td class="p">San Marcos</td></tr>
+        <tr><td>Sorteo</td>
+          <td>Impresora 3D Ender, sorteada entre los tres primeros de
+          cada categoría</td>
+          <td>sin publicar</td></tr>
+      </tbody>
+    </table>
+    <p>El detalle de cada premio y su donante está en
+    <a href="premios.html">la página de premios</a>: la beca de cursos
+    volvió al instituto que entrena al ganador y la invitación quedó
+    dentro del circuito de su hermano.</p>
+  </section>
+
+  <div class="track-anchor" id="t6"></div>
+
+  <section id="vinculos">
+    <h2>Los que pusieron y los que ganaron</h2>
+    <p>La convocatoria cerraba con una lista de apoyos: la sede, el
+    equipo de los capacitadores, la escuela de robótica que los entrena,
+    el circuito internacional y una unidad educativa que donaba la beca.
+    Cruzados con el podio que el propio organizador declaró a la
+    prensa, casi todos tienen una línea hasta los que ganaron:</p>
+
+    <table class="tabla vinc">
+      <thead>
+        <tr><th></th><th>Organizó</th><th>Auspició</th>
+          <th>Capacitó</th><th>Donó premio</th><th>Inscribió</th>
+          <th>Llegó al podio</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>DDE Santa Cruz 1</td>
+          <td class="d">●</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Internacional San Marcos <i>sede</i></td>
+          <td>—</td><td class="d">●</td><td class="d">●</td><td>—</td>
+          <td class="d">●</td><td class="d">●</td></tr>
+        <tr><td>Team Wang Jallaza <i>capacitadores</i></td>
+          <td>—</td><td class="d">●</td><td class="d">●</td><td>—</td>
+          <td class="d">●</td><td class="d">●</td></tr>
+        <tr><td>TechHome <i>escuela de robótica</i></td>
+          <td>—</td><td class="d">●</td><td>—</td><td class="d">●</td>
+          <td>—</td><td class="d">●</td></tr>
+        <tr><td>Robomatrix / SOLACYT</td>
+          <td>—</td><td class="d">●</td><td>—</td><td class="d">●</td>
+          <td>—</td><td class="d">●</td></tr>
+        <tr><td>España B</td>
+          <td>—</td><td>—</td><td>—</td><td class="d">●</td>
+          <td>—</td><td>—</td></tr>
+        <tr><td>MEGA <i>logo en el trofeo</i></td>
+          <td>—</td><td class="d">●</td><td>—</td><td>—</td><td>—</td><td>—</td></tr>
+        <tr><td>Resto de privadas (4)</td>
+          <td>—</td><td>—</td><td>—</td><td>—</td><td class="d">●</td><td>—</td></tr>
+        <tr><td>U.E. fiscales (9 planteles)</td>
+          <td>—</td><td>—</td><td>—</td><td>—</td><td class="d">●</td><td>—</td></tr>
+      </tbody>
+    </table>
+    <ul class="legend">
+      <li><span class="d"></span>● consta en documentos</li>
+    </ul>
+
+    <p>Los vínculos concretos, sin adorno: la sede auspició, prestó la
+    capacitación e inscribió a los ganadores. Team Wang Jallaza
+    auspició, dio la capacitación y compitió. TechHome donó la beca de
+    cursos y su alumno la ganó. La invitación a Robomatrix la otorga un
+    circuito cuyo coordinador regional en Santa Cruz es hermano del
+    ganador.</p>
+    <p>Cada premio que salía volvía a casa: la beca de cursos vuelve a
+    la escuela que entrena al campeón y la invitación queda dentro del
+    circuito familiar. Los que solo inscribieron —nueve colegios fiscales y
+    cuatro privados— pagaron sus 150 Bs por equipo y se fueron con un
+    certificado. Si las tres categorías cobraron el mismo precio, las
+    57 inscripciones suman unos 8.500 Bs que el QR enviaba a una cuenta
+    personal del organizador y cuyo destino nadie publicó.</p>
+  </section>
+
+  <div class="track-anchor" id="t7"></div>
+
+  <section id="lectura">
+    <h2>Qué dice esto</h2>
+    <p>Estos números no miden qué colegio enseña mejor. Miden quién pudo
+    llegar, y eso ya dice bastante.</p>
+    <p>Participar desde un colegio fiscal es una carrera antes de la
+    carrera. No hay taller de robótica ni laboratorio que pida las piezas:
+    cada sensor, cada placa y cada pila sale del bolsillo de una familia.
+    Arturito corrió con la bolita de un desodorante roll-on como rueda
+    loca y un pote de yogurt como carcasa protectora de la electrónica.
+    No era una ocurrencia: era lo que había. Al lado competían equipos de
+    colegios con clubes de robótica, auspiciantes y catálogos de robots
+    ya armados a la venta en la propia capacitación.</p>
+    <p>Del lado del conocimiento pasa lo mismo. El reglamento era
+    «amateur», pero el que se vio barrer el podio no era amateur: llevaba años
+    compitiendo en torneos internacionales y vino con tres robots bajo
+    los 14 segundos. Para un chico de fiscal que programa su primer
+    Arduino en un cuaderno prestado, ese rival no está en otra liga:
+    está en otro deporte.</p>
+    <p>La conclusión que se puede firmar: la desigualdad no se vio en la
+    pista, se vio en la lista. Los colegios de convenio ni aparecieron;
+    los fiscales del distrito llegaron pocos y con un equipo o dos; las
+    privadas llegaron en masa y se llevaron todo. Y todavía hubo sitio
+    para colegios de otros distritos, mientras la mayoría de los fiscales
+    de Santa Cruz 1 ni se enteró o no pudo sumarse.</p>
+    <p>Que el cuarto lugar lo haya logrado un robot de colegio fiscal, el
+    único amateur que cerró el circuito, cuenta la otra mitad de la
+    historia: cuando un fiscal consigue llegar, llega a competir.</p>
+    <p class="nota">Más datos en <a href="concurso.html">la página
+    del concurso</a>: quién ganó, con qué vínculos, y los videos de la
+    primera vuelta de cada robot del podio.</p>
+  </section>
+
+  <div class="track-anchor" id="t8"></div>
+
+  <footer>
+    <p>Gaby, Darius y Max · U.E. Jaime Alfonso Escalante Gutierrez A<br>
+    Distrito Santa Cruz 1, Bolivia · 2026</p>
+    <p class="credit">Página y simulador escritos por
+    <a href="https://asosab.github.io">Alejandro Sosa Briceño</a></p>
+  </footer>
+</main>
+
+<script src="assets/js/colegios.js"></script>
+
+<!-- El carrito viaja en esta capa, siguiendo la línea por encima del
+     texto. El agarre de la cinta se resuelve en track.js a nivel
+     documento (sin elemento sobre el contenido: solo reclama el gesto
+     dentro de la banda de la cinta y nunca sobre links ni botones). -->
+<svg id="trackTop" width="110" height="110">
+  <g id="bot" role="button" tabindex="0" aria-label="Encender o apagar a Arturito" style="cursor:pointer">
+    <ellipse class="led" cx="0" cy="-20.4" rx="26" ry="5" fill="none"/>
+    <use href="#arturito-shape" transform="scale(0.34) translate(-110 -130)"/>
+    <circle class="sen" cx="-17.7" cy="-16" r="2.4"/>
+    <circle class="sen" cx="-8.8" cy="-24.8" r="2.4"/>
+    <circle class="sen" cx="0" cy="-33.7" r="2.4"/>
+    <circle class="sen" cx="8.8" cy="-24.8" r="2.4"/>
+    <circle class="sen" cx="17.7" cy="-16" r="2.4"/>
+  </g>
+</svg>
+
+<div id="lab" hidden>
+  <svg id="labTrack"><path id="labHit" d=""/><path id="labPath" d=""/></svg>
+  <div class="lab-bar">
+    <span class="lab-title">Probar el simulador</span>
+    <span class="lab-hint">Pista de práctica: circuito cerrado con un cruce. Clic en el carrito para encenderlo, arrástralo para probar situaciones. Los bordes son muros.</span>
+    <button id="closeLab" type="button" aria-label="Cerrar el probador">Cerrar</button>
+  </div>
+</div>
+
+<script src="assets/js/track.js"></script>
+</body>
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arturito, robot seguidor de línea</title>
+<meta name="description" content="La historia de Arturito, el robot seguidor de línea de tres estudiantes de la U.E. Jaime Alfonso Escalante Gutierrez A, contada desde el final: lo que aprendieron, qué pasó en el concurso y cómo se documentó todo.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Arturito">
+<meta property="og:title" content="Arturito, robot seguidor de línea">
+<meta property="og:description" content="La historia de Arturito, el robot seguidor de línea de tres estudiantes de la U.E. Jaime Alfonso Escalante Gutierrez A, contada desde el final: lo que aprendieron, qué pasó en el concurso y cómo se documentó todo.">
+<meta property="og:url" content="https://asosab.github.io/bot_sigue_linea/index.html">
+<meta property="og:image" content="https://asosab.github.io/bot_sigue_linea/assets/img/compartir.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="es_BO">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="index">
+
+<!-- Dibujo de Arturito, reutilizado en el hero y en el sprite que recorre la pista -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="arturito-shape">
+      <!-- la bola del desodorante queda bajo el chasis y apenas
+           asoma por el borde trasero -->
+      <circle cx="110" cy="228" r="7" fill="#d9596f" stroke="#a83a50" stroke-width="2"/>
+
+      <!-- ruedas: cubierta negra con la liga oscura por el centro de la banda -->
+      <rect x="6"   y="118" width="30" height="98" rx="15" fill="#1d1d1d"/>
+      <rect x="184" y="118" width="30" height="98" rx="15" fill="#1d1d1d"/>
+      <rect x="16"  y="124" width="10" height="86" rx="5" fill="#43251a"/>
+      <rect x="194" y="124" width="10" height="86" rx="5" fill="#43251a"/>
+      <circle cx="21"  cy="167" r="11" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+      <circle cx="199" cy="167" r="11" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+
+      <!-- los sensores van debajo de la base: en el piso solo se ve la
+           sombra del voladizo y, al encender, el brillo de los LEDs -->
+      <ellipse cx="110" cy="55" rx="68" ry="30" fill="#8a7a5c" opacity="0.28"/>
+
+      <!-- base cuadrada: lo cubre todo menos las ruedas -->
+      <rect x="38" y="78" width="144" height="144" rx="8" fill="#f4f2ea" stroke="#cdc7b8" stroke-width="3"/>
+      <circle cx="50"  cy="92"  r="3.2" fill="#9a9a9a"/>
+      <circle cx="170" cy="92"  r="3.2" fill="#9a9a9a"/>
+      <circle cx="50"  cy="208" r="3.2" fill="#9a9a9a"/>
+      <circle cx="170" cy="208" r="3.2" fill="#9a9a9a"/>
+
+      <!-- medio envase de leche como carcasa -->
+      <rect x="52" y="100" width="116" height="116" rx="20" fill="#f8f6ef" stroke="#d6d2c4" stroke-width="2.5"/>
+      <rect x="58" y="106" width="104" height="104" rx="16" fill="none" stroke="#e3ded0" stroke-width="2"/>
+      <!-- el asa del envase, junto a la tapa -->
+      <rect x="124" y="190" width="34" height="24" rx="12" fill="none" stroke="#f8f6ef" stroke-width="8"/>
+
+      <!-- cables que salen por el borde delantero del pote -->
+      <path d="M94 100 q-8 -8 -18 -9"  fill="none" stroke="#b03a2e" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M126 100 q8 -8 18 -9"  fill="none" stroke="#34495e" stroke-width="2.5" stroke-linecap="round"/>
+
+      <!-- el botón de largada va montado sobre la tapa: de arriba se
+           ve amarillo con el anillo azul que le queda debajo -->
+      <circle cx="100" cy="184" r="16"   fill="#2657b0" stroke="#173c7c" stroke-width="2.5"/>
+      <circle cx="100" cy="184" r="11.5" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+      <circle cx="100" cy="184" r="6"    fill="#f7d94e"/>
+    </g>
+  </defs>
+</svg>
+
+<!-- La pista: la línea visible corre por debajo del contenido -->
+<svg id="track" aria-hidden="true">
+  <path id="trackPath" d=""/>
+</svg>
+
+<nav id="menu">
+  <button id="menuToggle" type="button" aria-label="Menú" aria-expanded="false" aria-controls="menuLinks">
+    <span></span><span></span><span></span>
+  </button>
+  <div id="menuLinks">
+    <a href="index.html">Inicio</a>
+    <a href="proyecto.html">El proyecto</a>
+    <a href="concurso.html">El concurso</a>
+    <a href="metodo.html">El método</a>
+    <button id="openLab" type="button">Probar el simulador</button>
+  </div>
+</nav>
+
+<main>
+  <header class="hero">
+    <h1>Arturito</h1>
+    <p class="lede">Un carrito que sigue líneas negras, armado y programado por tres
+    estudiantes de secundaria del colegio Jaime Alfonso Escalante Gutierrez A,
+    en Santa Cruz de la Sierra. Esta es su historia, contada desde el final.</p>
+    <p class="hint">La cinta negra se puede arrastrar: muévela para leer lo
+    que hay debajo o dibuja figuras nuevas con ella.</p>
+    <div class="hero-actions">
+      <button id="resetCinta" class="cta ghost" type="button">Restaurar la cinta</button>
+      <button id="resetCarrito" class="cta ghost" type="button">Reiniciar el carrito</button>
+    </div>
+  </header>
+
+  <div class="track-anchor" id="t1"></div>
+
+  <section id="final">
+    <h2>El final primero</h2>
+    <p>Arturito corrió tres veces el 31 de octubre y no completó el
+    circuito en ninguna. Y sin embargo esta historia termina bien: el
+    robot no ganó nada y el equipo ganó bastante.</p>
+    <p>Para que este carrito anduviera, tres chicos de colegio fiscal
+    aprendieron mecánica de verdad —dónde pesa un chasis, por qué una
+    bola de desodorante desliza mejor que un taco, qué resuelve una
+    liga estirada alrededor de una rueda—; electrónica de verdad —un
+    driver que duerme hasta que lo despiertan, una protoboard que
+    reparte mal la corriente, sensores que mienten apagados—; y
+    programación de verdad —control proporcional, calibración en cada
+    largada, una memoria que guarda cada corrida para revisarla
+    después—. Nada de eso venía en un manual: salió de romper, medir
+    y volver a probar.</p>
+    <p>También aprendieron a competir: llegar temprano, pasar la
+    homologación, ajustar el robot en la zona de competencia sin ayuda
+    de los adultos, perder tres veces seguidas y seguir riéndose en la
+    foto.</p>
+    <p>Y hubo una lección que no era para ellos, sino para nosotros,
+    los adultos: cualquier convocatoria se investiga antes de
+    firmarla. Quién organiza, quién capacita, quiénes compiten y quién
+    pone los premios se puede averiguar con paciencia y datos públicos.
+    En este concurso esa tarea llegó tarde; lo que encontramos está en
+    la segunda parte.</p>
+  </section>
+
+  <div class="track-anchor" id="t2"></div>
+
+  <section id="partes">
+    <h2>La historia, en tres partes</h2>
+    <div class="dia">
+      <time>Parte 1</time>
+      <h3><a href="proyecto.html">El proyecto</a></h3>
+      <p>Tres estudiantes de secundaria, un Arduino UNO y la bola de un
+      desodorante: el armado, la electrónica y el código de Arturito,
+      con su diario de construcción completo. Cada fallo y cada
+      arreglo, del primer tornillo a las ligas de la mañana del
+      concurso.</p>
+    </div>
+    <div class="dia">
+      <time>Parte 2</time>
+      <h3><a href="concurso.html">El concurso</a></h3>
+      <p>Qué se convocó, quiénes llegaron, qué pasó el 31 de octubre y
+      qué encontramos después al mirar los documentos: un podio
+      barrido por el capacitador del evento, premios que vuelven a
+      quienes los pusieron y preguntas respondidas con expulsión.
+      Incluye la carta de petición de informe enviada a la
+      Dirección Distrital, con sus anexos.</p>
+    </div>
+    <div class="dia">
+      <time>Parte 3</time>
+      <h3><a href="metodo.html">El método</a></h3>
+      <p>Cómo se documentó todo esto con ayuda de una inteligencia
+      artificial: el archivo de notas, la investigación con datos
+      públicos, los videos cortados en frames y este mismo sitio.
+      Sirve de receta para cualquier familia o equipo que quiera
+      repetirlo.</p>
+    </div>
+  </section>
+
+  <div class="track-anchor" id="t3"></div>
+
+  <section id="circuito">
+    <h2>El circuito</h2>
+    <p>La cinta no termina en esta página: entra de la anterior y sale
+    hacia la siguiente. Es un solo circuito que recorre todo el sitio
+    y un solo Arturito lo corre — para verlo andar hay que seguirlo de
+    página en página. El robotito del mapa marca dónde está ahora.</p>
+    <svg class="mapa" viewBox="0 0 720 440" role="img"
+      aria-label="Mapa del circuito: la cinta recorre Inicio, El proyecto, El diario, El concurso, Los premios, Los colegios y El método, y vuelve a Inicio">
+      <path class="mapa-tape" d="M 110 110 L 360 90 L 610 110 Q 700 210 610 310 L 470 330 L 250 330 L 110 330 Q 30 215 110 110 Z"/>
+      <polygon class="mapa-arrow" points="0,-7 12,0 0,7" transform="translate(235 98)"/>
+      <polygon class="mapa-arrow" points="0,-7 12,0 0,7" transform="translate(512 98)"/>
+      <polygon class="mapa-arrow" points="0,-7 12,0 0,7" transform="translate(662 208) rotate(90)"/>
+      <polygon class="mapa-arrow" points="0,-7 12,0 0,7" transform="translate(542 331) rotate(180)"/>
+      <polygon class="mapa-arrow" points="0,-7 12,0 0,7" transform="translate(180 331) rotate(180)"/>
+      <polygon class="mapa-arrow" points="0,-7 12,0 0,7" transform="translate(66 218) rotate(-90)"/>
+      <g class="map-node" data-page="index" transform="translate(110 110)">
+        <rect x="-55" y="-22" width="110" height="44" rx="12"/>
+        <text y="5" text-anchor="middle">Inicio</text>
+      </g>
+      <g class="map-node" data-page="proyecto" transform="translate(360 90)">
+        <rect x="-62" y="-22" width="124" height="44" rx="12"/>
+        <text y="5" text-anchor="middle">El proyecto</text>
+      </g>
+      <g class="map-node" data-page="diario" transform="translate(610 110)">
+        <rect x="-55" y="-22" width="110" height="44" rx="12"/>
+        <text y="5" text-anchor="middle">El diario</text>
+      </g>
+      <g class="map-node" data-page="concurso" transform="translate(610 310)">
+        <rect x="-62" y="-22" width="124" height="44" rx="12"/>
+        <text y="5" text-anchor="middle">El concurso</text>
+      </g>
+      <g class="map-node" data-page="premios" transform="translate(470 330)">
+        <rect x="-60" y="-22" width="120" height="44" rx="12"/>
+        <text y="5" text-anchor="middle">Los premios</text>
+      </g>
+      <g class="map-node" data-page="colegios" transform="translate(250 330)">
+        <rect x="-60" y="-22" width="120" height="44" rx="12"/>
+        <text y="5" text-anchor="middle">Los colegios</text>
+      </g>
+      <g class="map-node" data-page="metodo" transform="translate(110 330)">
+        <rect x="-58" y="-22" width="116" height="44" rx="12"/>
+        <text y="5" text-anchor="middle">El método</text>
+      </g>
+      <g id="mapBot" transform="translate(110 76)">
+        <use href="#arturito-shape" transform="scale(0.18) translate(-110 -150)"/>
+      </g>
+    </svg>
+    <p class="nota">Las puntas de la cinta —los portales de entrada y
+    salida— son fijas; todo lo demás se puede agarrar y deformar.</p>
+  </section>
+
+  <div class="track-anchor" id="t4"></div>
+
+  <footer>
+    <p>Gaby, Darius y Max · U.E. Jaime Alfonso Escalante Gutierrez A<br>
+    Distrito Santa Cruz 1, Bolivia · 2026</p>
+    <p class="credit">Página y simulador escritos por
+    <a href="https://asosab.github.io">Alejandro Sosa Briceño</a></p>
+  </footer>
+</main>
+
+<!-- El carrito viaja en esta capa, siguiendo la línea por encima del
+     texto. El agarre de la cinta se resuelve en track.js a nivel
+     documento (sin elemento sobre el contenido: solo reclama el gesto
+     dentro de la banda de la cinta y nunca sobre links ni botones). -->
+<svg id="trackTop" width="110" height="110">
+  <g id="bot" role="button" tabindex="0" aria-label="Encender o apagar a Arturito" style="cursor:pointer">
+    <ellipse class="led" cx="0" cy="-20.4" rx="26" ry="5" fill="none"/>
+    <use href="#arturito-shape" transform="scale(0.34) translate(-110 -130)"/>
+    <circle class="sen" cx="-17.7" cy="-16" r="2.4"/>
+    <circle class="sen" cx="-8.8" cy="-24.8" r="2.4"/>
+    <circle class="sen" cx="0" cy="-33.7" r="2.4"/>
+    <circle class="sen" cx="8.8" cy="-24.8" r="2.4"/>
+    <circle class="sen" cx="17.7" cy="-16" r="2.4"/>
+  </g>
+</svg>
+
+<div id="lab" hidden>
+  <svg id="labTrack"><path id="labHit" d=""/><path id="labPath" d=""/></svg>
+  <div class="lab-bar">
+    <span class="lab-title">Probar el simulador</span>
+    <span class="lab-hint">Pista de práctica: circuito cerrado con un cruce. Clic en el carrito para encenderlo, arrástralo para probar situaciones. Los bordes son muros.</span>
+    <button id="closeLab" type="button" aria-label="Cerrar el probador">Cerrar</button>
+  </div>
+</div>
+
+<script src="assets/js/track.js"></script>
+</body>
+</html>

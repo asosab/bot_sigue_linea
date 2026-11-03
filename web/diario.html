@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diario de construcción · Arturito</title>
+<meta name="description" content="La libreta completa del robot Arturito: qué falló, qué se midió y qué cambió cada día, del armado al día después del concurso.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Arturito">
+<meta property="og:title" content="Diario de construcción · Arturito">
+<meta property="og:description" content="La libreta completa del robot Arturito: qué falló, qué se midió y qué cambió cada día, del armado al día después del concurso.">
+<meta property="og:url" content="https://asosab.github.io/bot_sigue_linea/diario.html">
+<meta property="og:image" content="https://asosab.github.io/bot_sigue_linea/assets/img/compartir.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="es_BO">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="diario">
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="arturito-shape">
+      <!-- la bola del desodorante queda bajo el chasis y apenas
+           asoma por el borde trasero -->
+      <circle cx="110" cy="228" r="7" fill="#d9596f" stroke="#a83a50" stroke-width="2"/>
+
+      <!-- ruedas: cubierta negra con la liga oscura por el centro de la banda -->
+      <rect x="6"   y="118" width="30" height="98" rx="15" fill="#1d1d1d"/>
+      <rect x="184" y="118" width="30" height="98" rx="15" fill="#1d1d1d"/>
+      <rect x="16"  y="124" width="10" height="86" rx="5" fill="#43251a"/>
+      <rect x="194" y="124" width="10" height="86" rx="5" fill="#43251a"/>
+      <circle cx="21"  cy="167" r="11" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+      <circle cx="199" cy="167" r="11" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+
+      <!-- los sensores van debajo de la base: en el piso solo se ve la
+           sombra del voladizo y, al encender, el brillo de los LEDs -->
+      <ellipse cx="110" cy="55" rx="68" ry="30" fill="#8a7a5c" opacity="0.28"/>
+
+      <!-- base cuadrada: lo cubre todo menos las ruedas -->
+      <rect x="38" y="78" width="144" height="144" rx="8" fill="#f4f2ea" stroke="#cdc7b8" stroke-width="3"/>
+      <circle cx="50"  cy="92"  r="3.2" fill="#9a9a9a"/>
+      <circle cx="170" cy="92"  r="3.2" fill="#9a9a9a"/>
+      <circle cx="50"  cy="208" r="3.2" fill="#9a9a9a"/>
+      <circle cx="170" cy="208" r="3.2" fill="#9a9a9a"/>
+
+      <!-- medio envase de leche como carcasa -->
+      <rect x="52" y="100" width="116" height="116" rx="20" fill="#f8f6ef" stroke="#d6d2c4" stroke-width="2.5"/>
+      <rect x="58" y="106" width="104" height="104" rx="16" fill="none" stroke="#e3ded0" stroke-width="2"/>
+      <!-- el asa del envase, junto a la tapa -->
+      <rect x="124" y="190" width="34" height="24" rx="12" fill="none" stroke="#f8f6ef" stroke-width="8"/>
+
+      <!-- cables que salen por el borde delantero del pote -->
+      <path d="M94 100 q-8 -8 -18 -9"  fill="none" stroke="#b03a2e" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M126 100 q8 -8 18 -9"  fill="none" stroke="#34495e" stroke-width="2.5" stroke-linecap="round"/>
+
+      <!-- el botón de largada va montado sobre la tapa: de arriba se
+           ve amarillo con el anillo azul que le queda debajo -->
+      <circle cx="100" cy="184" r="16"   fill="#2657b0" stroke="#173c7c" stroke-width="2.5"/>
+      <circle cx="100" cy="184" r="11.5" fill="#f4c91f" stroke="#b78f00" stroke-width="2"/>
+      <circle cx="100" cy="184" r="6"    fill="#f7d94e"/>
+    </g>
+  </defs>
+</svg>
+
+<!-- La pista: la línea visible corre por debajo del contenido -->
+<svg id="track" aria-hidden="true">
+  <path id="trackPath" d=""/>
+</svg>
+
+
+<nav id="menu">
+  <button id="menuToggle" type="button" aria-label="Menú" aria-expanded="false" aria-controls="menuLinks">
+    <span></span><span></span><span></span>
+  </button>
+  <div id="menuLinks">
+    <a href="proyecto.html">← El proyecto</a>
+    <a href="#diario">El diario</a>
+    <a href="#descargas">Descargas</a>
+    <a href="concurso.html">El concurso</a>
+    <a href="metodo.html">El método</a>
+    <button id="openLab" type="button">Probar el simulador</button>
+  </div>
+</nav>
+
+<main>
+  <header class="hero diary">
+    <h1>Diario de construcción</h1>
+    <p class="lede">La libreta completa de Arturito: qué falló, qué se
+    midió y qué cambió cada vez, del primer tornillo al día después del
+    concurso.</p>
+    <p class="hint">La cinta negra se puede arrastrar: muévela para leer lo
+    que hay debajo o dibuja figuras nuevas con ella.</p>
+  </header>
+
+  <div class="track-anchor" id="t1"></div>
+
+  <section id="diario">
+    <h2>Del taller a la pista</h2>
+
+  <div class="track-anchor" id="t2"></div>
+
+    <div class="dia">
+      <time datetime="2026-10">Durante el armado</time>
+      <h3>Los sensores van en punta de flecha</h3>
+      <p>Lo normal en estos robots es poner los sensores en una fila recta.
+      Nosotros los pusimos en punta de flecha: el del centro va adelantado y
+      los otros cuatro van más atrás, en las orillas. Al entrar en una curva
+      el de adelante la ve antes que los de atrás, y el robot sabe para qué
+      lado dobla la línea antes de llegar a ella; es casi una lectura en
+      profundidad, no en una sola línea. Con la fila recta todos los
+      sensores se enteran a la vez y la corrección llega tarde.</p>
+      <p>También cuenta dónde cae la formación: cuanto más cerca estén los
+      sensores del punto donde gira el robot, entre las dos ruedas, más fiel
+      es lo que leen. Si quedan muy adelante, un giro chico los corre mucho
+      y el robot corrige de más; pegados al eje, lo que ven se parece a lo
+      que el robot gira de verdad.</p>
+    </div>
+
+    <div class="dia">
+      <time datetime="2026-10">Durante el armado</time>
+      <h3>La rueda loca es la bola de un desodorante</h3>
+      <p>La tercera rueda de Arturito no es una rueda: es la bolita de un
+      desodorante roll-on, encajada en su propia tapa de rosca montada al
+      revés en la parte trasera del chasis. Desliza mucho mejor que un taco
+      fijo y cuesta lo que cuesta un desodorante cuando ya está de tirar a
+      la basura. La gracia está en la
+      rosca: al enroscarla más o menos, la punta delantera del chasis sube
+      o baja un poco, y así ajustamos la altura de los sensores sobre el
+      suelo sin desarmar nada.</p>
+      <p>Eso trajo el problema que arrastramos hasta el concurso: los
+      sensores van por debajo del chasis y el aire que queda hasta el suelo
+      es poco. En recta no se nota, pero a veces le cuesta tomar una curva,
+      como si algo rozara. La solución llegó recién en la mañana de la
+      carrera, y está más abajo: unas ligas en las ruedas.</p>
+    </div>
+
+    <div class="dia">
+      <time datetime="2026-10">Durante el armado</time>
+      <h3>Por qué hay una versión 2</h3>
+      <p>La primera versión decidía todo con una tabla de casos: según qué
+      sensores veían la línea, el robot elegía una orden fija, y entre un
+      caso y el siguiente el movimiento salía a tirones. Andaba, pero iba
+      brusco, siempre a la misma velocidad y con el umbral de lectura fijo
+      en el código. Reescribimos el control y esto fue lo que mejoró:</p>
+      <ul>
+        <li>La lectura dejó de ser blanco o negro por sensor y pasó a un
+        número continuo: la posición de la línea bajo el robot. El giro es
+        proporcional a esa posición, suavizado por un filtro que evita los
+        tirones y un término derivativo que corta el zigzag.</li>
+        <li>La velocidad se adapta sola: a fondo en las rectas, más baja en
+        las curvas. En una carrera a contrarreloj es tiempo gratis.</li>
+        <li>Encendido en la mano espera quieto, con los motores parados.
+        Ya apoyado en la pista se verifica el LED del sensor central sobre
+        la línea y se larga con un pulsador: así arranca la ronda justo
+        cuando toca, sin volver a tocarlo después.</li>
+        <li>Se calibra solo sobre la marcha: sale con los valores medidos
+        en la mesa y, al apoyarlo, la primera lectura toma el blanco y el
+        negro reales de la pista. Cada sensor termina de ajustarse la
+        primera vez que pisa la línea.</li>
+        <li>En una intersección avanza recto un tramo fijo sin leer, para
+        no entrar a un ramal por una lectura a medio cruce.</li>
+        <li>Si pierde la línea busca hacia el último lado donde la vio y, si
+        no la encuentra, retrocede despacio hasta recuperarla.</li>
+        <li>Trae un ajuste fino por motor (TRIM) para corregir la deriva en
+        recta, porque ningún par de motores gira exactamente igual.</li>
+      </ul>
+      <p>El código quedó en el repositorio, junto con los dos programas de
+      diagnóstico que salvan la tarde más abajo.</p>
+    </div>
+
+    <div class="dia">
+      <time datetime="2026-10-28">Miércoles 28 de octubre</time>
+      <h3>Las ruedas no giraban</h3>
+    <p>Encendían las luces del Arduino, las de los cinco sensores y la del
+    driver de motores, y los motores andaban bien conectados directo a las
+    pilas. El faltante estaba en el driver: tiene una pata llamada EEP que
+    funciona como un interruptor de reposo y venía sin conectar. Dormido, el
+    chip recibe las órdenes pero nunca las ejecuta.</p>
+    <p>Para comprobarlo armamos un programa de prueba que enciende un solo
+    cable de motor por vez, tres segundos cada uno, y avisa por el monitor
+    serie qué rueda debería girar. Con un cable nuevo en EEP el mismo
+    programa podía dormir y despertar al driver en plena marcha: el motor
+    se frenaba al instante y volvía a girar al repetir la orden. El chip
+    estaba sano; solo había que despertarlo. Solución: el cable D4→EEP
+    quedó fijo y el código del robot lo pone en alto apenas arranca.</p>
+    </div>
+
+  <div class="track-anchor" id="t3"></div>
+
+    <div class="dia">
+      <time datetime="2026-10-28">Miércoles 28 de octubre</time>
+      <h3>Cada rueda giraba para su lado</h3>
+    <p>Ya despierto el driver, en la prueba de avance una rueda iba al frente
+    y la otra para atrás: el motor izquierdo venía con los cables
+    invertidos. Estos motores no traen marca de polaridad, así que se
+    corrige en el conector intercambiando sus dos cables. Al repetir la
+    prueba las dos giraron juntas.</p>
+    </div>
+
+    <div class="dia">
+      <time datetime="2026-10-28">Miércoles 28 de octubre</time>
+      <h3>Se movía sin parar sobre el blanco</h3>
+    <p>Con las ruedas en el aire y una hoja blanca debajo, el robot no
+    paraba de moverse. Sospechamos de los sensores leídos al revés, pero el
+    monitor contaba otra historia: tres canales clavados en el valor
+    máximo, como si vieran línea negra todo el tiempo. La causa era más
+    simple: esos tres módulos estaban sin corriente porque la protoboard
+    repartía mal la alimentación. Y un sensor apagado manda justo la
+    lectura que el código entiende como «negro»: el robot se movía porque
+    creía ver línea en todas partes. Un segundo programa de prueba, que
+    solo lee los sensores sin tocar motores, mostró qué canales estaban
+    muertos; alimentando un módulo directo desde la placa confirmamos que
+    los sensores estaban sanos y el problema era la corriente.</p>
+    </div>
+
+    <div class="dia">
+      <time datetime="2026-10-28">Miércoles 28 de octubre</time>
+      <h3>¿Los sensores quedaron al revés?</h3>
+    <p>Con los cinco encendidos llegó la prueba definitiva: pasar una cinta
+    negra por debajo de cada sensor, de izquierda a derecha mirando el
+    robot de frente, y anotar qué canal respondía. El orden salió
+    S4, S3, S2, S1, S0: visto desde arriba, el S0 queda a la izquierda del
+    robot y el S4 a la derecha, igual que en el código. No había
+    inversión.</p>
+
+    <p>La moraleja: antes de tocar el código grande, probar cada parte por
+    separado con programas chicos. Los dos de diagnóstico
+    (<code>prueba_drv8833</code> y <code>prueba_sensores</code>) quedaron
+    guardados en el repositorio. Y una nota práctica: los cables dupont se
+    aflojan solos. Dos de los fallos de esa tarde fueron cables que se
+    habían salido al mover otros.</p>
+    </div>
+
+    <div class="dia">
+      <time datetime="2026-10-29">Jueves 29 de octubre</time>
+      <h3>Un pulsador para largar</h3>
+    <p>Hablando con el jurado quedó acordado que el bot largue con un
+    interruptor visible: un pulsador propio, aparte del de encendido. El
+    robot se enciende antes de la ronda y espera quieto ya apoyado en la
+    pista; el botonazo es la largada, y como el cronómetro solo corre
+    cuando el robot avanza, no hay apuro ni arranques en falso. Antes de
+    pulsar da tiempo de confirmar que el LED del sensor central esté
+    prendido: es la señal de que está viendo la línea. Y si hace falta
+    pararlo, un segundo click lo detiene y otro lo relanza con la misma
+    regla.</p>
+    <p>El pulsador va entre el pin D8 y masa, a pelo: el pin usa el
+    pull-up interno del Arduino y se entera del botonazo cuando lo bajan
+    a masa. Miramos las otras dos opciones (llevarlo a 5 V o al positivo
+    de la batería) y las dos obligaban a sumar resistencias; la de 5 V,
+    además, dejaba el pin flotando mientras el botón está suelto, y un
+    pin flotando puede leer largadas que nadie pidió. Lo que pesó fue una
+    regla simple: cada elemento que se suma a un sistema es un punto más
+    donde puede fallar. El botón y dos cables fue todo lo que hizo
+    falta.</p>
+    </div>
+
+  <div class="track-anchor" id="t4"></div>
+
+    <div class="dia">
+      <time datetime="2026-10-29">Jueves 29 de octubre</time>
+      <h3>Cronometrar sin cables</h3>
+    <p>Para afinar la velocidad hacía falta un número que el robot no da:
+    cuánto recorre en un tiempo conocido. No tiene encoders y la prueba no
+    puede llevar USB, así que le escribimos un programa aparte: al pulsar el
+    botón espera medio segundo para que saquemos la mano, enciende su LED
+    integrado, corre tres segundos exactos a velocidad constante y para. El
+    LED queda como marca en el video: entre que prende y apaga pasaron
+    exactamente tres segundos. Se filma sobre una cinta métrica, se repite
+    la pulsada unas cuantas veces y se promedian las lecturas.</p>
+    </div>
+
+    <div class="dia">
+      <time datetime="2026-10-29">Jueves 29 de octubre</time>
+      <h3>La regla miente cuando el robot curva</h3>
+    <p>La primera tanda dijo unos 70 cm en tres segundos, pero con una
+    particularidad: todas las corridas se desviaban unos 30 cm hacia la
+    izquierda. La cinta mide proyección, no camino: si el robot describe un
+    arco, el trecho real es más largo que lo que marca la regla. Con la
+    geometría del arco (radio de casi un metro) salieron unos 79 cm
+    recorridos: 26 cm/s a esa potencia, más de lo que sugería la lectura
+    ingenua. Y el desvío parecía delatar una rueda más lenta que la otra,
+    así que ajustamos el trim en consecuencia.</p>
+    </div>
+
+    <div class="dia">
+      <time datetime="2026-10-29">Jueves 29 de octubre</time>
+      <h3>A dos días del concurso</h3>
+      <p>Lo que falta ya no es que ande: es que ande rápido y no se
+      equivoque. Queda mejorar la velocidad y resolver las intersecciones,
+      que todavía le cuestan: en los cruces no siempre toma el camino
+      correcto.</p>
+    </div>
+
+    <div class="dia">
+      <time datetime="2026-10-30">Viernes 30 de octubre</time>
+      <h3>Tres corridas y el trim que no era</h3>
+    <p>El primer ajuste empeoró la curva en vez de corregirla. Para
+    descartar la pose de salida cambiamos el protocolo: marcas en el piso
+    en vez de video, midiendo distancia recorrida y separación final a un
+    borde de la pista. Con el protocolo fino corrimos tres configuraciones
+    de potencia entre ruedas (224, 238 y 255 en el derecho contra 255 en el
+    izquierdo) y las tres dieron la misma apertura al mismo lado, unos
+    25 cm por metro recorrido. El desvío no respondía al balance de
+    motores: respondía a otra cosa. Veredicto provisional: las ruedas
+    están parejas y el viraje es mecánico (el ángulo de montaje de una
+    rueda, la bola del desodorante descentrada o algo que roza el piso). Se
+    compensa por software mientras se busca el punto físico.</p>
+    </div>
+
+  <div class="track-anchor" id="t5"></div>
+
+    <div class="dia">
+      <time datetime="2026-10-30">Viernes 30 de octubre</time>
+      <h3>El robot que se acuerda</h3>
+    <p>El concurso son tres corridas y cuenta la mejor, así que hacía falta
+    saber cómo corrió cada una sin llevar la compu al costado de la pista.
+    La placa tiene una memoria que sobrevive al apagado (la EEPROM) y
+    ahora cada corrida terminada con el pulsador guarda su tiempo de
+    largada a parada, cuántas veces perdió la línea, cuántas esquinas y
+    cruces resolvió, y la calibración de blanco y negro que aprendió en esa
+    pista. Al prenderlo de nuevo ya sale calibrado con los valores reales,
+    y la tabla de corridas sale por el monitor serie cuando lo
+    conectamos.</p>
+    </div>
+
+    <div class="dia">
+      <time datetime="2026-10-30">Viernes 30 de octubre</time>
+      <h3>Primera vuelta en la pista de práctica</h3>
+    <p>Los datos de la primera tanda en pista dolieron un poco: entre ocho
+    y once pérdidas de línea por corrida. El reporte era que al buscar la
+    línea la rueda se salía del cartón antes de encontrarla. La causa: la
+    búsqueda empezaba con un arco hacia adelante que lo llevaba unos
+    15 cm mientras giraba; para cuando encontraba la línea, la rueda ya
+    estaba fuera. El arreglo fue invertir el orden: primero un giro en el
+    sitio, acotado a unos 90°, que no desplaza al robot ni puede dejarlo
+    mirando para atrás, y los arcos después, más cortos y cerrados. El
+    detector de esquinas también quedó más sensible, y el trim quedó
+    compensando el viraje mecánico a la derecha.</p>
+    </div>
+
+    <div class="dia">
+      <time datetime="2026-10-30">Viernes 30 de octubre</time>
+      <h3>La v3 creció demasiado: nace la v2.5</h3>
+      <p>Después de 22 corridas de prueba la cuenta era fea: casi cada
+      arreglo de la versión 3 generaba el fallo siguiente. Las piezas
+      funcionaban; lo que fallaba era la estrategia. Maniobras a ciegas
+      que se disparaban con dos lecturas y giraban hasta 700 ms sin mirar,
+      un controlador que nunca quedó estable debajo de todo eso, y 45
+      constantes para ajustar con tandas de veinte segundos de pista. No
+      alcanzaba.</p>
+      <p>La v2.5 se queda con lo que de verdad funcionó y suelta lo que
+      parchaba síntomas. Conserva la posición en milímetros con su zona
+      muerta, la traza en EEPROM que deja diagnosticar cada corrida, la
+      búsqueda por fases que no puede dar la vuelta completa y la salida
+      del cruce cuando el sensor delantero reencuentra la línea. Fuera
+      quedaron el disparo por centroide, el sesgo, la atenuación por
+      confianza y los vetos de masa: si la línea está bajo los sensores,
+      seguirla es trabajo del controlador, no de una maniobra.</p>
+      <p>El pulsador cambió en las tres versiones: apretar arma y soltar
+      larga. El dedo ya está fuera cuando arranca, así que la espera de
+      700 ms sobró. El sketch bajó de 904 a unas 580 líneas.</p>
+    </div>
+
+    <div class="dia">
+      <time datetime="2026-10-30">Viernes 30 de octubre</time>
+      <h3>La calibración traía la pista equivocada</h3>
+      <p>Las primeras corridas de la v2.5 salieron mal y enseñaron algo.
+      La EEPROM sembraba la calibración aprendida en otra superficie: el
+      negro de la cinta nueva era distinto, la negrura quedaba comprimida
+      y el robot oscilaba sobre lecturas marginales sin enganchar nunca.
+      Dos corridas seguidas con el mismo síntoma.</p>
+      <p>La salida fue renunciar a la calibración heredada. Los umbrales
+      se deducen de la pose de largada: la regla ya garantiza el sensor
+      del centro sobre la línea y los extremos sobre el blanco, y con esos
+      dos datos sale la escala de esa pista, con esa luz, ese día. La
+      EEPROM sigue guardando la traza de cada corrida, pero ya no se
+      imprime al encender: sale con el comando <code>t</code> por el
+      monitor serie y el botón queda libre desde el primer instante.</p>
+    </div>
+
+  <div class="track-anchor" id="t6"></div>
+
+    <div class="dia">
+      <time datetime="2026-10-30">Viernes 30 de octubre</time>
+      <h3>Las puntas dejaron de votar</h3>
+      <p>La corrida 25 cayó en la intersección otra vez, pero por una
+      puerta distinta: el brazo transversal de la X entró bajo una punta,
+      el centroide se clavó a ese lado y el robot giró hacia el brazo como
+      si fuera la línea. El arreglo fueron tres líneas de código: mientras
+      el trío del centro tenga la línea, las puntas no cuentan en el
+      cálculo; solo votan cuando el trío quedó vacío, que es cuando la
+      línea se va de verdad.</p>
+      <p>La 26, en una pista nueva con una horquilla en U, mostró el mismo
+      vicio por otro lado: los dos brazos de la U caben a la vez en el
+      ancho de los sensores y la punta leyó el brazo vecino como si fuera
+      la curva. Queda pendiente: la lectura del momento no separa la línea
+      propia de un tramo paralelo; lo que las distingue es la historia de
+      hacia dónde venía la línea, y ese criterio es el siguiente
+      cambio.</p>
+    </div>
+
+    <div class="dia">
+      <time datetime="2026-10-30">Viernes 30 de octubre, la víspera</time>
+      <h3>La víspera del concurso</h3>
+      <p>De noche el sketch pasó una revisión externa con la ficha técnica
+      del robot en la mano. Se aplicó todo lo corregible por software: la
+      memoria RAM bajó de 85 a 57 % (los textos del monitor pasaron a
+      flash), la búsqueda quedó acotada por vuelta, el lazo corre a
+      periodo fijo y cada canal se lee dos veces para descartar lecturas
+      de arrastre.</p>
+      <p>Mañana corre la v2.5. Se sabe lo que le cuesta: la horquilla en U
+      y las intersecciones todavía le ganan a veces. Es lo que hay, y es
+      mucho más de lo que había el miércoles, cuando ni siquiera giraban
+      las ruedas.</p>
+    </div>
+
+    <div class="dia">
+      <time datetime="2026-10-31">Sábado 31 de octubre, en la sede</time>
+      <h3>Ligas en las ruedas</h3>
+      <p>Dos problemas viejos se fueron con un solo arreglo. Las ruedas
+      son de plástico liso: sobre el piso pulido del colegio patinaban al
+      acelerar y el robot derrapaba justo al salir de las curvas, donde
+      más necesitaba agarre. Y la queja de siempre: los sensores andaban
+      pegados al suelo y la rosca de la bola ya no daba más rosca para
+      subirlos.</p>
+      <p>La solución salió del cajón de las ligas: una banda de goma
+      estirada alrededor de cada rueda. La liga hace de cubierta y agarra
+      donde el plástico resbalaba; y al rodear la rueda le suma un par de
+      milímetros de diámetro, lo suficiente para levantar el chasis y
+      dejarle aire a la placa de sensores. Sujeción y altura de una vez,
+      con un repuesto que cuesta centavos y se cambia en segundos.</p>
+    </div>
+
+    <div class="dia">
+      <time datetime="2026-11-01">Domingo 1 de noviembre, al día siguiente</time>
+      <h3>El desenlace</h3>
+      <p>Arturito corrió sus tres oportunidades y no completó el circuito
+      en ninguna. Volvió a casa entero, eso sí, y el equipo volvió
+      riéndose: la derrota no les aguó la mañana.</p>
+      <p>Porque lo que queda pesa más que la tabla de tiempos. Para que
+      este carrito anduviera hubo que aprender mecánica de verdad —dónde
+      pesa el chasis, por qué una bola de desodorante desliza mejor que un
+      taco, qué pasa cuando una rueda patina o cuando algo roza el
+      piso—; electrónica de verdad —un driver que duerme hasta que lo
+      despiertan, una protoboard que reparte mal la corriente, sensores
+      que mienten apagados—; y programación de verdad —control
+      proporcional, calibración en cada largada, una memoria que guarda
+      cada corrida para revisarla después—. Nada de eso venía en un
+      manual: salió de romper, medir y volver a probar.</p>
+      <p>Y hubo una materia extra que nadie avisó: investigar antes de
+      inscribirse. Conviene mirar quién organiza, quién capacita, quiénes
+      compiten y qué empresas ponen los premios. En este concurso un mismo
+      inscrito —competidor de circuito internacional, ligado al instituto
+      que donaba una beca— apareció en la lista oficial con varios equipos
+      del colegio sede y barrió el podio entero. Si los representantes de
+      los auspiciantes se anotan en posiciones suficientes, pueden
+      llevarse legalmente el primero, segundo y tercer puesto de todas
+      las categorías: los premios vuelven a quienes los pusieron, con
+      trofeo y foto incluidos, sin que se tenga que entregar nada a
+      nadie de afuera. Legal, sí. Parejo, no tanto.</p>
+      <p>El robot no ganó nada y el equipo ganó bastante. La próxima
+      inscripción se firma con los ojos abiertos.</p>
+    </div>
+  </section>
+
+  <div class="track-anchor" id="t7"></div>
+
+  <section id="descargas">
+    <h2>Descargas</h2>
+    <p>El esquema de conexión de las partes, con las fotos de la placa y
+    el driver señalando cada pin, en un PDF para imprimir o tener a mano:
+    <a href="assets/pdf/arturito-esquema.pdf">arturito-esquema.pdf</a>.</p>
+    <p>El programa oficial del concurso, con el horario del sábado:
+    <a href="assets/pdf/programa-del-evento.pdf">programa-del-evento.pdf</a>.</p>
+  </section>
+
+  <div class="track-anchor" id="t8"></div>
+
+  <footer>
+    <p>Gaby, Darius y Max · U.E. Jaime Alfonso Escalante Gutierrez A<br>
+    Distrito Santa Cruz 1, Bolivia · 2026</p>
+    <p class="credit">Página y simulador escritos por
+    <a href="https://asosab.github.io">Alejandro Sosa Briceño</a></p>
+  </footer>
+</main>
+
+
+<!-- El carrito viaja en esta capa, siguiendo la línea por encima del
+     texto. El agarre de la cinta se resuelve en track.js a nivel
+     documento (sin elemento sobre el contenido: solo reclama el gesto
+     dentro de la banda de la cinta y nunca sobre links ni botones). -->
+<svg id="trackTop" width="110" height="110">
+  <g id="bot" role="button" tabindex="0" aria-label="Encender o apagar a Arturito" style="cursor:pointer">
+    <ellipse class="led" cx="0" cy="-20.4" rx="26" ry="5" fill="none"/>
+    <use href="#arturito-shape" transform="scale(0.34) translate(-110 -130)"/>
+    <circle class="sen" cx="-17.7" cy="-16" r="2.4"/>
+    <circle class="sen" cx="-8.8" cy="-24.8" r="2.4"/>
+    <circle class="sen" cx="0" cy="-33.7" r="2.4"/>
+    <circle class="sen" cx="8.8" cy="-24.8" r="2.4"/>
+    <circle class="sen" cx="17.7" cy="-16" r="2.4"/>
+  </g>
+</svg>
+
+<div id="lab" hidden>
+  <svg id="labTrack"><path id="labHit" d=""/><path id="labPath" d=""/></svg>
+  <div class="lab-bar">
+    <span class="lab-title">Probar el simulador</span>
+    <span class="lab-hint">Pista de práctica: circuito cerrado con un cruce. Clic en el carrito para encenderlo, arrástralo para probar situaciones. Los bordes son muros.</span>
+    <button id="closeLab" type="button" aria-label="Cerrar el probador">Cerrar</button>
+  </div>
+</div>
+
+<script src="assets/js/track.js"></script>
+</body>
+</html>
