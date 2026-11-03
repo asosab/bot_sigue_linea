@@ -446,6 +446,19 @@ li { margin: .4em 0; }
   font-size: .85rem;
 }
 
+.espera {
+  margin: 1.2em 0 0;
+  padding: .8em 1em;
+  border-left: 3px solid #f4c91f;
+  background: rgba(244, 201, 31, .08);
+  border-radius: 0 8px 8px 0;
+  font-size: .95rem;
+}
+
+.espera strong {
+  font-variant-numeric: tabular-nums;
+}
+
 blockquote {
   margin: 1.1em 0;
   padding: 0 0 0 1em;
