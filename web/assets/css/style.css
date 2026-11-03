@@ -243,9 +243,27 @@ section, footer {
 }
 
 .hero {
+  position: relative;
   text-align: center;
   padding: 170px 16px 26px;
 }
+
+/* el video de la vuelta corre lavado detrás de la portada, a todo lo
+   ancho de la ventana; el texto y la cinta se leen por encima */
+.hero-bg {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  height: 100%;
+  object-fit: cover;
+  opacity: .18;
+  filter: saturate(.55);
+  pointer-events: none;
+}
+
+.hero > :not(.hero-bg) { position: relative; }
 
 h1, h2, h3, .lede, figcaption { text-wrap: balance; }
 
@@ -567,6 +585,16 @@ figure.wide figcaption {
   width: 100%;
   height: 100%;
   border: 0;
+}
+
+/* el clip de la vuelta es de teléfono, parado: el reproductor va
+   angosto y centrado para que no le queden bandas a los lados */
+.yt.vertical {
+  aspect-ratio: 9 / 16;
+  display: block;
+  width: 100%;
+  max-width: 260px;
+  margin: 0 auto;
 }
 
 /* Visor de fotos: cubre todo, por encima del menú (z-40) y del lab (z-60) */
@@ -915,6 +943,7 @@ footer {
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
+  .hero-bg { display: none; }
 }
 
 /* letreros de los portales: marcan por dónde viene y por dónde se va
