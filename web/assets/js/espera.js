@@ -1,7 +1,8 @@
 /* Contador de espera: tiempo transcurrido desde que la nota de
    petición de informe llegó a la Dirección Departamental (3 nov 2026,
-   9:55, por WhatsApp a la cuenta oficial). Muestra años, días y horas
-   y se actualiza cada minuto. Si no hay JS el párrafo queda oculto. */
+   9:55, por WhatsApp a la cuenta oficial). Muestra solo los campos
+   mayores a cero, en orden horas, días y años, y se actualiza cada
+   minuto. Si no hay JS el párrafo queda oculto. */
 (function () {
   var parrafo = document.getElementById('espera');
   var el = document.getElementById('esperaTiempo');
@@ -29,9 +30,15 @@
     var dias = Math.floor(resto / 864e5);
     var horas = Math.floor((resto % 864e5) / 36e5);
 
-    el.textContent = plural(anios, 'año', 'años') + ', ' +
-      plural(dias, 'día', 'días') + ' y ' +
-      plural(horas, 'hora', 'horas');
+    var partes = [];
+    if (horas > 0) partes.push(plural(horas, 'hora', 'horas'));
+    if (dias > 0) partes.push(plural(dias, 'día', 'días'));
+    if (anios > 0) partes.push(plural(anios, 'año', 'años'));
+
+    var ultimo = partes.pop();
+    el.textContent = ultimo
+      ? (partes.length ? partes.join(', ') + ' y ' : '') + ultimo
+      : 'menos de una hora';
     parrafo.hidden = false;
   }
 
